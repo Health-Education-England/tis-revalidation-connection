@@ -9,8 +9,7 @@ plugins {
   id "org.sonarqube" version "3.0"
 }
 
-// TODO: Update group to end with "admin" or "trainee".
-group = "uk.nhs.hee.tis"
+group = "uk.nhs.hee.tis.revalidation"
 version = "0.0.1"
 sourceCompatibility = "11"
 

@@ -25,8 +25,6 @@ Error and exception logging is done using Sentry.
  - Set up Sentry project.
  - Provide `SENTRY_DSN` and `SENTRY_ENVIRONMENT` as environmental variables
    during deployment.
- - Add repository to SonarCloud.
- - Add SonarCloud API key to repository secrets.
  - Add repository to Dependabot.
 
 ## Workflow

@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.template.config;
+package uk.nhs.hee.tis.revalidation.connection.config;
 
 import io.sentry.spring.SentryExceptionResolver;
 import io.sentry.spring.SentryServletContextInitializer;

@@ -19,16 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.template;
+package uk.nhs.hee.tis.revalidation.connection;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootApplication
-//TODO: Update package and class name.
-public class TemplateApplication {
+@SpringBootTest
+class RevalidationConnectionApplicationTest {
 
-  public static void main(String[] args) {
-    SpringApplication.run(TemplateApplication.class);
+  @Test
+  void contextLoads() {
+
   }
 }

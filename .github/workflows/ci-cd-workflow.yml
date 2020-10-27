@@ -193,7 +193,7 @@ jobs:
           cluster: revalidation-preprod
           wait-for-service-stability: true
 
-      - name: Push stabe tag image to Amazon ECR
+      - name: Push stable tag image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ github.event.repository.name }}

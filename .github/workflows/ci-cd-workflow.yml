@@ -193,11 +193,11 @@ jobs:
           cluster: revalidation-preprod
           wait-for-service-stability: true
 
-      - name: Build, tag as stable and push image to Amazon ECR
+      - name: Push stable tag image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ github.event.repository.name }}
         run: |
-          ./gradlew bootBuildImage -x bootJar --imageName=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} $ECR_REGISTRY/$ECR_REPOSITORY:stable
           docker push $ECR_REGISTRY/$ECR_REPOSITORY

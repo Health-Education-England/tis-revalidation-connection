@@ -1,7 +1,33 @@
+debug: true
+spring:
+  profiles:
+    active: ${SPRING_PROFILE:local}
+  application:
+    name: tis-revalidation-connection
+  jackson:
+    serialization.write_dates_as_timestamps: false
+    serialization.indent_output: true
+  data:
+    mongodb:
+      uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1
+
 server:
   port: 8090
   servlet:
     context-path: /connection
+
+app:
+  error:
+    exchange: "ex.error"
+    limit.retries: true
+
+
+
+  gmc:
+    url: ${GMC_CONNECT_URL:http://localhost:8090/GMCConnectMock2020/GMCWebServices}
+    soapActionBase: ${GMC_SOAP_ACTION_BASE:https://webcache.gmc-uk.org/GMCWebServices/}
+    gmcUsername: ${GMC_USER_NAME:guest}
+    gmcPassword: ${GMC_PASSWORD:guest}
 
 sentry:
   dsn: ${SENTRY_DSN:}

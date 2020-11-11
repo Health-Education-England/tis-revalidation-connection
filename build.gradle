@@ -31,6 +31,9 @@ dependencies {
     exclude group: "org.junit.vintage", module: "junit-vintage-engine"
   }
 
+  // GMC-API
+  implementation "uk.nhs.hee.tis:gmc-api:1.0.0"
+
   // Lombok
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"

@@ -27,7 +27,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Add CodeArtifact env var
-        run: echo "::set-env name=CODEARTIFACT_AUTH_TOKEN::$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)"
+        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
 
       - name: Build with Gradle
         run: ./gradlew assemble
@@ -59,7 +59,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Add CodeArtifact env var
-        run: echo "::set-env name=CODEARTIFACT_AUTH_TOKEN::$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)"
+        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
 
       - name: Run Gradle checks
         run: ./gradlew check -x test
@@ -91,8 +91,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Add CodeArtifact env var
-        run: echo "::set-env name=CODEARTIFACT_AUTH_TOKEN::$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)"
-
+        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
 
       - name: Run Gradle tests
         run: ./gradlew test
@@ -131,7 +130,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Add CodeArtifact env var
-        run: echo "::set-env name=CODEARTIFACT_AUTH_TOKEN::$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)"
+        run: echo "CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain hee --domain-owner 430723991443 --query authorizationToken --output text)" >> $GITHUB_ENV
 
       - name: Run quality analysis
         env:

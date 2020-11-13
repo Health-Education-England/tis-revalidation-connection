@@ -23,11 +23,29 @@ package uk.nhs.hee.tis.revalidation.connection;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.ws.client.core.WebServiceTemplate;
 
 @SpringBootApplication
 public class RevalidationConnectionApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(RevalidationConnectionApplication.class);
+  }
+
+  @Bean
+  public WebServiceTemplate webServiceTemplate() {
+    final WebServiceTemplate webServiceTemplate =  new WebServiceTemplate();
+    webServiceTemplate.setMarshaller(marshaller());
+    webServiceTemplate.setUnmarshaller(marshaller());
+    return webServiceTemplate;
+  }
+
+  @Bean
+  public Jaxb2Marshaller marshaller() {
+    final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+    marshaller.setPackagesToScan("uk.nhs.hee.tis.gmc.client", "uk.nhs.hee.tis.gmc.client.generated");
+    return marshaller;
   }
 }

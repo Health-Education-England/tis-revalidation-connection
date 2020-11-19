@@ -6,7 +6,9 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestTyp
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
@@ -22,6 +24,15 @@ public class ConnectionService {
 
   @Autowired
   private ConnectionRepository repository;
+
+  @Autowired
+  private RabbitTemplate rabbitTemplate;
+
+  @Value("${app.rabbit.exchange}")
+  private String exchange;
+
+  @Value("${app.rabbit.routingkey}")
+  private String routingKey;
 
   public String addDoctor(final AddRemoveDoctorDto addDoctorDto) {
     final var gmcResponse = gmcClientService.addDoctor(addDoctorDto);
@@ -55,8 +66,15 @@ public class ConnectionService {
         .build();
 
     repository.save(connectionRequestLog);
+    sendToRabbit(removeDoctorDto.getGmcId(), gmcResponse.getReturnCode());
     final var gmcResponseCode = GmcResponseCode.fromCode(gmcResponse.getReturnCode());
     return gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
 
+  }
+
+  private void sendToRabbit(final String gmcId, final String returnCode) {
+    if (GmcResponseCode.SUCCESS.getCode().equals(returnCode)) {
+      rabbitTemplate.convertAndSend(exchange, routingKey, gmcId);
+    }
   }
 }

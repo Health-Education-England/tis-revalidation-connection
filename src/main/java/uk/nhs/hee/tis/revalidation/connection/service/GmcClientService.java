@@ -21,6 +21,7 @@ public class GmcClientService {
 
   private static final String TRY_ADD_DOCTOR = "TryAddDoctor";
   private static final String TRY_REMOVE_DOCTOR = "TryRemoveDoctor";
+  private static final String INTERNAL_USER = "Admin"; //TODO: update when pass real user
 
   @Autowired
   private WebServiceTemplate webServiceTemplate;
@@ -70,6 +71,7 @@ public class GmcClientService {
     tryAddDoctorRequest.setChangeReason(addDoctorDto.getChangeReason());
     tryAddDoctorRequest.setDesignatedBodyCode(addDoctorDto.getDesignatedBodyCode());
     tryAddDoctorRequest.setClientRequestID(addDoctorDto.getGmcId());
+    tryAddDoctorRequest.setInternalUser(INTERNAL_USER);
     tryAddDoctor.setRecReq(tryAddDoctorRequest);
     tryAddDoctor.setUsername(gmcUserName);
     tryAddDoctor.setPassword(gmcPassword);
@@ -83,6 +85,7 @@ public class GmcClientService {
     tryRemoveDoctorRequest.setChangeReason(removeDoctorDto.getChangeReason());
     tryRemoveDoctorRequest.setClientRequestID(removeDoctorDto.getGmcId());
     tryRemoveDoctorRequest.setDesignatedBodyCode(removeDoctorDto.getDesignatedBodyCode());
+    tryRemoveDoctorRequest.setInternalUser(INTERNAL_USER);
     tryRemoveDoctor.setRecReq(tryRemoveDoctorRequest);
     tryRemoveDoctor.setUsername(gmcUserName);
     tryRemoveDoctor.setPassword(gmcPassword);

@@ -7,6 +7,11 @@ spring:
   jackson:
     serialization.write_dates_as_timestamps: false
     serialization.indent_output: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
   data:
     mongodb:
       uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1
@@ -20,6 +25,11 @@ app:
   error:
     exchange: "ex.error"
     limit.retries: true
+
+  rabbit:
+    exchange: ${EXCHANGE:gmc-connect-exchange}
+    remove.dbc.queue: ${REMOVE_DBC_QUEUE:remove-doctors-dbc-queue}
+    routingKey: ${ROUTING_KEY:uk.nhs.hee}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8090/GMCConnectMock2020/GMCWebServices}

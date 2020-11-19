@@ -17,13 +17,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-  @Value("${app.rabbit.remove.dbc.queue}")
-  private String queueName;
 
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
-  @Value("${app.rabbit.routingkey}")
+  @Value("${app.rabbit.remove.dbc.queue}")
+  private String queueName;
+
+  @Value("${app.rabbit.remove.dbc.routingKey}")
   private String routingKey;
 
   @Bean

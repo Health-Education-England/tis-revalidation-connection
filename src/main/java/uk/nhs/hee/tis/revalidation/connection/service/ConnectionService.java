@@ -31,7 +31,7 @@ public class ConnectionService {
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
-  @Value("${app.rabbit.routingkey}")
+  @Value("${app.rabbit.remove.dbc.routingKey}")
   private String routingKey;
 
   public String addDoctor(final AddRemoveDoctorDto addDoctorDto) {
@@ -74,6 +74,7 @@ public class ConnectionService {
 
   private void sendToRabbit(final String gmcId, final String returnCode) {
     if (GmcResponseCode.SUCCESS.getCode().equals(returnCode)) {
+      log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(exchange, routingKey, gmcId);
     }
   }

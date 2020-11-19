@@ -3,6 +3,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
@@ -31,6 +33,9 @@ class ConnectionServiceTest {
   private ConnectionRepository repository;
 
   @Mock
+  private RabbitTemplate rabbitTemplate;
+
+  @Mock
   private GmcConnectionResponseDto gmcConnectionResponseDto;
 
   private String changeReason;
@@ -46,6 +51,9 @@ class ConnectionServiceTest {
     gmcId = faker.number().digits(8);
     gmcRequestId = faker.random().toString();
     returnCode = "0";
+
+    setField(connectionService, "exchange", "exchange");
+    setField(connectionService, "routingKey", "routingKey");
   }
 
   @Test
@@ -75,6 +83,7 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctor(removeDoctorDto);
+    verify(rabbitTemplate).convertAndSend("exchange", "routingKey", gmcId);
     verify(repository).save(any(ConnectionRequestLog.class));
   }
 

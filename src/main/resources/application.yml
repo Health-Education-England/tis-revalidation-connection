@@ -28,8 +28,8 @@ app:
 
   rabbit:
     exchange: ${EXCHANGE:gmc-connect-exchange}
-    remove.dbc.queue: ${REMOVE_DBC_QUEUE:remove-doctors-dbc-queue}
-    remove.dbc.routingKey: ${REMOVE_DBC_ROUTING_KEY:uk.nhs.hee.connection}
+    connection.queue: ${CONNECTION_QUEUE:connection-queue}
+    connection.routingKey: ${CONNECTION_ROUTING_KEY:uk.nhs.hee.connection}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8090/GMCConnectMock2020/GMCWebServices}

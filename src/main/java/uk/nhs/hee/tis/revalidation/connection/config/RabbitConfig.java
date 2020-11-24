@@ -21,10 +21,10 @@ public class RabbitConfig {
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
-  @Value("${app.rabbit.remove.dbc.queue}")
+  @Value("${app.rabbit.connection.queue}")
   private String queueName;
 
-  @Value("${app.rabbit.remove.dbc.routingKey}")
+  @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
   @Bean

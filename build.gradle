@@ -60,7 +60,7 @@ dependencies {
 
   implementation "com.github.javafaker:javafaker:1.0.2"
   implementation "io.springfox:springfox-swagger2:3.0.0"
-  implementation "io.springfox:springfox-swagger-ui:2.9.1"
+  implementation "io.springfox:springfox-swagger-ui:3.0.0"
 }
 
 checkstyle {

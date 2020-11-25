@@ -16,6 +16,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
+import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,6 +69,9 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
     connectionService.addDoctor(addDoctorDto);
+    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
+        .build();
+    verify(rabbitTemplate).convertAndSend("exchange", "routingKey", message);
     verify(repository).save(any(ConnectionRequestLog.class));
   }
 
@@ -83,7 +87,9 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctor(removeDoctorDto);
-    verify(rabbitTemplate).convertAndSend("exchange", "routingKey", gmcId);
+    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
+        .build();
+    verify(rabbitTemplate).convertAndSend("exchange", "routingKey", message);
     verify(repository).save(any(ConnectionRequestLog.class));
   }
 

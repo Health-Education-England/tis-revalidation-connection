@@ -19,6 +19,8 @@ public class ConnectionRequestLog {
   private String id;
   private String gmcId;
   private String gmcClientId;
+  private String newDesignatedBodyCode;
+  private String previousDesignatedBodyCode;
   private String reason;
   private ConnectionRequestType requestType;
   private LocalDateTime requestTime;

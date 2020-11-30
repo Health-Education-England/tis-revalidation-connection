@@ -1,8 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AddRemoveDoctorDto {
+public class DoctorInfoDto {
 
-  private String changeReason;
-  private String designatedBodyCode;
-  private List<DoctorInfoDto> doctors;
+  private String gmcId;
+  private String currentDesignatedBodyCode;
 }

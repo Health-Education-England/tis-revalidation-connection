@@ -38,9 +38,10 @@ public class GmcClientService {
   @Value("${app.gmc.soapActionBase}")
   private String gmcSoapBaseAction;
 
-  public GmcConnectionResponseDto addDoctor(final AddRemoveDoctorDto addDoctorDto) {
-    log.info("Preparing to submit add doctor request to GMC: {}", addDoctorDto);
-    final var tryAddDoctor = prepareAddDoctorRequest(addDoctorDto);
+  public GmcConnectionResponseDto tryAddDoctor(final String gmcId, final String changeReason,
+      final String designatedBodyCode) {
+    log.info("Preparing to submit add doctor request to GMC: {}", gmcId);
+    final var tryAddDoctor = prepareAddDoctorRequest(gmcId, changeReason, designatedBodyCode);
 
     final var tryAddDoctorResponse = submitTryAddDoctor(tryAddDoctor);
     final var tryAddDoctorResult = tryAddDoctorResponse.getTryAddDoctorResult();
@@ -51,9 +52,10 @@ public class GmcClientService {
         .build();
   }
 
-  public GmcConnectionResponseDto removeDoctor(final AddRemoveDoctorDto removeDoctorDto) {
-    log.info("Preparing to submit remove doctor request to GMC: {}", removeDoctorDto);
-    final var tryRemoveDoctor = prepareRemoveDoctorRequest(removeDoctorDto);
+  public GmcConnectionResponseDto tryRemoveDoctor(final String gmcId, final String changeReason,
+      final String designatedBodyCode) {
+    log.info("Preparing to submit remove doctor request to GMC: {}", gmcId);
+    final var tryRemoveDoctor = prepareRemoveDoctorRequest(gmcId, changeReason, designatedBodyCode);
 
     final var tryRemoveDoctorResponse = submitTryRemoveDoctor(tryRemoveDoctor);
     final var tryRemoveDoctorResult = tryRemoveDoctorResponse.getTryRemoveDoctorResult();
@@ -64,13 +66,14 @@ public class GmcClientService {
         .build();
   }
 
-  private TryAddDoctor prepareAddDoctorRequest(final AddRemoveDoctorDto addDoctorDto) {
+  private TryAddDoctor prepareAddDoctorRequest(final String gmcId, final String changeReason,
+      final String designatedBodyCode) {
     final var tryAddDoctor = new TryAddDoctor();
     final var tryAddDoctorRequest = new TryAddDoctorRequest();
-    tryAddDoctorRequest.setDoctorUID(addDoctorDto.getGmcId());
-    tryAddDoctorRequest.setChangeReason(addDoctorDto.getChangeReason());
-    tryAddDoctorRequest.setDesignatedBodyCode(addDoctorDto.getDesignatedBodyCode());
-    tryAddDoctorRequest.setClientRequestID(addDoctorDto.getGmcId());
+    tryAddDoctorRequest.setDoctorUID(gmcId);
+    tryAddDoctorRequest.setChangeReason(changeReason);
+    tryAddDoctorRequest.setDesignatedBodyCode(designatedBodyCode);
+    tryAddDoctorRequest.setClientRequestID(gmcId);
     tryAddDoctorRequest.setInternalUser(INTERNAL_USER);
     tryAddDoctor.setRecReq(tryAddDoctorRequest);
     tryAddDoctor.setUsername(gmcUserName);
@@ -78,13 +81,14 @@ public class GmcClientService {
     return tryAddDoctor;
   }
 
-  private TryRemoveDoctor prepareRemoveDoctorRequest(final AddRemoveDoctorDto removeDoctorDto) {
+  private TryRemoveDoctor prepareRemoveDoctorRequest(final String gmcId, final String changeReason,
+      final String designatedBodyCode) {
     final var tryRemoveDoctor = new TryRemoveDoctor();
     final var tryRemoveDoctorRequest = new TryRemoveDoctorRequest();
-    tryRemoveDoctorRequest.setDoctorUID(removeDoctorDto.getGmcId());
-    tryRemoveDoctorRequest.setChangeReason(removeDoctorDto.getChangeReason());
-    tryRemoveDoctorRequest.setClientRequestID(removeDoctorDto.getGmcId());
-    tryRemoveDoctorRequest.setDesignatedBodyCode(removeDoctorDto.getDesignatedBodyCode());
+    tryRemoveDoctorRequest.setDoctorUID(gmcId);
+    tryRemoveDoctorRequest.setChangeReason(changeReason);
+    tryRemoveDoctorRequest.setClientRequestID(gmcId);
+    tryRemoveDoctorRequest.setDesignatedBodyCode(designatedBodyCode);
     tryRemoveDoctorRequest.setInternalUser(INTERNAL_USER);
     tryRemoveDoctor.setRecReq(tryRemoveDoctorRequest);
     tryRemoveDoctor.setUsername(gmcUserName);
@@ -101,4 +105,5 @@ public class GmcClientService {
     return (TryRemoveDoctorResponse) webServiceTemplate.marshalSendAndReceive(gmcConnectUrl,
         tryRemoveDoctor, new SoapActionCallback(gmcSoapBaseAction + TRY_REMOVE_DOCTOR));
   }
+
 }

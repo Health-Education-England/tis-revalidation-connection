@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
 @Slf4j
@@ -27,7 +28,8 @@ public class ConnectionController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Add connection request has been sent to GMC successfully", response = String.class)})
   @PostMapping("/add")
-  public ResponseEntity<String> addDoctor(@RequestBody final AddRemoveDoctorDto addDoctorDto) {
+  public ResponseEntity<AddRemoveResponseDto> addDoctor(
+      @RequestBody final AddRemoveDoctorDto addDoctorDto) {
     log.info("Request receive to ADD doctor connection: {}", addDoctorDto);
     final var message = connectionService.addDoctor(addDoctorDto);
     return ResponseEntity.ok(message);
@@ -38,7 +40,8 @@ public class ConnectionController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Remove connection request has been sent to GMC successfully", response = String.class)})
   @PostMapping("/remove")
-  public ResponseEntity<String> removeDoctor(@RequestBody final AddRemoveDoctorDto removeDoctorDto) {
+  public ResponseEntity<AddRemoveResponseDto> removeDoctor(
+      @RequestBody final AddRemoveDoctorDto removeDoctorDto) {
     log.info("Request receive to REMOVE doctor connection: {}", removeDoctorDto);
     final var message = connectionService.removeDoctor(removeDoctorDto);
     return ResponseEntity.ok(message);

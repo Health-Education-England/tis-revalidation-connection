@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,29 +53,39 @@ class ConnectionControllerTest {
 
   @Test
   public void shouldAddDoctor() throws Exception {
-    final var addDoctorDto = AddRemoveDoctorDto.builder().gmcId(gmcId).changeReason(changeReason)
-        .designatedBodyCode(designatedBodyCode).build();
+    final var addDoctorDto = AddRemoveDoctorDto.builder().changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
-    when(connectionService.addDoctor(any(AddRemoveDoctorDto.class))).thenReturn(message);
+    final var response = AddRemoveResponseDto.builder().message(message).build();
+    when(connectionService.addDoctor(any(AddRemoveDoctorDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/add")
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(addDoctorDto)))
-        .andExpect(content().string(message))
+        .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }
 
   @Test
   public void shouldRemoveDoctor() throws Exception {
-    final var removeDoctorDto = AddRemoveDoctorDto.builder().gmcId(gmcId).changeReason(changeReason)
-        .designatedBodyCode(designatedBodyCode).build();
+    final var removeDoctorDto = AddRemoveDoctorDto.builder().changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
-    when(connectionService.removeDoctor(any(AddRemoveDoctorDto.class))).thenReturn(message);
+    final var response = AddRemoveResponseDto.builder().message(message).build();
+    when(connectionService.removeDoctor(any(AddRemoveDoctorDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/remove")
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(removeDoctorDto)))
-        .andExpect(content().string(message))
+        .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
+  }
+
+  private List<DoctorInfoDto> buildDoctorsList() {
+    final var doc1 = DoctorInfoDto.builder().gmcId(gmcId)
+        .currentDesignatedBodyCode(designatedBodyCode).build();
+    final var doc2 = DoctorInfoDto.builder().gmcId(gmcId)
+        .currentDesignatedBodyCode(designatedBodyCode).build();
+    return List.of(doc1, doc2);
   }
 }

@@ -3,6 +3,8 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDateTime.now;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
-import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 
@@ -35,52 +40,71 @@ public class ConnectionService {
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
-  public String addDoctor(final AddRemoveDoctorDto addDoctorDto) {
-    final var gmcResponse = gmcClientService.addDoctor(addDoctorDto);
-    final var connectionRequestLog = ConnectionRequestLog.builder()
-        .id(UUID.randomUUID().toString())
-        .gmcId(addDoctorDto.getGmcId())
-        .gmcClientId(gmcResponse.getGmcRequestId())
-        .reason(addDoctorDto.getChangeReason())
-        .requestType(ADD)
-        .responseCode(gmcResponse.getReturnCode())
-        .requestTime(now())
-        .build();
-
-    repository.save(connectionRequestLog);
-
-    sendToRabbit(addDoctorDto.getGmcId(), addDoctorDto.getDesignatedBodyCode(),
-        gmcResponse.getReturnCode());
-    final var gmcResponseCode = GmcResponseCode.fromCode(gmcResponse.getReturnCode());
-    return gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
-
+  public AddRemoveResponseDto addDoctor(final AddRemoveDoctorDto addDoctorDto) {
+    return processConnectionRequest(addDoctorDto, ADD);
   }
 
-  public String removeDoctor(final AddRemoveDoctorDto removeDoctorDto) {
+  public AddRemoveResponseDto removeDoctor(final AddRemoveDoctorDto removeDoctorDto) {
+    return processConnectionRequest(removeDoctorDto, REMOVE);
+  }
 
-    final var gmcResponse = gmcClientService.removeDoctor(removeDoctorDto);
+  private AddRemoveResponseDto processConnectionRequest(final AddRemoveDoctorDto addDoctorDto,
+      final ConnectionRequestType connectionRequestType) {
+
+    final var changeReason = addDoctorDto.getChangeReason();
+    final var designatedBodyCode = addDoctorDto.getDesignatedBodyCode();
+    final var addRemoveResponse = addDoctorDto.getDoctors().stream().map(doctor -> {
+      final var gmcResponse = delegateRequest(changeReason, designatedBodyCode, doctor,
+          connectionRequestType);
+      return handleGmcResponse(doctor.getGmcId(), changeReason, designatedBodyCode,
+          doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType);
+    }).filter(response -> !response.getMessage().equals(SUCCESS.getMessage()))
+        .findAny();
+    if (addRemoveResponse.isPresent()) {
+      return AddRemoveResponseDto.builder()
+          .message("Some changes have failed with GMC, please check the exceptions queue").build();
+    }
+    return AddRemoveResponseDto.builder().message(SUCCESS.getMessage()).build();
+  }
+
+  private GmcConnectionResponseDto delegateRequest(final String changeReason, final String designatedBodyCode,
+      final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
+    GmcConnectionResponseDto gmcResponse = null;
+    if (ADD == connectionRequestType) {
+      gmcResponse = gmcClientService.tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
+    } else {
+      gmcResponse = gmcClientService.tryRemoveDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
+    }
+    return gmcResponse;
+  }
+
+  private AddRemoveResponseDto handleGmcResponse(final String gmcId, final String changeReason,
+      final String designatedBodyCode, final String currentDesignatedBodyCode,
+      final GmcConnectionResponseDto gmcResponse, final ConnectionRequestType connectionRequestType) {
+
     final var connectionRequestLog = ConnectionRequestLog.builder()
         .id(UUID.randomUUID().toString())
-        .gmcId(removeDoctorDto.getGmcId())
+        .gmcId(gmcId)
         .gmcClientId(gmcResponse.getGmcRequestId())
-        .reason(removeDoctorDto.getChangeReason())
-        .requestType(REMOVE)
+        .newDesignatedBodyCode(designatedBodyCode)
+        .previousDesignatedBodyCode(currentDesignatedBodyCode)
+        .reason(changeReason)
+        .requestType(connectionRequestType)
         .responseCode(gmcResponse.getReturnCode())
         .requestTime(now())
         .build();
 
     repository.save(connectionRequestLog);
 
-    sendToRabbit(removeDoctorDto.getGmcId(), removeDoctorDto.getDesignatedBodyCode(),
-        gmcResponse.getReturnCode());
-    final var gmcResponseCode = GmcResponseCode.fromCode(gmcResponse.getReturnCode());
-    return gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
-
+    sendToRabbit(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
+    final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
+    final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
+    return AddRemoveResponseDto.builder().message(responseMessage).build();
   }
 
   private void sendToRabbit(final String gmcId, final String designatedBodyCode,
       final String returnCode) {
-    if (GmcResponseCode.SUCCESS.getCode().equals(returnCode)) {
+    if (SUCCESS.getCode().equals(returnCode)) {
       final var connectionMessage = ConnectionMessage.builder()
           .gmcId(gmcId)
           .designatedBodyCode(designatedBodyCode)

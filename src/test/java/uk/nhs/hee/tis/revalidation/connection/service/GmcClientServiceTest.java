@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,7 @@ import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctor;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorResponse;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorResponseCT;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 
 @ExtendWith(MockitoExtension.class)
 class GmcClientServiceTest {
@@ -75,8 +77,8 @@ class GmcClientServiceTest {
 
     final var addDoctorDto = AddRemoveDoctorDto.builder()
         .changeReason(changeReason)
-        .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
+        .doctors(buildDoctorsList())
         .build();
 
     when(webServiceTemplate.marshalSendAndReceive(any(String.class), any(
@@ -85,7 +87,8 @@ class GmcClientServiceTest {
     when(tryAddDoctorResponseCT.getClientRequestID()).thenReturn(gmcId);
     when(tryAddDoctorResponseCT.getGMCRequestID()).thenReturn(gmcRequestId);
     when(tryAddDoctorResponseCT.getReturnCode()).thenReturn(returnCode);
-    final var gmcConnectionResponseDto = gmcClientService.addDoctor(addDoctorDto);
+    final var gmcConnectionResponseDto =
+        gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode);
 
     assertThat(gmcConnectionResponseDto.getClientRequestId(), is(gmcId));
     assertThat(gmcConnectionResponseDto.getGmcRequestId(), is(gmcRequestId));
@@ -97,8 +100,8 @@ class GmcClientServiceTest {
 
     final var removeDoctorDto = AddRemoveDoctorDto.builder()
         .changeReason(changeReason)
-        .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
+        .doctors(buildDoctorsList())
         .build();
 
     when(webServiceTemplate.marshalSendAndReceive(any(String.class), any(
@@ -107,10 +110,19 @@ class GmcClientServiceTest {
     when(tryRemoveDoctorResponseCT.getClientRequestID()).thenReturn(gmcId);
     when(tryRemoveDoctorResponseCT.getGMCRequestID()).thenReturn(gmcRequestId);
     when(tryRemoveDoctorResponseCT.getReturnCode()).thenReturn(returnCode);
-    final var gmcConnectionResponseDto = gmcClientService.removeDoctor(removeDoctorDto);
+    final var gmcConnectionResponseDto =
+        gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode);
 
     assertThat(gmcConnectionResponseDto.getClientRequestId(), is(gmcId));
     assertThat(gmcConnectionResponseDto.getGmcRequestId(), is(gmcRequestId));
     assertThat(gmcConnectionResponseDto.getReturnCode(), is(returnCode));
+  }
+
+  private List<DoctorInfoDto> buildDoctorsList() {
+    final var doc1 = DoctorInfoDto.builder().gmcId(gmcId)
+        .currentDesignatedBodyCode(designatedBodyCode).build();
+    final var doc2 = DoctorInfoDto.builder().gmcId(gmcId)
+        .currentDesignatedBodyCode(designatedBodyCode).build();
+    return List.of(doc1, doc2);
   }
 }

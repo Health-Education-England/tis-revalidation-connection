@@ -42,6 +42,9 @@ class ConnectionServiceTest {
   @Mock
   private GmcConnectionResponseDto gmcConnectionResponseDto;
 
+  @Mock
+  private ExceptionService exceptionService;
+
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
@@ -96,6 +99,25 @@ class ConnectionServiceTest {
         .build();
     verify(rabbitTemplate, times(2)).convertAndSend("exchange", "routingKey", message);
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
+  }
+
+  @Test
+  public void shouldAddToExceptionWhenRemoveADoctorFails() {
+    returnCode = "90";
+    final var removeDoctorDto = AddRemoveDoctorDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(buildDoctorsList())
+        .build();
+
+    when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenReturn(gmcConnectionResponseDto);
+    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+    connectionService.removeDoctor(removeDoctorDto);
+    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
+        .build();
+    verify(exceptionService).createExceptionLog(gmcId, returnCode);
   }
 
   private List<DoctorInfoDto> buildDoctorsList() {

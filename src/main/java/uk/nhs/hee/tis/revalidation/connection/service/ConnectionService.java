@@ -29,6 +29,9 @@ public class ConnectionService {
   private GmcClientService gmcClientService;
 
   @Autowired
+  private ExceptionService exceptionService;
+
+  @Autowired
   private ConnectionRepository repository;
 
   @Autowired
@@ -67,6 +70,7 @@ public class ConnectionService {
     return AddRemoveResponseDto.builder().message(SUCCESS.getMessage()).build();
   }
 
+  //delegate request to GMC Client
   private GmcConnectionResponseDto delegateRequest(final String changeReason, final String designatedBodyCode,
       final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
     GmcConnectionResponseDto gmcResponse = null;
@@ -78,6 +82,7 @@ public class ConnectionService {
     return gmcResponse;
   }
 
+  // Handle Gmc response and take appropriate actions
   private AddRemoveResponseDto handleGmcResponse(final String gmcId, final String changeReason,
       final String designatedBodyCode, final String currentDesignatedBodyCode,
       final GmcConnectionResponseDto gmcResponse, final ConnectionRequestType connectionRequestType) {
@@ -96,13 +101,14 @@ public class ConnectionService {
 
     repository.save(connectionRequestLog);
 
-    sendToRabbit(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
+    sendToRabbitOrExceptionLogs(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
     final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
     final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
     return AddRemoveResponseDto.builder().message(responseMessage).build();
   }
 
-  private void sendToRabbit(final String gmcId, final String designatedBodyCode,
+  //If success put message into queue to update doctors for DB otherwise log message into exception logs.
+  private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
       final String returnCode) {
     if (SUCCESS.getCode().equals(returnCode)) {
       final var connectionMessage = ConnectionMessage.builder()
@@ -111,6 +117,8 @@ public class ConnectionService {
           .build();
       log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
+    } else {
+      exceptionService.createExceptionLog(gmcId, returnCode);
     }
   }
 }

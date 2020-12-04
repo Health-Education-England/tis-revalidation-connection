@@ -1,5 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -7,6 +9,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.github.javafaker.Faker;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 
@@ -51,6 +55,16 @@ class ConnectionServiceTest {
   private String gmcRequestId;
   private String returnCode;
 
+  private String connectionId;
+  private String gmcClientId;
+  private String newDesignatedBodyCode;
+  private String previousDesignatedBodyCode;
+  private String reason;
+  private String reasonMessage;
+  private ConnectionRequestType requestType;
+  private LocalDateTime requestTime;
+  private String responseCode;
+
   @BeforeEach
   public void setup() {
     changeReason = faker.lorem().sentence();
@@ -58,6 +72,16 @@ class ConnectionServiceTest {
     gmcId = faker.number().digits(8);
     gmcRequestId = faker.random().toString();
     returnCode = "0";
+
+    connectionId = faker.number().digits(20);
+    gmcClientId = faker.number().digits(8);
+    newDesignatedBodyCode = faker.number().digits(8);
+    previousDesignatedBodyCode = faker.number().digits(8);
+    reason = "2";
+    reasonMessage = "Conflict of Interest";
+    requestType = ConnectionRequestType.ADD;
+    requestTime = LocalDateTime.now().minusDays(-1);
+    responseCode = faker.number().digits(5);
 
     setField(connectionService, "exchange", "exchange");
     setField(connectionService, "routingKey", "routingKey");
@@ -118,6 +142,43 @@ class ConnectionServiceTest {
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
     verify(exceptionService).createExceptionLog(gmcId, returnCode);
+  }
+
+  @Test
+  public void shouldReturnAllConnectionsForADoctor() throws Exception {
+    final var connection = prepareConnection();
+    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of(connection));
+    var connections = connectionService.getTraineeConnectionInfo(gmcId);
+    assertThat(connections.size(), is(1));
+    final var connectionDto = connections.get(0);
+    assertThat(connectionDto.getConnectionId(), is(connectionId));
+    assertThat(connectionDto.getGmcId(), is(gmcId));
+    assertThat(connectionDto.getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
+    assertThat(connectionDto.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
+    assertThat(connectionDto.getReason(), is(reason));
+    assertThat(connectionDto.getReasonMessage(), is(reasonMessage));
+    assertThat(connectionDto.getRequestTime(), is(requestTime));
+  }
+
+  @Test
+  public void shouldNotFailWhenThereIsNoConnectionForADoctorInTheService() throws Exception {
+    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of());
+    var connections = connectionService.getTraineeConnectionInfo(gmcId);
+    assertThat(connections.size(), is(0));
+  }
+
+  private ConnectionRequestLog prepareConnection() {
+    return ConnectionRequestLog.builder()
+        .id(connectionId)
+        .gmcId(gmcId)
+        .gmcClientId(gmcClientId)
+        .newDesignatedBodyCode(newDesignatedBodyCode)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .reason(reason)
+        .requestType(requestType)
+        .requestTime(requestTime)
+        .responseCode(responseCode)
+        .build();
   }
 
   private List<DoctorInfoDto> buildDoctorsList() {

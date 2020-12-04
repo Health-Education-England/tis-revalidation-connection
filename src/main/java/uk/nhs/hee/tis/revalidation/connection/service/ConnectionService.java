@@ -64,8 +64,8 @@ public class ConnectionService {
     }).filter(response -> !response.getMessage().equals(SUCCESS.getMessage()))
         .findAny();
     if (addRemoveResponse.isPresent()) {
-      return AddRemoveResponseDto.builder()
-          .message("Some changes have failed with GMC, please check the exceptions queue").build();
+      final var errorMessage = getReturnMessage(addRemoveResponse.get().getMessage(), addDoctorDto.getDoctors().size());
+      return AddRemoveResponseDto.builder().message(errorMessage).build();
     }
     return AddRemoveResponseDto.builder().message(SUCCESS.getMessage()).build();
   }
@@ -120,5 +120,13 @@ public class ConnectionService {
     } else {
       exceptionService.createExceptionLog(gmcId, returnCode);
     }
+  }
+
+  //if bulk request then return generic failure message else gmc error message
+  private String getReturnMessage(final String message, final int requestSize) {
+    if( requestSize > 1) {
+      return "Some changes have failed with GMC, please check the exceptions queue";
+    }
+    return message;
   }
 }

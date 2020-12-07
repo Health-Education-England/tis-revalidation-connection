@@ -59,13 +59,13 @@ public class ConnectionController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Trainee connection details", response = List.class)})
   @GetMapping("/{gmcId}")
-  public ResponseEntity<List<ConnectionDto>> getDetailedConnections(
+  public ResponseEntity<ConnectionDto> getDetailedConnections(
       @PathVariable("gmcId") final String gmcId) {
     log.info("Received request to fetch connections for GmcId: {}", gmcId);
     if (Objects.nonNull(gmcId)) {
       final var connections = connectionService.getTraineeConnectionInfo(gmcId);
       return ResponseEntity.ok().body(connections);
     }
-    return ResponseEntity.ok().body(of());
+    return ResponseEntity.ok().body((ConnectionDto) of());
   }
 }

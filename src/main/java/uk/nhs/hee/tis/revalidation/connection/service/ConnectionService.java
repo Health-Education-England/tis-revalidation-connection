@@ -7,7 +7,6 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestTyp
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
-import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
@@ -57,8 +57,9 @@ public class ConnectionService {
   }
 
   // get all connection history for a trainee
-  public List<ConnectionDto> getTraineeConnectionInfo(final String gmcId) {
+  public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
+    final ConnectionDto connectionDto = new ConnectionDto();
     final var connections = repository.findAllByGmcId(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
       String reasonMessage = "";
@@ -69,7 +70,7 @@ public class ConnectionService {
         reasonMessage = RemoveConnectionReasonCode.fromCode(connection.getReason());
       }
 
-      return ConnectionDto.builder()
+      return ConnectionHistoryDto.builder()
           .connectionId(connection.getId())
           .gmcId(connection.getGmcId())
           .gmcClientId(connection.getGmcClientId())
@@ -82,8 +83,9 @@ public class ConnectionService {
           .responseCode(connection.getResponseCode())
           .build();
     }).collect(toList());
+    connectionDto.setConnectionHistoryDtos(allConnectionsForTrainee);
 
-    return allConnectionsForTrainee;
+    return connectionDto;
   }
 
   private AddRemoveResponseDto processConnectionRequest(final AddRemoveDoctorDto addDoctorDto,

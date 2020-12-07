@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
@@ -108,7 +109,7 @@ class ConnectionControllerTest {
 
   @Test
   public void shouldReturnAllConnectionsForADoctor() throws Exception {
-    final var connectionDto = List.of(prepareConnectionDto());
+    final var connectionDto = prepareConnectionDto();
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(connectionDto);
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
         .andExpect(status().isOk())
@@ -118,14 +119,15 @@ class ConnectionControllerTest {
 
   @Test
   public void shouldNotFailWhenThereIsNoConnectionsForADoctor() throws Exception {
-    when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(List.of());
+    when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(new ConnectionDto());
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
         .andExpect(status().isOk())
         .andDo(print());
   }
 
   private ConnectionDto prepareConnectionDto() {
-    return ConnectionDto.builder()
+    final ConnectionDto connectionDto = new ConnectionDto();
+    final ConnectionHistoryDto connectionHistory = ConnectionHistoryDto.builder()
         .connectionId(connectionId)
         .gmcId(gmcId)
         .gmcClientId(gmcClientId)
@@ -136,6 +138,8 @@ class ConnectionControllerTest {
         .requestTime(requestTime)
         .responseCode(responseCode)
         .build();
+    connectionDto.setConnectionHistoryDtos(List.of(connectionHistory));
+    return connectionDto;
   }
 
   private List<DoctorInfoDto> buildDoctorsList() {

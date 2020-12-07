@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.time.LocalDateTime.now;
+import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
@@ -14,10 +15,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 
@@ -49,6 +54,38 @@ public class ConnectionService {
 
   public AddRemoveResponseDto removeDoctor(final AddRemoveDoctorDto removeDoctorDto) {
     return processConnectionRequest(removeDoctorDto, REMOVE);
+  }
+
+  // get all connection history for a trainee
+  public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
+    log.info("Fetching connections info for GmcId: {}", gmcId);
+    final ConnectionDto connectionDto = new ConnectionDto();
+    final var connections = repository.findAllByGmcId(gmcId);
+    final var allConnectionsForTrainee = connections.stream().map(connection -> {
+      String reasonMessage = "";
+      if (connection.getRequestType().equals(ADD)) {
+        reasonMessage = AddConnectionReasonCode.fromCode(connection.getReason());
+      }
+      else if (connection.getRequestType().equals(REMOVE)) {
+        reasonMessage = RemoveConnectionReasonCode.fromCode(connection.getReason());
+      }
+
+      return ConnectionHistoryDto.builder()
+          .connectionId(connection.getId())
+          .gmcId(connection.getGmcId())
+          .gmcClientId(connection.getGmcClientId())
+          .newDesignatedBodyCode(connection.getNewDesignatedBodyCode())
+          .previousDesignatedBodyCode(connection.getPreviousDesignatedBodyCode())
+          .reason(connection.getReason())
+          .reasonMessage(reasonMessage)
+          .requestType(connection.getRequestType())
+          .requestTime(connection.getRequestTime())
+          .responseCode(connection.getResponseCode())
+          .build();
+    }).collect(toList());
+    connectionDto.setConnections(allConnectionsForTrainee);
+
+    return connectionDto;
   }
 
   private AddRemoveResponseDto processConnectionRequest(final AddRemoveDoctorDto addDoctorDto,

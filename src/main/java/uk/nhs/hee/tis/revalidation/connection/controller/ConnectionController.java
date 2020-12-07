@@ -1,17 +1,24 @@
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
+import static java.util.List.of;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
 @Slf4j
@@ -45,5 +52,20 @@ public class ConnectionController {
     log.info("Request receive to REMOVE doctor connection: {}", removeDoctorDto);
     final var message = connectionService.removeDoctor(removeDoctorDto);
     return ResponseEntity.ok(message);
+  }
+
+  @ApiOperation(value = "Get detailed connections of a trainee", notes =
+      "It will return trainee's connections details", response = List.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Trainee connection details", response = List.class)})
+  @GetMapping("/{gmcId}")
+  public ResponseEntity<ConnectionDto> getDetailedConnections(
+      @PathVariable("gmcId") final String gmcId) {
+    log.info("Received request to fetch connections for GmcId: {}", gmcId);
+    if (Objects.nonNull(gmcId)) {
+      final var connections = connectionService.getTraineeConnectionInfo(gmcId);
+      return ResponseEntity.ok().body(connections);
+    }
+    return ResponseEntity.ok().body((ConnectionDto) of());
   }
 }

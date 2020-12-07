@@ -114,7 +114,7 @@ public class ConnectionService {
     if (ADD == connectionRequestType) {
       gmcResponse = gmcClientService.tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
     } else {
-      gmcResponse = gmcClientService.tryRemoveDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
+      gmcResponse = gmcClientService.tryRemoveDoctor(doctor.getGmcId(), changeReason, doctor.getCurrentDesignatedBodyCode());
     }
     return gmcResponse;
   }

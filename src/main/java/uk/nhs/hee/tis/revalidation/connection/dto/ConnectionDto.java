@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ApiModel(description = "List of connection information")
 public class ConnectionDto {
-  private List<ConnectionHistoryDto> connectionHistoryDtos;
+  private List<ConnectionHistoryDto> connections;
 }

@@ -83,7 +83,7 @@ public class ConnectionService {
           .responseCode(connection.getResponseCode())
           .build();
     }).collect(toList());
-    connectionDto.setConnectionHistoryDtos(allConnectionsForTrainee);
+    connectionDto.setConnections(allConnectionsForTrainee);
 
     return connectionDto;
   }

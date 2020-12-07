@@ -116,17 +116,17 @@ class ConnectionControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().json(objectMapper.writeValueAsString(connectionDto)))
         .andExpect(
-            jsonPath("$.connectionHistoryDtos.[*].connectionId").value(hasItem(connectionId)))
-        .andExpect(jsonPath("$.connectionHistoryDtos.[*].gmcId").value(hasItem(gmcId)))
-        .andExpect(jsonPath("$.connectionHistoryDtos.[*].newDesignatedBodyCode")
+            jsonPath("$.connections.[*].connectionId").value(hasItem(connectionId)))
+        .andExpect(jsonPath("$.connections.[*].gmcId").value(hasItem(gmcId)))
+        .andExpect(jsonPath("$.connections.[*].newDesignatedBodyCode")
             .value(hasItem(newDesignatedBodyCode)))
-        .andExpect(jsonPath("$.connectionHistoryDtos.[*].previousDesignatedBodyCode")
+        .andExpect(jsonPath("$.connections.[*].previousDesignatedBodyCode")
             .value(hasItem(previousDesignatedBodyCode)))
-        .andExpect(jsonPath("$.connectionHistoryDtos.[*].reason").value(hasItem(reason)))
-        .andExpect(jsonPath("$.connectionHistoryDtos.[*].requestType")
+        .andExpect(jsonPath("$.connections.[*].reason").value(hasItem(reason)))
+        .andExpect(jsonPath("$.connections.[*].requestType")
             .value(hasItem(requestType.toString())))
         .andExpect(
-            jsonPath("$.connectionHistoryDtos.[*].responseCode").value(hasItem(responseCode)));
+            jsonPath("$.connections.[*].responseCode").value(hasItem(responseCode)));
   }
 
   @Test
@@ -149,7 +149,7 @@ class ConnectionControllerTest {
         .requestTime(requestTime)
         .responseCode(responseCode)
         .build();
-    connectionDto.setConnectionHistoryDtos(List.of(connectionHistory));
+    connectionDto.setConnections(List.of(connectionHistory));
     return connectionDto;
   }
 

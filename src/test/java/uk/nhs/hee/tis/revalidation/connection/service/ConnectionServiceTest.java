@@ -59,9 +59,12 @@ class ConnectionServiceTest {
   private String gmcClientId;
   private String newDesignatedBodyCode;
   private String previousDesignatedBodyCode;
-  private String reason;
-  private String reasonMessage;
-  private ConnectionRequestType requestType;
+  private String reasonAdd;
+  private String reasonMessageAdd;
+  private ConnectionRequestType requestTypeAdd;
+  private String reasonRemove;
+  private String reasonMessageRemove;
+  private ConnectionRequestType requestTypeRemove;
   private LocalDateTime requestTime;
   private String responseCode;
 
@@ -77,9 +80,12 @@ class ConnectionServiceTest {
     gmcClientId = faker.number().digits(8);
     newDesignatedBodyCode = faker.number().digits(8);
     previousDesignatedBodyCode = faker.number().digits(8);
-    reason = "2";
-    reasonMessage = "Conflict of Interest";
-    requestType = ConnectionRequestType.ADD;
+    requestTypeAdd = ConnectionRequestType.ADD;
+    reasonAdd = "2";
+    reasonMessageAdd = "Conflict of Interest";
+    requestTypeRemove = ConnectionRequestType.REMOVE;
+    reasonRemove = "2";
+    reasonMessageRemove = "Doctor has retired";
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
 
@@ -146,18 +152,22 @@ class ConnectionServiceTest {
 
   @Test
   public void shouldReturnAllConnectionsForADoctor() throws Exception {
-    final var connection = prepareConnection();
-    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of(connection));
+    final var connection1 = prepareConnectionAdd();
+    final var connection2 = prepareConnectionRemove();
+    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of(connection1, connection2));
     var connections = connectionService.getTraineeConnectionInfo(gmcId);
-    assertThat(connections.size(), is(1));
-    final var connectionDto = connections.get(0);
-    assertThat(connectionDto.getConnectionId(), is(connectionId));
-    assertThat(connectionDto.getGmcId(), is(gmcId));
-    assertThat(connectionDto.getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
-    assertThat(connectionDto.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
-    assertThat(connectionDto.getReason(), is(reason));
-    assertThat(connectionDto.getReasonMessage(), is(reasonMessage));
-    assertThat(connectionDto.getRequestTime(), is(requestTime));
+    assertThat(connections.size(), is(2));
+    final var connectionDto1 = connections.get(0);
+    assertThat(connectionDto1.getConnectionId(), is(connectionId));
+    assertThat(connectionDto1.getGmcId(), is(gmcId));
+    assertThat(connectionDto1.getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
+    assertThat(connectionDto1.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
+    assertThat(connectionDto1.getReason(), is(reasonAdd));
+    assertThat(connectionDto1.getReasonMessage(), is(reasonMessageAdd));
+    assertThat(connectionDto1.getRequestTime(), is(requestTime));
+    final var connectionDto2 = connections.get(1);
+    assertThat(connectionDto2.getReason(), is(reasonRemove));
+    assertThat(connectionDto2.getReasonMessage(), is(reasonMessageRemove));
   }
 
   @Test
@@ -167,15 +177,29 @@ class ConnectionServiceTest {
     assertThat(connections.size(), is(0));
   }
 
-  private ConnectionRequestLog prepareConnection() {
+  private ConnectionRequestLog prepareConnectionAdd() {
     return ConnectionRequestLog.builder()
         .id(connectionId)
         .gmcId(gmcId)
         .gmcClientId(gmcClientId)
         .newDesignatedBodyCode(newDesignatedBodyCode)
         .previousDesignatedBodyCode(previousDesignatedBodyCode)
-        .reason(reason)
-        .requestType(requestType)
+        .reason(reasonAdd)
+        .requestType(requestTypeAdd)
+        .requestTime(requestTime)
+        .responseCode(responseCode)
+        .build();
+  }
+
+  private ConnectionRequestLog prepareConnectionRemove() {
+    return ConnectionRequestLog.builder()
+        .id(connectionId)
+        .gmcId(gmcId)
+        .gmcClientId(gmcClientId)
+        .newDesignatedBodyCode(newDesignatedBodyCode)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .reason(reasonRemove)
+        .requestType(requestTypeRemove)
         .requestTime(requestTime)
         .responseCode(responseCode)
         .build();

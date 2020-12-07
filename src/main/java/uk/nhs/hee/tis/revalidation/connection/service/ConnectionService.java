@@ -56,6 +56,7 @@ public class ConnectionService {
     return processConnectionRequest(removeDoctorDto, REMOVE);
   }
 
+  // get all connection history for a trainee
   public List<ConnectionDto> getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
     final var connections = repository.findAllByGmcId(gmcId);

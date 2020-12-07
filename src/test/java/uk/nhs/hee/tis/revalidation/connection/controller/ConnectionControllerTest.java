@@ -1,11 +1,12 @@
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -113,16 +114,26 @@ class ConnectionControllerTest {
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(connectionDto);
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
         .andExpect(status().isOk())
-        .andDo(print())
-        .andExpect(content().json(objectMapper.writeValueAsString(connectionDto)));
+        .andExpect(content().json(objectMapper.writeValueAsString(connectionDto)))
+        .andExpect(
+            jsonPath("$.connectionHistoryDtos.[*].connectionId").value(hasItem(connectionId)))
+        .andExpect(jsonPath("$.connectionHistoryDtos.[*].gmcId").value(hasItem(gmcId)))
+        .andExpect(jsonPath("$.connectionHistoryDtos.[*].newDesignatedBodyCode")
+            .value(hasItem(newDesignatedBodyCode)))
+        .andExpect(jsonPath("$.connectionHistoryDtos.[*].previousDesignatedBodyCode")
+            .value(hasItem(previousDesignatedBodyCode)))
+        .andExpect(jsonPath("$.connectionHistoryDtos.[*].reason").value(hasItem(reason)))
+        .andExpect(jsonPath("$.connectionHistoryDtos.[*].requestType")
+            .value(hasItem(requestType.toString())))
+        .andExpect(
+            jsonPath("$.connectionHistoryDtos.[*].responseCode").value(hasItem(responseCode)));
   }
 
   @Test
   public void shouldNotFailWhenThereIsNoConnectionsForADoctor() throws Exception {
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(new ConnectionDto());
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
-        .andExpect(status().isOk())
-        .andDo(print());
+        .andExpect(status().isOk());
   }
 
   private ConnectionDto prepareConnectionDto() {

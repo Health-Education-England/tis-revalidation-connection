@@ -8,5 +8,5 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 @Repository
 public interface ConnectionRepository extends MongoRepository<ConnectionRequestLog, String> {
 
-  List<ConnectionRequestLog> findAllByGmcId(final String gmcId);
+  List<ConnectionRequestLog> findAllByGmcIdOrderByRequestTimeDesc(final String gmcId);
 }

@@ -154,9 +154,9 @@ class ConnectionServiceTest {
   public void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connection1 = prepareConnectionAdd();
     final var connection2 = prepareConnectionRemove();
-    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of(connection1, connection2));
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of(connection1, connection2));
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
-    var connections = connectionDto.getConnections();
+    var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(2));
     final var connectionDto1 = connections.get(0);
     assertThat(connectionDto1.getConnectionId(), is(connectionId));
@@ -173,9 +173,9 @@ class ConnectionServiceTest {
 
   @Test
   public void shouldNotFailWhenThereIsNoConnectionForADoctorInTheService() throws Exception {
-    when(repository.findAllByGmcId(gmcId)).thenReturn(List.of());
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of());
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
-    var connections = connectionDto.getConnections();
+    var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(0));
   }
 

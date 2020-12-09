@@ -22,6 +22,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
@@ -60,7 +61,7 @@ public class ConnectionService {
   public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
     final ConnectionDto connectionDto = new ConnectionDto();
-    final var connections = repository.findAllByGmcId(gmcId);
+    final var connections = repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
       String reasonMessage = "";
       if (connection.getRequestType().equals(ADD)) {
@@ -81,9 +82,10 @@ public class ConnectionService {
           .requestType(connection.getRequestType())
           .requestTime(connection.getRequestTime())
           .responseCode(connection.getResponseCode())
+          .responseMessage(GmcResponseCode.fromCodeToMessage(connection.getResponseCode()))
           .build();
     }).collect(toList());
-    connectionDto.setConnections(allConnectionsForTrainee);
+    connectionDto.setConnectionHistory(allConnectionsForTrainee);
 
     return connectionDto;
   }

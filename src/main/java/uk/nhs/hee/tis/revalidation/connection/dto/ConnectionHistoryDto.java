@@ -27,4 +27,5 @@ public class ConnectionHistoryDto {
   private ConnectionRequestType requestType;
   private LocalDateTime requestTime;
   private String responseCode;
+  private String responseMessage;
 }

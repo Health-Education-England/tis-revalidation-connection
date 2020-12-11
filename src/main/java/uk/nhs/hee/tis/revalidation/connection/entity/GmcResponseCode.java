@@ -34,6 +34,16 @@ public enum GmcResponseCode {
     return null;
   }
 
+  // get response message from code
+  public static String fromCodeToMessage(final String code) {
+    for (final var responseCode : GmcResponseCode.values()) {
+      if (responseCode.getCode().equals(code)) {
+        return responseCode.message;
+      }
+    }
+    return null;
+  }
+
   public String getCode() {
     return code;
   }

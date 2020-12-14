@@ -22,8 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
@@ -80,11 +80,11 @@ class ConnectionControllerTest {
 
   @Test
   public void shouldAddDoctor() throws Exception {
-    final var addDoctorDto = AddRemoveDoctorDto.builder().changeReason(changeReason)
+    final var addDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
-    final var response = AddRemoveResponseDto.builder().message(message).build();
-    when(connectionService.addDoctor(any(AddRemoveDoctorDto.class))).thenReturn(response);
+    final var response = UpdateConnectionResponseDto.builder().message(message).build();
+    when(connectionService.addDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/add")
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
@@ -95,15 +95,29 @@ class ConnectionControllerTest {
 
   @Test
   public void shouldRemoveDoctor() throws Exception {
-    final var removeDoctorDto = AddRemoveDoctorDto.builder().changeReason(changeReason)
+    final var removeDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
-    final var response = AddRemoveResponseDto.builder().message(message).build();
-    when(connectionService.removeDoctor(any(AddRemoveDoctorDto.class))).thenReturn(response);
+    final var response = UpdateConnectionResponseDto.builder().message(message).build();
+    when(connectionService.removeDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/remove")
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsBytes(removeDoctorDto)))
+        .andExpect(content().json(objectMapper.writeValueAsString(response)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  public void shouldHideDoctorConnection() throws Exception {
+    final var hideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
+        .doctors(buildDoctorsList()).build();
+    final var response = UpdateConnectionResponseDto.builder().message(message).build();
+    when(connectionService.hideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
+    this.mockMvc.perform(post("/api/connections/hide")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(hideDoctorDto)))
         .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }

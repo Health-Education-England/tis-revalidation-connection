@@ -3,6 +3,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
+import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
@@ -13,8 +14,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
@@ -23,9 +24,11 @@ import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
+import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.HideRepository;
 
 @Slf4j
 @Service
@@ -41,6 +44,9 @@ public class ConnectionService {
   private ConnectionRepository repository;
 
   @Autowired
+  private HideRepository hideRepository;
+
+  @Autowired
   private RabbitTemplate rabbitTemplate;
 
   @Value("${app.rabbit.exchange}")
@@ -49,12 +55,16 @@ public class ConnectionService {
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
-  public AddRemoveResponseDto addDoctor(final AddRemoveDoctorDto addDoctorDto) {
+  public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
   }
 
-  public AddRemoveResponseDto removeDoctor(final AddRemoveDoctorDto removeDoctorDto) {
+  public UpdateConnectionResponseDto removeDoctor(final UpdateConnectionDto removeDoctorDto) {
     return processConnectionRequest(removeDoctorDto, REMOVE);
+  }
+
+  public UpdateConnectionResponseDto hideConnection(final UpdateConnectionDto hideConnectionDto) {
+    return processHideConnection(hideConnectionDto, HIDE);
   }
 
   // get all connection history for a trainee
@@ -90,7 +100,7 @@ public class ConnectionService {
     return connectionDto;
   }
 
-  private AddRemoveResponseDto processConnectionRequest(final AddRemoveDoctorDto addDoctorDto,
+  private UpdateConnectionResponseDto processConnectionRequest(final UpdateConnectionDto addDoctorDto,
       final ConnectionRequestType connectionRequestType) {
 
     final var changeReason = addDoctorDto.getChangeReason();
@@ -104,9 +114,9 @@ public class ConnectionService {
         .findAny();
     if (addRemoveResponse.isPresent()) {
       final var errorMessage = getReturnMessage(addRemoveResponse.get().getMessage(), addDoctorDto.getDoctors().size());
-      return AddRemoveResponseDto.builder().message(errorMessage).build();
+      return UpdateConnectionResponseDto.builder().message(errorMessage).build();
     }
-    return AddRemoveResponseDto.builder().message(SUCCESS.getMessage()).build();
+    return UpdateConnectionResponseDto.builder().message(SUCCESS.getMessage()).build();
   }
 
   //delegate request to GMC Client
@@ -122,7 +132,7 @@ public class ConnectionService {
   }
 
   // Handle Gmc response and take appropriate actions
-  private AddRemoveResponseDto handleGmcResponse(final String gmcId, final String changeReason,
+  private UpdateConnectionResponseDto handleGmcResponse(final String gmcId, final String changeReason,
       final String designatedBodyCode, final String currentDesignatedBodyCode,
       final GmcConnectionResponseDto gmcResponse, final ConnectionRequestType connectionRequestType) {
 
@@ -143,7 +153,7 @@ public class ConnectionService {
     sendToRabbitOrExceptionLogs(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
     final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
     final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
-    return AddRemoveResponseDto.builder().message(responseMessage).build();
+    return UpdateConnectionResponseDto.builder().message(responseMessage).build();
   }
 
   //If success put message into queue to update doctors for DB otherwise log message into exception logs.
@@ -168,4 +178,23 @@ public class ConnectionService {
     }
     return message;
   }
+
+  private UpdateConnectionResponseDto processHideConnection(final UpdateConnectionDto hideConnectionDto,
+      final ConnectionRequestType connectionRequestType) {
+    final var changeReason = hideConnectionDto.getChangeReason();
+    hideConnectionDto.getDoctors().forEach(doctor -> saveToDatabase(doctor.getGmcId(), changeReason, connectionRequestType));
+    return UpdateConnectionResponseDto.builder().message("Record has been hidden").build();
+  }
+
+  private void saveToDatabase(final String gmcId, final String changeReason, final ConnectionRequestType connectionRequestType) {
+    final var hideConnectionLog = HideConnectionLog.builder()
+        .id(UUID.randomUUID().toString())
+        .gmcId(gmcId)
+        .reason(changeReason)
+        .requestType(connectionRequestType)
+        .requestTime(now())
+        .build();
+    hideRepository.save(hideConnectionLog);
+  }
+
 }

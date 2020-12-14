@@ -12,7 +12,6 @@ import uk.nhs.hee.tis.gmc.client.generated.TryAddDoctorResponse;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctor;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorRequest;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorResponse;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 
 @Slf4j

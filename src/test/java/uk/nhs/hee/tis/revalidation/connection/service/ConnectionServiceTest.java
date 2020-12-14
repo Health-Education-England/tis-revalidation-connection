@@ -18,13 +18,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.HideRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ConnectionServiceTest {
@@ -39,6 +41,9 @@ class ConnectionServiceTest {
 
   @Mock
   private ConnectionRepository repository;
+
+  @Mock
+  private HideRepository hideRepository;
 
   @Mock
   private RabbitTemplate rabbitTemplate;
@@ -95,7 +100,7 @@ class ConnectionServiceTest {
 
   @Test
   public void shouldAddADoctor() {
-    final var addDoctorDto = AddRemoveDoctorDto.builder()
+    final var addDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
@@ -114,7 +119,7 @@ class ConnectionServiceTest {
 
   @Test
   public void shouldRemoveADoctor() {
-    final var removeDoctorDto = AddRemoveDoctorDto.builder()
+    final var removeDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
@@ -132,9 +137,19 @@ class ConnectionServiceTest {
   }
 
   @Test
+  public void shouldHideADoctorConnection() {
+    final var hideDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .doctors(buildDoctorsList())
+        .build();
+    connectionService.hideConnection(hideDoctorDto);
+    verify(hideRepository, times(2)).save(any(HideConnectionLog.class));
+  }
+
+  @Test
   public void shouldAddToExceptionWhenRemoveADoctorFails() {
     returnCode = "90";
-    final var removeDoctorDto = AddRemoveDoctorDto.builder()
+    final var removeDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())

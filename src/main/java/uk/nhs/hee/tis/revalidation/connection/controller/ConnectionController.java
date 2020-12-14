@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveDoctorDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.AddRemoveResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
@@ -35,8 +35,8 @@ public class ConnectionController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Add connection request has been sent to GMC successfully", response = String.class)})
   @PostMapping("/add")
-  public ResponseEntity<AddRemoveResponseDto> addDoctor(
-      @RequestBody final AddRemoveDoctorDto addDoctorDto) {
+  public ResponseEntity<UpdateConnectionResponseDto> addDoctor(
+      @RequestBody final UpdateConnectionDto addDoctorDto) {
     log.info("Request receive to ADD doctor connection: {}", addDoctorDto);
     final var message = connectionService.addDoctor(addDoctorDto);
     return ResponseEntity.ok(message);
@@ -47,10 +47,22 @@ public class ConnectionController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Remove connection request has been sent to GMC successfully", response = String.class)})
   @PostMapping("/remove")
-  public ResponseEntity<AddRemoveResponseDto> removeDoctor(
-      @RequestBody final AddRemoveDoctorDto removeDoctorDto) {
+  public ResponseEntity<UpdateConnectionResponseDto> removeDoctor(
+      @RequestBody final UpdateConnectionDto removeDoctorDto) {
     log.info("Request receive to REMOVE doctor connection: {}", removeDoctorDto);
     final var message = connectionService.removeDoctor(removeDoctorDto);
+    return ResponseEntity.ok(message);
+  }
+
+  @ApiOperation(value = "Hide connection", notes =
+      "It will hide connections manually", response = String.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Hiding connections is successful", response = String.class)})
+  @PostMapping("/hide")
+  public ResponseEntity<UpdateConnectionResponseDto> hideConnection(
+      @RequestBody final UpdateConnectionDto hideConnectionDto) {
+    log.info("Request receive to hide doctor connection: {}", hideConnectionDto);
+    final var message = connectionService.hideConnection(hideConnectionDto);
     return ResponseEntity.ok(message);
   }
 

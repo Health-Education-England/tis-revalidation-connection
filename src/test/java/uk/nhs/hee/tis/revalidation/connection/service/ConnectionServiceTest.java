@@ -26,7 +26,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
-import uk.nhs.hee.tis.revalidation.connection.repository.HideRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ConnectionServiceTest {
@@ -43,7 +43,7 @@ class ConnectionServiceTest {
   private ConnectionRepository repository;
 
   @Mock
-  private HideRepository hideRepository;
+  private HideConnectionRepository hideRepository;
 
   @Mock
   private RabbitTemplate rabbitTemplate;

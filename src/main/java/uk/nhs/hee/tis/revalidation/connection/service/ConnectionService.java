@@ -28,7 +28,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
-import uk.nhs.hee.tis.revalidation.connection.repository.HideRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
 @Slf4j
 @Service
@@ -44,7 +44,7 @@ public class ConnectionService {
   private ConnectionRepository repository;
 
   @Autowired
-  private HideRepository hideRepository;
+  private HideConnectionRepository hideRepository;
 
   @Autowired
   private RabbitTemplate rabbitTemplate;

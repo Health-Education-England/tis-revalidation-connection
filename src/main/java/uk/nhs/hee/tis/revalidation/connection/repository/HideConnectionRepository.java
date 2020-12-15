@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 
 @Repository
-public interface HideRepository extends MongoRepository<HideConnectionLog, String> {
+public interface HideConnectionRepository extends MongoRepository<HideConnectionLog, String> {
 
 }

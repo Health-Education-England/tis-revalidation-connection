@@ -72,6 +72,8 @@ class ConnectionServiceTest {
   private ConnectionRequestType requestTypeRemove;
   private LocalDateTime requestTime;
   private String responseCode;
+  private String reasonHide;
+  private ConnectionRequestType requestTypeHide;
 
   @BeforeEach
   public void setup() {
@@ -93,6 +95,8 @@ class ConnectionServiceTest {
     reasonMessageRemove = "Doctor has retired";
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
+    reasonHide = "2";
+    requestTypeHide = ConnectionRequestType.HIDE;
 
     setField(connectionService, "exchange", "exchange");
     setField(connectionService, "routingKey", "routingKey");
@@ -194,6 +198,23 @@ class ConnectionServiceTest {
     assertThat(connections.size(), is(0));
   }
 
+  @Test
+  public void shouldReturnAllHiddenConnections() throws Exception {
+    final var hiddenConnection = prepareHiddenConnection();
+    when(hideRepository.findAll()).thenReturn(List.of(hiddenConnection));
+    var hiddenGmcIds = connectionService.getAllHiddenConnections();
+    assertThat(hiddenGmcIds.size(), is(1));
+    final var hiddenGmcId = hiddenGmcIds.get(0);
+    assertThat(hiddenGmcId, is(gmcId));
+  }
+
+  @Test
+  public void shouldNotFailWhenThereIsNoHiddenConnection() throws Exception {
+    when(hideRepository.findAll()).thenReturn(List.of());
+    var hiddenGmcIds = connectionService.getAllHiddenConnections();
+    assertThat(hiddenGmcIds.size(), is(0));
+  }
+
   private ConnectionRequestLog prepareConnectionAdd() {
     return ConnectionRequestLog.builder()
         .id(connectionId)
@@ -228,5 +249,15 @@ class ConnectionServiceTest {
     final var doc2 = DoctorInfoDto.builder().gmcId(gmcId)
         .currentDesignatedBodyCode(designatedBodyCode).build();
     return List.of(doc1, doc2);
+  }
+
+  private HideConnectionLog prepareHiddenConnection() {
+    return HideConnectionLog.builder()
+        .id(connectionId)
+        .gmcId(gmcId)
+        .reason(reasonHide)
+        .requestType(requestTypeHide)
+        .requestTime(requestTime)
+        .build();
   }
 }

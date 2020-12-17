@@ -8,6 +8,7 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestTyp
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -98,6 +99,14 @@ public class ConnectionService {
     connectionDto.setConnectionHistory(allConnectionsForTrainee);
 
     return connectionDto;
+  }
+
+  public List<String> getAllHiddenConnections() {
+    final var allConnections = hideRepository.findAll();
+    final var hiddenGmcIds = allConnections.stream().map(hidden -> {
+      return hidden.getGmcId();
+    }).collect(toList());
+    return hiddenGmcIds;
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(final UpdateConnectionDto addDoctorDto,

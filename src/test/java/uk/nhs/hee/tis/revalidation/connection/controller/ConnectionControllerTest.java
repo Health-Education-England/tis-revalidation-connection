@@ -150,6 +150,23 @@ class ConnectionControllerTest {
         .andExpect(status().isOk());
   }
 
+  @Test
+  public void shouldReturnAllHiddenConnections() throws Exception {
+    final var gmcIds = List.of(gmcId);
+    when(connectionService.getAllHiddenConnections()).thenReturn(gmcIds);
+    this.mockMvc.perform(get("/api/connections/hidden"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.[*]").value(hasItem(gmcId)));
+  }
+
+  @Test
+  public void shouldNotFailWhenThereIsNoHiddenConnections() throws Exception {
+    when(connectionService.getAllHiddenConnections()).thenReturn(List.of());
+    this.mockMvc.perform(get("/api/connections/hidden"))
+        .andExpect(status().isOk());
+  }
+
   private ConnectionDto prepareConnectionDto() {
     final ConnectionDto connectionDto = new ConnectionDto();
     final ConnectionHistoryDto connectionHistory = ConnectionHistoryDto.builder()

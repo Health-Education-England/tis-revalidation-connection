@@ -80,4 +80,15 @@ public class ConnectionController {
     }
     return ResponseEntity.ok().body((ConnectionDto) of());
   }
+
+  @ApiOperation(value = "Get detailed connections of a trainee", notes =
+      "It will return trainee's connections details", response = List.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Trainee connection details", response = List.class)})
+  @GetMapping("/hidden")
+  public ResponseEntity<List<String>> getDetailedConnections() {
+    log.info("Fetch all gmcIds of hidden connections");
+    final var connections = connectionService.getAllHiddenConnections();
+    return ResponseEntity.ok().body(connections);
+  }
 }

@@ -151,6 +151,16 @@ class ConnectionServiceTest {
   }
 
   @Test
+  public void shouldUnhideADoctorConnection() {
+    final var unhideDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .doctors(buildDoctorsList())
+        .build();
+    connectionService.unhideConnection(unhideDoctorDto);
+    verify(hideRepository, times(2)).deleteById(any(String.class));
+  }
+
+  @Test
   public void shouldAddToExceptionWhenRemoveADoctorFails() {
     returnCode = "90";
     final var removeDoctorDto = UpdateConnectionDto.builder()
@@ -253,7 +263,6 @@ class ConnectionServiceTest {
 
   private HideConnectionLog prepareHiddenConnection() {
     return HideConnectionLog.builder()
-        .id(connectionId)
         .gmcId(gmcId)
         .reason(reasonHide)
         .requestType(requestTypeHide)

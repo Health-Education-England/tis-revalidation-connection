@@ -123,6 +123,20 @@ class ConnectionControllerTest {
   }
 
   @Test
+  public void shouldUnhideDoctorConnection() throws Exception {
+    final var unhideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
+        .doctors(buildDoctorsList()).build();
+    final var response = UpdateConnectionResponseDto.builder().message(message).build();
+    when(connectionService.unhideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
+    this.mockMvc.perform(post("/api/connections/unhide")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsBytes(unhideDoctorDto)))
+        .andExpect(content().json(objectMapper.writeValueAsString(response)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   public void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connectionDto = prepareConnectionDto();
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(connectionDto);

@@ -66,6 +66,18 @@ public class ConnectionController {
     return ResponseEntity.ok(message);
   }
 
+  @ApiOperation(value = "Unhide connection", notes =
+      "It will unhide connections manually", response = String.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Unhiding connections is successful", response = String.class)})
+  @PostMapping("/unhide")
+  public ResponseEntity<UpdateConnectionResponseDto> unhideConnection(
+      @RequestBody final UpdateConnectionDto unhideConnectionDto) {
+    log.info("Request receive to unhide doctor connection: {}", unhideConnectionDto);
+    final var message = connectionService.unhideConnection(unhideConnectionDto);
+    return ResponseEntity.ok(message);
+  }
+
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
   @ApiResponses(value = {

@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
+import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.UNHIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
@@ -66,6 +67,10 @@ public class ConnectionService {
 
   public UpdateConnectionResponseDto hideConnection(final UpdateConnectionDto hideConnectionDto) {
     return processHideConnection(hideConnectionDto, HIDE);
+  }
+
+  public UpdateConnectionResponseDto unhideConnection(final UpdateConnectionDto unhideConnectionDto) {
+    return processUnhideConnection(unhideConnectionDto, UNHIDE);
   }
 
   // get all connection history for a trainee
@@ -191,19 +196,28 @@ public class ConnectionService {
   private UpdateConnectionResponseDto processHideConnection(final UpdateConnectionDto hideConnectionDto,
       final ConnectionRequestType connectionRequestType) {
     final var changeReason = hideConnectionDto.getChangeReason();
-    hideConnectionDto.getDoctors().forEach(doctor -> saveToDatabase(doctor.getGmcId(), changeReason, connectionRequestType));
+    hideConnectionDto.getDoctors().forEach(doctor -> addHideConnectionLog(doctor.getGmcId(), changeReason, connectionRequestType));
     return UpdateConnectionResponseDto.builder().message("Record has been hidden").build();
   }
 
-  private void saveToDatabase(final String gmcId, final String changeReason, final ConnectionRequestType connectionRequestType) {
+  private UpdateConnectionResponseDto processUnhideConnection(final UpdateConnectionDto unhideConnectionDto,
+      final ConnectionRequestType connectionRequestType) {
+    unhideConnectionDto.getDoctors().forEach(doctor -> removeHideConnectionLog(doctor.getGmcId()));
+    return UpdateConnectionResponseDto.builder().message("Record has been unhidden").build();
+  }
+
+  private void addHideConnectionLog(final String gmcId, final String changeReason, final ConnectionRequestType connectionRequestType) {
     final var hideConnectionLog = HideConnectionLog.builder()
-        .id(UUID.randomUUID().toString())
         .gmcId(gmcId)
         .reason(changeReason)
         .requestType(connectionRequestType)
         .requestTime(now())
         .build();
     hideRepository.save(hideConnectionLog);
+  }
+
+  private void removeHideConnectionLog(final String gmcId) {
+    hideRepository.deleteById(gmcId);
   }
 
 }

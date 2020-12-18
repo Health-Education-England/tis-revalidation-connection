@@ -15,7 +15,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "hideConnectionLogs")
 public class HideConnectionLog {
   @Id
-  private String id;
   private String gmcId;
   private String reason;
   private ConnectionRequestType requestType;

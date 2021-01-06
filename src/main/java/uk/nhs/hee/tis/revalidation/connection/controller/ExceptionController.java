@@ -24,6 +24,14 @@ public class ExceptionController {
   @Autowired
   private ExceptionService exceptionService;
 
+  /**
+   * GET  /exception : get exceptions.
+   *
+   * @param sortColumn
+   * @param sortOrder
+   * @param pageNumber
+   * @return the ResponseEntity with status 200 (OK) and exception response in body
+   */
   @GetMapping
   public ResponseEntity<ExceptionResponseDto> getExceptions(
       @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false) final String sortColumn,

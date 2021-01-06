@@ -49,13 +49,13 @@ class ExceptionServiceTest {
   }
 
   @Test
-  public void shouldCreateExceptionLog() {
+  void shouldCreateExceptionLog() {
     exceptionService.createExceptionLog(gmcId, responseCode);
     verify(repository).save(any(ExceptionLog.class));
   }
 
   @Test
-  public void shouldGetExceptionLog() {
+  void shouldGetExceptionLog() {
     final var exceptionRequestDto = ExceptionRequestDto.builder().pageNumber(1)
         .sortOrder("asc").sortColumn("gmcId").build();
     final var pageableAndSortable = PageRequest.of(1, 20, by(ASC, "gmcId"));

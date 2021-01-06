@@ -18,9 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
@@ -103,7 +103,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldAddADoctor() {
+  void shouldAddADoctor() {
     final var addDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
@@ -122,7 +122,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldRemoveADoctor() {
+  void shouldRemoveADoctor() {
     final var removeDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
@@ -141,7 +141,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldHideADoctorConnection() {
+  void shouldHideADoctorConnection() {
     final var hideDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .doctors(buildDoctorsList())
@@ -151,7 +151,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldUnhideADoctorConnection() {
+  void shouldUnhideADoctorConnection() {
     final var unhideDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .doctors(buildDoctorsList())
@@ -161,7 +161,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldAddToExceptionWhenRemoveADoctorFails() {
+  void shouldAddToExceptionWhenRemoveADoctorFails() {
     returnCode = "90";
     final var removeDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
@@ -180,10 +180,11 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldReturnAllConnectionsForADoctor() throws Exception {
+  void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connection1 = prepareConnectionAdd();
     final var connection2 = prepareConnectionRemove();
-    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of(connection1, connection2));
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId))
+        .thenReturn(List.of(connection1, connection2));
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(2));
@@ -201,7 +202,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldNotFailWhenThereIsNoConnectionForADoctorInTheService() throws Exception {
+  void shouldNotFailWhenThereIsNoConnectionForADoctorInTheService() throws Exception {
     when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of());
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
@@ -209,7 +210,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldReturnAllHiddenConnections() throws Exception {
+  void shouldReturnAllHiddenConnections() throws Exception {
     final var hiddenConnection = prepareHiddenConnection();
     when(hideRepository.findAll()).thenReturn(List.of(hiddenConnection));
     var hiddenGmcIds = connectionService.getAllHiddenConnections();
@@ -219,7 +220,7 @@ class ConnectionServiceTest {
   }
 
   @Test
-  public void shouldNotFailWhenThereIsNoHiddenConnection() throws Exception {
+  void shouldNotFailWhenThereIsNoHiddenConnection() throws Exception {
     when(hideRepository.findAll()).thenReturn(List.of());
     var hiddenGmcIds = connectionService.getAllHiddenConnections();
     assertThat(hiddenGmcIds.size(), is(0));

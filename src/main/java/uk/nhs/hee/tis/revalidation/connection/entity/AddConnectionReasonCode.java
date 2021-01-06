@@ -13,9 +13,14 @@ public enum AddConnectionReasonCode {
     this.message = message;
   }
 
-  // get reason message from code
+  /**
+   * Map add connection reason from code to message
+   *
+   * @param code add connection reason code
+   * @return add connection reason message
+   */
   public static String fromCode(final String code) {
-    for (final var responseCode: AddConnectionReasonCode.values()) {
+    for (final var responseCode : AddConnectionReasonCode.values()) {
       if (responseCode.getCode().equals(code)) {
         return responseCode.message;
       }

@@ -1,6 +1,5 @@
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,7 +23,7 @@ class ExceptionControllerTest {
   private ExceptionService exceptionService;
 
   @Test
-  public void shouldGetExceptions() throws Exception {
+  void shouldGetExceptions() throws Exception {
     this.mockMvc.perform(get("/api/exception"))
         .andExpect(status().isOk());
   }

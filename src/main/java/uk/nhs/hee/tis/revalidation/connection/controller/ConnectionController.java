@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
 @Slf4j
@@ -29,7 +29,12 @@ public class ConnectionController {
   @Autowired
   private ConnectionService connectionService;
 
-
+  /**
+   * POST  /connections/add : Add a new connection.
+   *
+   * @param addDoctorDto the connection to add
+   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
+   */
   @ApiOperation(value = "Add GMC connection", notes =
       "It will send add connection request to GMC and return GMC response message", response = String.class)
   @ApiResponses(value = {
@@ -42,6 +47,12 @@ public class ConnectionController {
     return ResponseEntity.ok(message);
   }
 
+  /**
+   * POST  /connections/remove : Remove an existing connection.
+   *
+   * @param removeDoctorDto the connection to remove
+   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
+   */
   @ApiOperation(value = "Remove GMC connection", notes =
       "It will send remove connection request to GMC and return GMC response message", response = String.class)
   @ApiResponses(value = {
@@ -54,6 +65,12 @@ public class ConnectionController {
     return ResponseEntity.ok(message);
   }
 
+  /**
+   * POST  /connections/hide : Hide a connection.
+   *
+   * @param hideConnectionDto the connection to hide
+   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
+   */
   @ApiOperation(value = "Hide connection", notes =
       "It will hide connections manually", response = String.class)
   @ApiResponses(value = {
@@ -66,6 +83,12 @@ public class ConnectionController {
     return ResponseEntity.ok(message);
   }
 
+  /**
+   * POST  /connections/unhide : Unhide a connection.
+   *
+   * @param unhideConnectionDto the connection to unhide
+   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
+   */
   @ApiOperation(value = "Unhide connection", notes =
       "It will unhide connections manually", response = String.class)
   @ApiResponses(value = {
@@ -78,6 +101,12 @@ public class ConnectionController {
     return ResponseEntity.ok(message);
   }
 
+  /**
+   * GET  /connections/{gmcId} : get connection details of the gmcId.
+   *
+   * @param gmcId the connection details to get
+   * @return the ResponseEntity with status 200 (OK) and connection details in body
+   */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
   @ApiResponses(value = {
@@ -93,6 +122,11 @@ public class ConnectionController {
     return ResponseEntity.ok().body((ConnectionDto) of());
   }
 
+  /**
+   * GET  /connections/hidden : get all gmcIds of hidden connections.
+   *
+   * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in body
+   */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
   @ApiResponses(value = {

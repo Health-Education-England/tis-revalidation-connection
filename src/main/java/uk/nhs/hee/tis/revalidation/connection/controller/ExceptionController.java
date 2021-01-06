@@ -27,7 +27,9 @@ public class ExceptionController {
   /**
    * GET  /exception : get exceptions.
    *
-   * @param sortColumn,sortOrder,pageNumber the exception request
+   * @param sortColumn
+   * @param sortOrder
+   * @param pageNumber
    * @return the ResponseEntity with status 200 (OK) and exception response in body
    */
   @GetMapping

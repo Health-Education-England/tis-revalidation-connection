@@ -73,7 +73,7 @@ class GmcClientServiceTest {
   }
 
   @Test
-  public void shouldSubmitTryAddDoctorRequest() {
+  void shouldSubmitTryAddDoctorRequest() {
 
     final var addDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
@@ -96,7 +96,7 @@ class GmcClientServiceTest {
   }
 
   @Test
-  public void shouldSubmitTryRemoveDoctorRequest() {
+  void shouldSubmitTryRemoveDoctorRequest() {
 
     final var removeDoctorDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)

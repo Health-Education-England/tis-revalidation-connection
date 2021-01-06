@@ -79,7 +79,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldAddDoctor() throws Exception {
+  void shouldAddDoctor() throws Exception {
     final var addDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
@@ -94,7 +94,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldRemoveDoctor() throws Exception {
+  void shouldRemoveDoctor() throws Exception {
     final var removeDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
@@ -109,7 +109,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldHideDoctorConnection() throws Exception {
+  void shouldHideDoctorConnection() throws Exception {
     final var hideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .doctors(buildDoctorsList()).build();
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
@@ -123,7 +123,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldUnhideDoctorConnection() throws Exception {
+  void shouldUnhideDoctorConnection() throws Exception {
     final var unhideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
         .doctors(buildDoctorsList()).build();
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
@@ -137,7 +137,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldReturnAllConnectionsForADoctor() throws Exception {
+  void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connectionDto = prepareConnectionDto();
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(connectionDto);
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
@@ -158,14 +158,14 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldNotFailWhenThereIsNoConnectionsForADoctor() throws Exception {
+  void shouldNotFailWhenThereIsNoConnectionsForADoctor() throws Exception {
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(new ConnectionDto());
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
         .andExpect(status().isOk());
   }
 
   @Test
-  public void shouldReturnAllHiddenConnections() throws Exception {
+  void shouldReturnAllHiddenConnections() throws Exception {
     final var gmcIds = List.of(gmcId);
     when(connectionService.getAllHiddenConnections()).thenReturn(gmcIds);
     this.mockMvc.perform(get("/api/connections/hidden"))
@@ -175,7 +175,7 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldNotFailWhenThereIsNoHiddenConnections() throws Exception {
+  void shouldNotFailWhenThereIsNoHiddenConnections() throws Exception {
     when(connectionService.getAllHiddenConnections()).thenReturn(List.of());
     this.mockMvc.perform(get("/api/connections/hidden"))
         .andExpect(status().isOk());

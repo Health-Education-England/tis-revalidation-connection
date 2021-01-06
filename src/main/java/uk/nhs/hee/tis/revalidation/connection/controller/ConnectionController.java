@@ -36,9 +36,11 @@ public class ConnectionController {
    * @return the ResponseEntity with status 200 (OK) and update connection response message in body
    */
   @ApiOperation(value = "Add GMC connection", notes =
-      "It will send add connection request to GMC and return GMC response message", response = String.class)
+      "It will send add connection request to GMC and return GMC response message",
+      response = String.class)
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Add connection request has been sent to GMC successfully", response = String.class)})
+      @ApiResponse(code = 200, message = "Add connection request has been sent to GMC successfully",
+          response = String.class)})
   @PostMapping("/add")
   public ResponseEntity<UpdateConnectionResponseDto> addDoctor(
       @RequestBody final UpdateConnectionDto addDoctorDto) {
@@ -54,9 +56,12 @@ public class ConnectionController {
    * @return the ResponseEntity with status 200 (OK) and update connection response message in body
    */
   @ApiOperation(value = "Remove GMC connection", notes =
-      "It will send remove connection request to GMC and return GMC response message", response = String.class)
+      "It will send remove connection request to GMC and return GMC response message",
+      response = String.class)
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Remove connection request has been sent to GMC successfully", response = String.class)})
+      @ApiResponse(code = 200,
+          message = "Remove connection request has been sent to GMC successfully",
+          response = String.class)})
   @PostMapping("/remove")
   public ResponseEntity<UpdateConnectionResponseDto> removeDoctor(
       @RequestBody final UpdateConnectionDto removeDoctorDto) {
@@ -74,7 +79,8 @@ public class ConnectionController {
   @ApiOperation(value = "Hide connection", notes =
       "It will hide connections manually", response = String.class)
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Hiding connections is successful", response = String.class)})
+      @ApiResponse(code = 200, message = "Hiding connections is successful",
+          response = String.class)})
   @PostMapping("/hide")
   public ResponseEntity<UpdateConnectionResponseDto> hideConnection(
       @RequestBody final UpdateConnectionDto hideConnectionDto) {
@@ -92,7 +98,8 @@ public class ConnectionController {
   @ApiOperation(value = "Unhide connection", notes =
       "It will unhide connections manually", response = String.class)
   @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Unhiding connections is successful", response = String.class)})
+      @ApiResponse(code = 200, message = "Unhiding connections is successful",
+          response = String.class)})
   @PostMapping("/unhide")
   public ResponseEntity<UpdateConnectionResponseDto> unhideConnection(
       @RequestBody final UpdateConnectionDto unhideConnectionDto) {
@@ -125,7 +132,8 @@ public class ConnectionController {
   /**
    * GET  /connections/hidden : get all gmcIds of hidden connections.
    *
-   * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in body
+   * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in
+   * body
    */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)

@@ -26,7 +26,7 @@ public enum GmcResponseCode {
   }
 
   /**
-   * Map gmc response code
+   * Map gmc response code.
    *
    * @param code string of gmc response code
    * @return gmc response code
@@ -41,7 +41,7 @@ public enum GmcResponseCode {
   }
 
   /**
-   * Map gmc response from code to message
+   * Map gmc response from code to message.
    *
    * @param code gmc response code
    * @return gmc response message

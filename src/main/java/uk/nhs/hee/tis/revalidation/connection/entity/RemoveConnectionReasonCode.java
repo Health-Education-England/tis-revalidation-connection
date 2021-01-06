@@ -16,7 +16,7 @@ public enum RemoveConnectionReasonCode {
   }
 
   /**
-   * Map remove connection reason from code to message
+   * Map remove connection reason from code to message.
    *
    * @param code remove connection reason code
    * @return remove connection reason message

@@ -27,6 +27,12 @@ public class ExceptionService {
   @Autowired
   private ExceptionRepository repository;
 
+  /**
+   * Create exception log.
+   *
+   * @param gmcId gmcId of trainees where there are some issue when updating connection
+   * @param responseCode response code that response from gmc
+   */
   public void createExceptionLog(final String gmcId, final String responseCode) {
     final String exceptionMessage = GmcResponseCode.fromCode(responseCode).getMessage();
     final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(exceptionMessage)
@@ -35,14 +41,19 @@ public class ExceptionService {
     repository.save(exceptionLog);
   }
 
+  /**
+   * Remove exception log.
+   *
+   * @param gmcId gmcId of trainees that we want to remove from exceptional log
+   */
   public void removeExceptionLog(final String gmcId) {
     repository.deleteById(gmcId);
   }
 
-  public ExceptionResponseDto getExceptionLog(final ExceptionRequestDto requestDTO) {
-    final var direction = "asc".equalsIgnoreCase(requestDTO.getSortOrder()) ? ASC : DESC;
-    final var pageableAndSortable = of(requestDTO.getPageNumber(), 20,
-        by(direction, requestDTO.getSortColumn()));
+  public ExceptionResponseDto getExceptionLog(final ExceptionRequestDto requestDto) {
+    final var direction = "asc".equalsIgnoreCase(requestDto.getSortOrder()) ? ASC : DESC;
+    final var pageableAndSortable = of(requestDto.getPageNumber(), 20,
+        by(direction, requestDto.getSortColumn()));
 
     final var exceptionLogPage = repository.findAll(pageableAndSortable);
     final var exceptionLogs = exceptionLogPage.get().collect(toList());

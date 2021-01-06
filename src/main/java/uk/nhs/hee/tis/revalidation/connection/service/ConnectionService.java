@@ -75,7 +75,7 @@ public class ConnectionService {
   }
 
   /**
-   * Get all connection history for a trainee
+   * Get all connection history for a trainee.
    *
    * @param gmcId gmcId of a trainee
    * @return connection history
@@ -112,7 +112,7 @@ public class ConnectionService {
   }
 
   /**
-   * Get gmcId of hidden connections
+   * Get gmcId of hidden connections.
    *
    * @return list of gmcId of hidden connections
    */
@@ -187,7 +187,8 @@ public class ConnectionService {
     return UpdateConnectionResponseDto.builder().message(responseMessage).build();
   }
 
-  //If success put message into queue to update doctors for DB otherwise log message into exception logs.
+  //If success put message into queue to update doctors for DB otherwise log message into exception
+  // logs.
   private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
       final String returnCode) {
     if (SUCCESS.getCode().equals(returnCode)) {

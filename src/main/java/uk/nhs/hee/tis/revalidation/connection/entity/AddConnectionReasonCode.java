@@ -14,7 +14,7 @@ public enum AddConnectionReasonCode {
   }
 
   /**
-   * Map add connection reason from code to message
+   * Map add connection reason from code to message.
    *
    * @param code add connection reason code
    * @return add connection reason message

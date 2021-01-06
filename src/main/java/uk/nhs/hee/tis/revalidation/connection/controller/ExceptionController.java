@@ -27,16 +27,19 @@ public class ExceptionController {
   /**
    * GET  /exception : get exceptions.
    *
-   * @param sortColumn
-   * @param sortOrder
-   * @param pageNumber
+   * @param sortColumn column to be sorted
+   * @param sortOrder sorting order (ASC or DESC)
+   * @param pageNumber page number of data to get
    * @return the ResponseEntity with status 200 (OK) and exception response in body
    */
   @GetMapping
   public ResponseEntity<ExceptionResponseDto> getExceptions(
-      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = DESC, required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber) {
+      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false)
+      final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = DESC, required = false)
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber) {
 
     final var exceptionRequestDto = ExceptionRequestDto.builder().sortColumn(sortColumn)
         .sortOrder(sortOrder)

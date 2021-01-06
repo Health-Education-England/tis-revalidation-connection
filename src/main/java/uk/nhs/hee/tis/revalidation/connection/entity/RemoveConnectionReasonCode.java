@@ -15,7 +15,12 @@ public enum RemoveConnectionReasonCode {
     this.message = message;
   }
 
-  // get message reason from code
+  /**
+   * Map remove connection reason from code to message
+   *
+   * @param code remove connection reason code
+   * @return remove connection reason message
+   */
   public static String fromCode(final String code) {
     for (final var responseCode : RemoveConnectionReasonCode.values()) {
       if (responseCode.getCode().equals(code)) {

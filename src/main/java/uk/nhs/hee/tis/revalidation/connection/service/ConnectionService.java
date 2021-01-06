@@ -74,7 +74,12 @@ public class ConnectionService {
     return processUnhideConnection(unhideConnectionDto, UNHIDE);
   }
 
-  // get all connection history for a trainee
+  /**
+   * Get all connection history for a trainee
+   *
+   * @param gmcId gmcId of a trainee
+   * @return connection history
+   */
   public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
     final ConnectionDto connectionDto = new ConnectionDto();
@@ -106,6 +111,11 @@ public class ConnectionService {
     return connectionDto;
   }
 
+  /**
+   * Get gmcId of hidden connections
+   *
+   * @return list of gmcId of hidden connections
+   */
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
     final var hiddenGmcIds = allConnections.stream().map(hidden -> {

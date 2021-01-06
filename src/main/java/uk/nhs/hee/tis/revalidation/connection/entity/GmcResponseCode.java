@@ -25,6 +25,12 @@ public enum GmcResponseCode {
     this.message = message;
   }
 
+  /**
+   * Map gmc response code
+   *
+   * @param code string of gmc response code
+   * @return gmc response code
+   */
   public static GmcResponseCode fromCode(final String code) {
     for (final var responseCode : GmcResponseCode.values()) {
       if (responseCode.getCode().equals(code)) {
@@ -34,7 +40,12 @@ public enum GmcResponseCode {
     return null;
   }
 
-  // get response message from code
+  /**
+   * Map gmc response from code to message
+   *
+   * @param code gmc response code
+   * @return gmc response message
+   */
   public static String fromCodeToMessage(final String code) {
     for (final var responseCode : GmcResponseCode.values()) {
       if (responseCode.getCode().equals(code)) {

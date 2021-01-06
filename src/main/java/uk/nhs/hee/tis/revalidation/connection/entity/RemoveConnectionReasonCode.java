@@ -17,7 +17,7 @@ public enum RemoveConnectionReasonCode {
 
   // get message reason from code
   public static String fromCode(final String code) {
-    for (final var responseCode: RemoveConnectionReasonCode.values()) {
+    for (final var responseCode : RemoveConnectionReasonCode.values()) {
       if (responseCode.getCode().equals(code)) {
         return responseCode.message;
       }

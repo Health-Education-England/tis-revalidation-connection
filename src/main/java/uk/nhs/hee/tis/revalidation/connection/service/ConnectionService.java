@@ -16,12 +16,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -69,7 +69,8 @@ public class ConnectionService {
     return processHideConnection(hideConnectionDto, HIDE);
   }
 
-  public UpdateConnectionResponseDto unhideConnection(final UpdateConnectionDto unhideConnectionDto) {
+  public UpdateConnectionResponseDto unhideConnection(
+      final UpdateConnectionDto unhideConnectionDto) {
     return processUnhideConnection(unhideConnectionDto, UNHIDE);
   }
 
@@ -82,8 +83,7 @@ public class ConnectionService {
       String reasonMessage = "";
       if (connection.getRequestType().equals(ADD)) {
         reasonMessage = AddConnectionReasonCode.fromCode(connection.getReason());
-      }
-      else if (connection.getRequestType().equals(REMOVE)) {
+      } else if (connection.getRequestType().equals(REMOVE)) {
         reasonMessage = RemoveConnectionReasonCode.fromCode(connection.getReason());
       }
 
@@ -114,7 +114,8 @@ public class ConnectionService {
     return hiddenGmcIds;
   }
 
-  private UpdateConnectionResponseDto processConnectionRequest(final UpdateConnectionDto addDoctorDto,
+  private UpdateConnectionResponseDto processConnectionRequest(
+      final UpdateConnectionDto addDoctorDto,
       final ConnectionRequestType connectionRequestType) {
 
     final var changeReason = addDoctorDto.getChangeReason();
@@ -127,28 +128,34 @@ public class ConnectionService {
     }).filter(response -> !response.getMessage().equals(SUCCESS.getMessage()))
         .findAny();
     if (addRemoveResponse.isPresent()) {
-      final var errorMessage = getReturnMessage(addRemoveResponse.get().getMessage(), addDoctorDto.getDoctors().size());
+      final var errorMessage = getReturnMessage(addRemoveResponse.get().getMessage(),
+          addDoctorDto.getDoctors().size());
       return UpdateConnectionResponseDto.builder().message(errorMessage).build();
     }
     return UpdateConnectionResponseDto.builder().message(SUCCESS.getMessage()).build();
   }
 
   //delegate request to GMC Client
-  private GmcConnectionResponseDto delegateRequest(final String changeReason, final String designatedBodyCode,
+  private GmcConnectionResponseDto delegateRequest(final String changeReason,
+      final String designatedBodyCode,
       final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
     GmcConnectionResponseDto gmcResponse = null;
     if (ADD == connectionRequestType) {
-      gmcResponse = gmcClientService.tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
+      gmcResponse = gmcClientService
+          .tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
     } else {
-      gmcResponse = gmcClientService.tryRemoveDoctor(doctor.getGmcId(), changeReason, doctor.getCurrentDesignatedBodyCode());
+      gmcResponse = gmcClientService
+          .tryRemoveDoctor(doctor.getGmcId(), changeReason, doctor.getCurrentDesignatedBodyCode());
     }
     return gmcResponse;
   }
 
   // Handle Gmc response and take appropriate actions
-  private UpdateConnectionResponseDto handleGmcResponse(final String gmcId, final String changeReason,
+  private UpdateConnectionResponseDto handleGmcResponse(final String gmcId,
+      final String changeReason,
       final String designatedBodyCode, final String currentDesignatedBodyCode,
-      final GmcConnectionResponseDto gmcResponse, final ConnectionRequestType connectionRequestType) {
+      final GmcConnectionResponseDto gmcResponse,
+      final ConnectionRequestType connectionRequestType) {
 
     final var connectionRequestLog = ConnectionRequestLog.builder()
         .id(UUID.randomUUID().toString())
@@ -187,26 +194,30 @@ public class ConnectionService {
 
   //if bulk request then return generic failure message else gmc error message
   private String getReturnMessage(final String message, final int requestSize) {
-    if( requestSize > 1) {
+    if (requestSize > 1) {
       return "Some changes have failed with GMC, please check the exceptions queue";
     }
     return message;
   }
 
-  private UpdateConnectionResponseDto processHideConnection(final UpdateConnectionDto hideConnectionDto,
+  private UpdateConnectionResponseDto processHideConnection(
+      final UpdateConnectionDto hideConnectionDto,
       final ConnectionRequestType connectionRequestType) {
     final var changeReason = hideConnectionDto.getChangeReason();
-    hideConnectionDto.getDoctors().forEach(doctor -> addHideConnectionLog(doctor.getGmcId(), changeReason, connectionRequestType));
+    hideConnectionDto.getDoctors().forEach(
+        doctor -> addHideConnectionLog(doctor.getGmcId(), changeReason, connectionRequestType));
     return UpdateConnectionResponseDto.builder().message("Record has been hidden").build();
   }
 
-  private UpdateConnectionResponseDto processUnhideConnection(final UpdateConnectionDto unhideConnectionDto,
+  private UpdateConnectionResponseDto processUnhideConnection(
+      final UpdateConnectionDto unhideConnectionDto,
       final ConnectionRequestType connectionRequestType) {
     unhideConnectionDto.getDoctors().forEach(doctor -> removeHideConnectionLog(doctor.getGmcId()));
     return UpdateConnectionResponseDto.builder().message("Record has been unhidden").build();
   }
 
-  private void addHideConnectionLog(final String gmcId, final String changeReason, final ConnectionRequestType connectionRequestType) {
+  private void addHideConnectionLog(final String gmcId, final String changeReason,
+      final ConnectionRequestType connectionRequestType) {
     final var hideConnectionLog = HideConnectionLog.builder()
         .gmcId(gmcId)
         .reason(changeReason)

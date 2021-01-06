@@ -9,9 +9,10 @@ import lombok.Data;
 @Builder
 @ApiModel(description = "Request for trainee data for exception page")
 public class ExceptionRequestDto {
-    private String sortColumn;
-    private String sortOrder;
-    private int pageNumber;
-    private List<String> dbcs;
-    private String searchQuery;
+
+  private String sortColumn;
+  private String sortOrder;
+  private int pageNumber;
+  private List<String> dbcs;
+  private String searchQuery;
 }

@@ -22,8 +22,8 @@ import uk.nhs.hee.tis.gmc.client.generated.TryAddDoctorResponseCT;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctor;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorResponse;
 import uk.nhs.hee.tis.gmc.client.generated.TryRemoveDoctorResponseCT;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 
 @ExtendWith(MockitoExtension.class)
 class GmcClientServiceTest {

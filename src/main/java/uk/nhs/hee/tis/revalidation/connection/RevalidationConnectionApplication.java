@@ -36,7 +36,7 @@ public class RevalidationConnectionApplication {
 
   @Bean
   public WebServiceTemplate webServiceTemplate() {
-    final WebServiceTemplate webServiceTemplate =  new WebServiceTemplate();
+    final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
     webServiceTemplate.setMarshaller(marshaller());
     webServiceTemplate.setUnmarshaller(marshaller());
     return webServiceTemplate;
@@ -45,7 +45,8 @@ public class RevalidationConnectionApplication {
   @Bean
   public Jaxb2Marshaller marshaller() {
     final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-    marshaller.setPackagesToScan("uk.nhs.hee.tis.gmc.client", "uk.nhs.hee.tis.gmc.client.generated");
+    marshaller
+        .setPackagesToScan("uk.nhs.hee.tis.gmc.client", "uk.nhs.hee.tis.gmc.client.generated");
     return marshaller;
   }
 }

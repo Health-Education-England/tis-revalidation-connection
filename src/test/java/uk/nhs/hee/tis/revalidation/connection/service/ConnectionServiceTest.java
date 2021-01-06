@@ -18,9 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
@@ -183,7 +183,8 @@ class ConnectionServiceTest {
   public void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connection1 = prepareConnectionAdd();
     final var connection2 = prepareConnectionRemove();
-    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of(connection1, connection2));
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId))
+        .thenReturn(List.of(connection1, connection2));
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(2));

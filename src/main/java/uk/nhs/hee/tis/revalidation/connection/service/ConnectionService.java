@@ -11,6 +11,7 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.from
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,10 +136,11 @@ public class ConnectionService {
           connectionRequestType);
       return handleGmcResponse(doctor.getGmcId(), changeReason, designatedBodyCode,
           doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType);
-    }).filter(response -> !response.getMessage().equals(SUCCESS.getMessage()))
-        .findAny();
-    if (addRemoveResponse.isPresent()) {
-      final var errorMessage = getReturnMessage(addRemoveResponse.get().getMessage(),
+    }).collect(Collectors.toList());
+    final var addRemoveResponseFiltered = addRemoveResponse.stream()
+        .filter(response -> !response.getMessage().equals(SUCCESS.getMessage())).findAny();
+    if (addRemoveResponseFiltered.isPresent()) {
+      final var errorMessage = getReturnMessage(addRemoveResponseFiltered.get().getMessage(),
           addDoctorDto.getDoctors().size());
       return UpdateConnectionResponseDto.builder().message(errorMessage).build();
     }

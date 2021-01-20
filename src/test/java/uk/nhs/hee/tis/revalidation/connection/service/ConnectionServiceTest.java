@@ -176,7 +176,7 @@ class ConnectionServiceTest {
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
-    verify(exceptionService).createExceptionLog(gmcId, returnCode);
+    verify(exceptionService, times(2)).createExceptionLog(gmcId, returnCode);
   }
 
   @Test

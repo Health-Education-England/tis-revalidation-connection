@@ -73,4 +73,10 @@ public class ExceptionService {
           .build();
     }).collect(toList());
   }
+
+  public void sendToExceptionQueue(final String gmcId, final String errorMessage) {
+    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId)
+        .errorMessage(errorMessage).timestamp(now()).build();
+    repository.save(exceptionLog);
+  }
 }

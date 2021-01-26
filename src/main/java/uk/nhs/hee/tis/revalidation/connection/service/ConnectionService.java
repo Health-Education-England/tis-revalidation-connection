@@ -132,14 +132,16 @@ public class ConnectionService {
     final var changeReason = addDoctorDto.getChangeReason();
     final var designatedBodyCode = addDoctorDto.getDesignatedBodyCode();
     final var addRemoveResponse = addDoctorDto.getDoctors().stream().map(doctor -> {
-      if(doctor.getCurrentDesignatedBodyCode().equals(doctor.getProgrammeOwnerDesignatedBodyCode())) {
+      if (doctor.getCurrentDesignatedBodyCode()
+          .equals(doctor.getProgrammeOwnerDesignatedBodyCode())) {
         final var gmcResponse = delegateRequest(changeReason, designatedBodyCode, doctor,
             connectionRequestType);
         return handleGmcResponse(doctor.getGmcId(), changeReason, designatedBodyCode,
             doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType);
       }
       else {
-        String errorMessage = "Doctor's current designated body does not match with current programme owner";
+        String errorMessage = "Doctor's current designated body "
+            + "does not match with current programme owner";
         exceptionService.sendToExceptionQueue(doctor.getGmcId(), errorMessage);
         return UpdateConnectionResponseDto.builder().message(errorMessage).build();
       }

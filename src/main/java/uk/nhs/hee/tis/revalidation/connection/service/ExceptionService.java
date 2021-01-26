@@ -74,6 +74,12 @@ public class ExceptionService {
     }).collect(toList());
   }
 
+  /**
+   * Send to exception queue.
+   *
+   * @param gmcId gmcId of trainees that we want to send to exception queue
+   * @param errorMessage the message that will be saved into repository
+   */
   public void sendToExceptionQueue(final String gmcId, final String errorMessage) {
     final var exceptionLog = ExceptionLog.builder().gmcId(gmcId)
         .errorMessage(errorMessage).timestamp(now()).build();

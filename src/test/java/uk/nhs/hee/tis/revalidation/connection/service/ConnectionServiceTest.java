@@ -231,7 +231,8 @@ class ConnectionServiceTest {
   }
 
   @Test
-  void shouldBeAddedToExceptionQueue_WhenTraineeCurrentDesignatedBodyCode_AndProgrammeOwnerDesignatedBodyCode_NotMatch() throws Exception {
+  void shouldAddToExceptionQueueIfTraineeCurrentDbcAndProgrammeOwnerDbcDoesNotMatch()
+      throws Exception {
     final var updateConnectionDto = UpdateConnectionDto.builder()
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
@@ -241,7 +242,8 @@ class ConnectionServiceTest {
             .build()))
         .build();
     connectionService.addDoctor(updateConnectionDto);
-    String errorMessage = "Doctor's current designated body does not match with current programme owner";
+    String errorMessage = "Doctor's current designated body "
+        + "does not match with current programme owner";
     verify(exceptionService).sendToExceptionQueue(gmcId, errorMessage);
   }
 

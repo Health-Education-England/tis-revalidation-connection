@@ -15,4 +15,5 @@ public class DoctorInfoDto {
 
   private String gmcId;
   private String currentDesignatedBodyCode;
+  private String programmeOwnerDesignatedBodyCode;
 }

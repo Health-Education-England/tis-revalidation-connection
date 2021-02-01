@@ -10,6 +10,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,7 @@ class ConnectionServiceTest {
 
   private String changeReason;
   private String designatedBodyCode;
+  private String programmeOwnerDesignatedBodyCode;
   private String gmcId;
   private String gmcRequestId;
   private String returnCode;
@@ -97,6 +99,8 @@ class ConnectionServiceTest {
     responseCode = faker.number().digits(5);
     reasonHide = "2";
     requestTypeHide = ConnectionRequestType.HIDE;
+
+    programmeOwnerDesignatedBodyCode = faker.number().digits(8);
 
     setField(connectionService, "exchange", "exchange");
     setField(connectionService, "routingKey", "routingKey");
@@ -226,6 +230,23 @@ class ConnectionServiceTest {
     assertThat(hiddenGmcIds.size(), is(0));
   }
 
+  @Test
+  void shouldAddToExceptionQueueIfTraineeCurrentDbcAndProgrammeOwnerDbcDoesNotMatch()
+      throws Exception {
+    final var updateConnectionDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(Arrays.asList(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(designatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(programmeOwnerDesignatedBodyCode)
+            .build()))
+        .build();
+    connectionService.addDoctor(updateConnectionDto);
+    String errorMessage = "Doctor's current designated body "
+        + "does not match with current programme owner";
+    verify(exceptionService).sendToExceptionQueue(gmcId, errorMessage);
+  }
+
   private ConnectionRequestLog prepareConnectionAdd() {
     return ConnectionRequestLog.builder()
         .id(connectionId)
@@ -256,9 +277,13 @@ class ConnectionServiceTest {
 
   private List<DoctorInfoDto> buildDoctorsList() {
     final var doc1 = DoctorInfoDto.builder().gmcId(gmcId)
-        .currentDesignatedBodyCode(designatedBodyCode).build();
+        .currentDesignatedBodyCode(designatedBodyCode)
+        .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+        .build();
     final var doc2 = DoctorInfoDto.builder().gmcId(gmcId)
-        .currentDesignatedBodyCode(designatedBodyCode).build();
+        .currentDesignatedBodyCode(designatedBodyCode)
+        .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+        .build();
     return List.of(doc1, doc2);
   }
 

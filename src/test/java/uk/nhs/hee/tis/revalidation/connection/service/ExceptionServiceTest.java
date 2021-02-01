@@ -64,4 +64,10 @@ class ExceptionServiceTest {
     final var exceptionResponseDto = exceptionService.getExceptionLog(exceptionRequestDto);
     assertThat(exceptionResponseDto.getExceptionRecord(), hasSize(1));
   }
+
+  @Test
+  void shouldSendToExceptionQueue() {
+    exceptionService.sendToExceptionQueue(gmcId, "Test error message");
+    verify(repository).save(any(ExceptionLog.class));
+  }
 }

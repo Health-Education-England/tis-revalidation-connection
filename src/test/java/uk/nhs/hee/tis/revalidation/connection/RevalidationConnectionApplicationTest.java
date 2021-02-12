@@ -21,10 +21,12 @@
 
 package uk.nhs.hee.tis.revalidation.connection;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
+@Disabled
 class RevalidationConnectionApplicationTest {
 
   @Test

@@ -58,13 +58,13 @@ public class ExceptionController {
   public ResponseEntity<ExceptionResponseDto> getExceptions(
       final Pageable pageable,
       @RequestParam(value = "searchQuery", required = false) String searchQuery,
-      @RequestParam(value = "columnFilters", required = false) final String columnFilterJson//,
-/*      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false)
+      @RequestParam(value = "columnFilters", required = false) final String columnFilterJson,
+      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false)
       final String sortColumn,
       @RequestParam(name = SORT_ORDER, defaultValue = DESC, required = false)
-      final String sortOrder,*/
-  /*    @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
-      final int pageNumber*/) throws IOException {
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber) throws IOException {
 
 
       searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
@@ -73,20 +73,20 @@ public class ExceptionController {
       final List<Class> filterEnumList = Lists.newArrayList(Status.class);
       final List<ColumnFilter> columnFilters = ColumnFilterUtil
           .getColumnFilters(columnFilterJson, filterEnumList);
-      final Page<PersonViewDTO> page;
+      final ExceptionResponseDto exceptionResponseDto;
 
       //feature flag to enable es, allow the enabling from the FE
-     page = personElasticSearchService.searchForPage(searchQueryES, columnFilters, pageable);
+    exceptionResponseDto = personElasticSearchService.searchForPage(searchQueryES, columnFilters, pageable);
 
-    LOGGER.debug(page.toString());
+    LOGGER.info(exceptionResponseDto.toString());
 
 
-   /* final var exceptionRequestDto = ExceptionRequestDto.builder().sortColumn(sortColumn)
-        .sortOrder(sortOrder)
-        .pageNumber(pageNumber).build();
-
-    final var exceptionResponseDto = exceptionService.getExceptionLog(exceptionRequestDto);*/
-    return ResponseEntity.ok(ExceptionResponseDto.builder().build());
+//    final var exceptionRequestDto = ExceptionRequestDto.builder().sortColumn(sortColumn)
+//        .sortOrder(sortOrder)
+//        .pageNumber(pageNumber).build();
+//
+//    final var exceptionResponseDto = exceptionService.getExceptionLog(exceptionRequestDto);
+    return ResponseEntity.ok(exceptionResponseDto);
 
   }
 }

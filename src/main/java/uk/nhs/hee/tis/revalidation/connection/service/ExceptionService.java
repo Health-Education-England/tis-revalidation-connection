@@ -60,7 +60,7 @@ public class ExceptionService {
     final var exceptionResponseDto = ExceptionResponseDto.builder()
         .totalPages(exceptionLogPage.getTotalPages())
         .totalResults(exceptionLogPage.getTotalElements())
-        .exceptionRecord(buildExceptionRecords(exceptionLogs))
+//        .exceptionRecord(buildExceptionRecords(exceptionLogs))
         .build();
     return exceptionResponseDto;
   }

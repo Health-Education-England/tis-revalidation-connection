@@ -1,33 +1,29 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.index.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.PersonViewDTO;
 import uk.nhs.hee.tis.revalidation.connection.entity.ColumnFilter;
 import uk.nhs.hee.tis.revalidation.connection.entity.PersonView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ProgrammeMembershipStatus;
-import uk.nhs.hee.tis.revalidation.connection.entity.RoleBasedFilterStrategy;
 import uk.nhs.hee.tis.revalidation.connection.repository.PersonSearchRespository;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 
 @Service
@@ -37,12 +33,8 @@ public class PersonElasticSearchService {
 
   @Autowired
   PersonSearchRespository personElasticSearchRepository;
-//  @Autowired
-//  private Set<RoleBasedFilterStrategy> roleBasedFilterStrategies;
-//  @Autowired
-//  private PermissionService permissionService;
 
-  public Page<PersonViewDTO> searchForPage(String searchQuery,
+  public ExceptionResponseDto searchForPage(String searchQuery,
                                            List<ColumnFilter> columnFilters, Pageable pageable) {
 
 
@@ -56,38 +48,6 @@ public class PersonElasticSearchService {
       if (CollectionUtils.isNotEmpty(columnFilters)) {
         for (ColumnFilter columnFilter : columnFilters) {
           BoolQueryBuilder shouldBetweenSameColumnFilter = new BoolQueryBuilder();
-
-//          if (StringUtils.equals(columnFilter.getName(), "programmeMembershipStatus")) {
-//            if (permissionService.isProgrammeObserver()) {
-//              Set<Long> programmeIds = permissionService.getUsersProgrammeIds();
-//              for (Long programmeId : programmeIds) {
-//                BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-//                MatchQueryBuilder statusQueryBuilder = null;
-//
-//                ProgrammeMembershipStatus status = ProgrammeMembershipStatus
-//                    .valueOf(columnFilter.getValues().get(0).toString());
-//                programmeMembershipStatusFilter = status;
-//                if (status.equals(ProgrammeMembershipStatus.CURRENT)) {
-//                  statusQueryBuilder = QueryBuilders
-//                      .matchQuery("programmeMemberships.programmeMembershipStatus", "CURRENT");
-//                } else if (status.equals(ProgrammeMembershipStatus.PAST)) {
-//                  statusQueryBuilder = QueryBuilders
-//                      .matchQuery("programmeMemberships.programmeMembershipStatus", "PAST");
-//                } else if (status.equals(ProgrammeMembershipStatus.FUTURE)) {
-//                  statusQueryBuilder = QueryBuilders
-//                      .matchQuery("programmeMemberships.programmeMembershipStatus", "FUTURE");
-//                }
-//
-//                shouldQuery
-//                    .should(new MatchQueryBuilder("programmeMemberships.programmeId", programmeId))
-//                    .should(statusQueryBuilder).minimumShouldMatch(2);
-//                shouldBetweenSameColumnFilter
-//                    .should(nestedQuery("programmeMemberships", shouldQuery, ScoreMode.None))
-//                    .minimumShouldMatch(1);
-//              }
-//              mustBetweenDifferentColumnFilters.must(shouldBetweenSameColumnFilter);
-//            }
-//          } else {
 
             for (Object value : columnFilter.getValues()) {
               if (appliedFilters.contains(columnFilter
@@ -131,30 +91,21 @@ public class PersonElasticSearchService {
       pageable = replaceSortByIdHack(pageable);
 
       Page<PersonView> result = personElasticSearchRepository.search(fullQuery, pageable);
+      LOG.info("Result {}", result.toString());
 
-      return new PageImpl<>(
-          convertPersonViewToDTO(result.getContent(), programmeMembershipStatusFilter), pageable,
-          result.getTotalElements());
+      final var exceptionLogs = result.get().collect(toList());
+      final var exceptionResponseDto = ExceptionResponseDto.builder()
+          .totalPages(result.getTotalPages())
+          .totalResults(result.getTotalElements())
+          .exceptionRecord(exceptionLogs)
+          .build();
+      return exceptionResponseDto;
+
     } catch (RuntimeException re) {
       LOG.error("An exception occurred while attempting to do an ES search", re);
       throw re;
     }
   }
-
-//  private Set<String> applyRoleBasedFilters(BoolQueryBuilder mustBetweenDifferentColumnFilters) {
-//    //find if there are any strategies based off roles need executing
-//    Set<String> appliedFilters = Sets.newHashSet();
-//    for (RoleBasedFilterStrategy roleBasedFilterStrategy : roleBasedFilterStrategies) {
-//      Optional<Tuple<String, BoolQueryBuilder>> nameToFilterOptionalTuple = roleBasedFilterStrategy
-//          .getFilter();
-//      if (nameToFilterOptionalTuple.isPresent()) {
-//        Tuple<String, BoolQueryBuilder> nameToFilterTuple = nameToFilterOptionalTuple.get();
-//        appliedFilters.add(nameToFilterTuple.v1());
-//        mustBetweenDifferentColumnFilters.must(nameToFilterTuple.v2());
-//      }
-//    }
-//    return appliedFilters;
-//  }
 
   private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
     // this part is the free text part of the query, place a should between all of the searchable fields

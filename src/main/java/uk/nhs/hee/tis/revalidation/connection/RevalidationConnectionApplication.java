@@ -30,7 +30,6 @@ import org.springframework.ws.client.core.WebServiceTemplate;
 
 //@EnableElasticsearchRepositories
 @SpringBootApplication
-
 public class RevalidationConnectionApplication {
 
   public static void main(String[] args) {

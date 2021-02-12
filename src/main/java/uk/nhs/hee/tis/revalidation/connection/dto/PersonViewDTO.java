@@ -3,6 +3,8 @@ package uk.nhs.hee.tis.revalidation.connection.dto;
 import java.io.Serializable;
 import java.util.Objects;
 import lombok.Data;
+import uk.nhs.hee.tis.revalidation.connection.entity.PersonOwnerRule;
+import uk.nhs.hee.tis.revalidation.connection.entity.ProgrammeMembershipStatus;
 import uk.nhs.hee.tis.revalidation.connection.entity.Status;
 
 /**
@@ -30,7 +32,7 @@ public class PersonViewDTO implements Serializable {
 
   private Long programmeId;
 
-  //private ProgrammeMembershipStatus programmeMembershipStatus;
+  private ProgrammeMembershipStatus programmeMembershipStatus;
 
   private String programmeName;
 
@@ -60,7 +62,7 @@ public class PersonViewDTO implements Serializable {
 
   private String currentOwner;
 
-  //private PersonOwnerRule currentOwnerRule;
+  private PersonOwnerRule currentOwnerRule;
 
   @Override
   public boolean equals(Object o) {

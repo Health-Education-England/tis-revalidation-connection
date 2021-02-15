@@ -26,9 +26,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.ws.client.core.WebServiceTemplate;
-//import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
-
-//@EnableElasticsearchRepositories
 @SpringBootApplication
 public class RevalidationConnectionApplication {
 

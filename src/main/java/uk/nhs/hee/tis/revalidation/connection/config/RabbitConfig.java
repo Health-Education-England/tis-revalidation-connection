@@ -27,9 +27,23 @@ public class RabbitConfig {
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
+  @Value("${app.rabbit.es-exchange}")
+  private String esExchange;
+
+  @Value("${app.rabbit.es-queue}")
+  private String esQueueName;
+
+  @Value("${app.rabbit.es-routingKey}")
+  private String esRoutingKey;
+
   @Bean
   public Queue queue() {
     return new Queue(queueName, false);
+  }
+
+  @Bean
+  public Queue esQueue() {
+    return new Queue(esQueueName, false);
   }
 
   @Bean
@@ -38,8 +52,21 @@ public class RabbitConfig {
   }
 
   @Bean
+  public DirectExchange esExchange() {
+    return new DirectExchange(esExchange);
+  }
+
+
+  @Bean
   public Binding binding(final Queue queue, final DirectExchange exchange) {
     return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+
+  }
+
+  @Bean
+  public Binding esBinding(final Queue esQueue, final DirectExchange esExchange) {
+    return BindingBuilder.bind(esQueue).to(esExchange).with(esRoutingKey);
+
   }
 
   @Bean

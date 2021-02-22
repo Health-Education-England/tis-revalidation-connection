@@ -33,6 +33,10 @@ app:
     exchange: ${EXCHANGE:gmc-connect-exchange}
     connection.queue: ${CONNECTION_QUEUE:connection-queue}
     connection.routingKey: ${CONNECTION_ROUTING_KEY:uk.nhs.hee.connection}
+    es-exchange: ${EXCHANGE:reval-es-exchange}
+    es-queue: ${QUEUE:reval-es-queue}
+    es-routingKey: ${ROUTING_KEY:uk.nhs.hee.reval.es}
+
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

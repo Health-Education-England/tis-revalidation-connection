@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Data
-@Document(indexName = "exceptionViewIndex")
+@Document(indexName = "exceptionindex")
 public class ExceptionView {
   @Id
   private String gmcReferenceNumber;

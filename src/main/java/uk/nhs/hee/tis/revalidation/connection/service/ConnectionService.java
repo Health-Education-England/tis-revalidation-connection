@@ -216,6 +216,7 @@ public class ConnectionService {
       ConnectionInfoDto exceptionInfo = ConnectionInfoDto.builder()
           .gmcReferenceNumber(gmcId)
           .build();
+      //CHANGE THIS TO SEND TO TIS TO POPULATE MISSING FIELDS
       rabbitTemplate.convertAndSend(exchange, routingKey, exceptionInfo);
     }
   }

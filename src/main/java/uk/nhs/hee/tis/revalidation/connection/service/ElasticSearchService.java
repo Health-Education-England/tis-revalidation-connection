@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
@@ -17,7 +18,7 @@ public class ElasticSearchService {
   @Autowired
   private ExceptionElasticSearchRepository exceptionElasticSearchRepository;
 
-  public void sendToElasticSearch(List<ExceptionView> dataToSave) {
+  public void addExceptionViews(List<ExceptionView> dataToSave) {
     if (CollectionUtils.isNotEmpty(dataToSave)) {
       List<ExceptionView> dataForES = dataToSave.stream().map(gmcDoctor -> ExceptionView.builder()
           .gmcReferenceNumber(gmcDoctor.getGmcReferenceNumber())
@@ -28,4 +29,7 @@ public class ElasticSearchService {
     }
   }
 
+  public void removeExceptionView(String gmcReferenceNumber) {
+    exceptionElasticSearchRepository.deleteById(gmcReferenceNumber);
+  }
 }

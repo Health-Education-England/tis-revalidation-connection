@@ -36,7 +36,8 @@ app:
     es-exchange: ${EXCHANGE:reval-es-exchange}
     es-queue: ${QUEUE:reval-es-queue}
     es-routingKey: ${ROUTING_KEY:uk.nhs.hee.reval.es}
-
+    es-connections-queue: ${QUEUE:reval-es-connections-queue}
+    es-connections-routingKey: ${ROUTING_KEY:uk.nhs.hee.reval.es.connections}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

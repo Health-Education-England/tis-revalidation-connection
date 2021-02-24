@@ -49,7 +49,7 @@ public class ElasticSearchIndexUpdateHelper {
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
     boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isAfter(LocalDate.now());
+    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now());
      //NEED TO CHECK IF FAILURE BEFORE REMOVING
 
     if(isVisitor || isExpired) {

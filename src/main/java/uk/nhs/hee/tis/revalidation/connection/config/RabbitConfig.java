@@ -27,20 +27,20 @@ public class RabbitConfig {
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
-  @Value("${app.rabbit.es-exchange}")
+  @Value("${app.rabbit.es.exchange}")
   private String esExchange;
 
-  @Value("${app.rabbit.es-queue}")
+  @Value("${app.rabbit.es.queue}")
   private String esQueueName;
 
-  @Value("${app.rabbit.es-connections-queue}")
-  private String esConnectionsQueueName;
-
-  @Value("${app.rabbit.es-routingKey}")
+  @Value("${app.rabbit.es.routingKey}")
   private String esRoutingKey;
 
-  @Value("${app.rabbit.es-connections-routingKey}")
-  private String esConnectionsRoutingKey;
+  @Value("${app.rabbit.es.tis.queue}")
+  private String esTisQueueName;
+
+  @Value("${app.rabbit.es.tis.routingKey}")
+  private String esTisRoutingKey;
 
   @Bean
   public Queue queue() {
@@ -53,8 +53,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Queue esConnectionsQueue() {
-    return new Queue(esConnectionsQueueName, false);
+  public Queue esTisQueue() {
+    return new Queue(esTisQueueName, false);
   }
 
   @Bean
@@ -67,11 +67,9 @@ public class RabbitConfig {
     return new DirectExchange(esExchange);
   }
 
-
   @Bean
   public Binding binding(final Queue queue, final DirectExchange exchange) {
     return BindingBuilder.bind(queue).to(exchange).with(routingKey);
-
   }
 
   @Bean
@@ -80,8 +78,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Binding esConnectionsBinding(final Queue esConnectionsQueue, final DirectExchange esExchange) {
-    return BindingBuilder.bind(esConnectionsQueue).to(esExchange).with(esConnectionsRoutingKey);
+  public Binding esTisBinding(final Queue esTisQueue, final DirectExchange esExchange) {
+    return BindingBuilder.bind(esTisQueue).to(esExchange).with(esTisRoutingKey);
   }
 
   @Bean

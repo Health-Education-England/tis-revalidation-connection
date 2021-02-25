@@ -56,8 +56,8 @@ public class ConnectionService {
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
-  @Value("${app.rabbit.es-connections-routingKey}")
-  private String esRoutingKey;
+  @Value("${app.rabbit.es.tis.routingKey}")
+  private String esTisRoutingKey;
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -216,8 +216,7 @@ public class ConnectionService {
       ConnectionInfoDto exceptionInfo = ConnectionInfoDto.builder()
           .gmcReferenceNumber(gmcId)
           .build();
-      //CHANGE THIS TO SEND TO TIS TO POPULATE MISSING FIELDS
-      rabbitTemplate.convertAndSend(exchange, routingKey, exceptionInfo);
+      rabbitTemplate.convertAndSend(exchange, esTisRoutingKey, exceptionInfo);
     }
   }
 

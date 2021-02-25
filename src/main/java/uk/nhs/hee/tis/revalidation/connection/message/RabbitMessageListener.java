@@ -24,18 +24,10 @@ public class RabbitMessageListener {
   @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
-  @RabbitListener(queues = "${app.rabbit.es-queue}")
+  @RabbitListener(queues = "${app.rabbit.es.queue}")
   public void receiveMessage(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
-  }
-
-  @RabbitListener(queues = "${app.rabbit.es-connections-queue}")
-  public void receiveConnectionMessage(final ConnectionInfoDto connectionInfo) {
-    log.info("CONNECTIONS MESSAGE RECEIVED: " + connectionInfo);
-    elasticSearchService.addExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(connectionInfo)
-    );
   }
 
 }

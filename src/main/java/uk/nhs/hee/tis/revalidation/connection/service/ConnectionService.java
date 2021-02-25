@@ -50,7 +50,7 @@ public class ConnectionService {
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
-  @Value("${app.rabbit.es-exchange}")
+  @Value("${app.rabbit.es.exchange}")
   private String esExchange;
 
   @Value("${app.rabbit.connection.routingKey}")

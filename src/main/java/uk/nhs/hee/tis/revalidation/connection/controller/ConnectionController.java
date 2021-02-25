@@ -5,6 +5,7 @@ import static java.util.List.of;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -15,19 +16,40 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+
+import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.domain.Sort.by;
+import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/connections")
 public class ConnectionController {
 
+  private static final String SORT_COLUMN = "sortColumn";
+  private static final String SORT_ORDER = "sortOrder";
+  private static final String GMC_REFERENCE_NUMBER = "gmcReferenceNumber";
+  private static final String PAGE_NUMBER = "pageNumber";
+  private static final String PAGE_NUMBER_VALUE = "0";
+  private static final String DESIGNATED_BODY_CODES = "dbcs";
+  private static final String SEARCH_QUERY = "searchQuery";
+  private static final String EMPTY_STRING = "";
+
   @Autowired
   private ConnectionService connectionService;
+
+  @Autowired
+  private ExceptionElasticSearchService exceptionElasticSearchService;
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -144,5 +166,39 @@ public class ConnectionController {
     log.info("Fetch all gmcIds of hidden connections");
     final var connections = connectionService.getAllHiddenConnections();
     return ResponseEntity.ok().body(connections);
+  }
+
+  /**
+   * GET  /exception : get exception summary.
+   *
+   * @param sortColumn column to be sorted
+   * @param sortOrder sorting order (ASC or DESC)
+   * @param pageNumber page number of data to get
+   * @param dbcs designated body code of the user
+   * @param searchQuery search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and exception summary in body
+   */
+  @GetMapping("/exception")
+  public ResponseEntity<ExceptionSummaryDto> getSummaryExceptions(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false) String searchQuery
+  ) throws IOException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, sortColumn.concat(".keyword")));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString();
+    final ExceptionSummaryDto exceptionSummaryDto;
+
+    exceptionSummaryDto = exceptionElasticSearchService
+        .searchForPage(searchQueryES, pageableAndSortable);
+
+    return ResponseEntity.ok(exceptionSummaryDto);
+
   }
 }

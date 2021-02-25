@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRequestDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 @RestController
@@ -20,6 +22,9 @@ public class ExceptionController {
   private static final String DESC = "desc";
   private static final String PAGE_NUMBER = "pageNumber";
   private static final String PAGE_NUMBER_VALUE = "0";
+  private static final String DESIGNATED_BODY_CODES = "dbcs";
+  private static final String SEARCH_QUERY = "searchQuery";
+  private static final String EMPTY_STRING = "";
 
   @Autowired
   private ExceptionService exceptionService;
@@ -49,4 +54,6 @@ public class ExceptionController {
     return ResponseEntity.ok(exceptionResponseDto);
 
   }
+
+
 }

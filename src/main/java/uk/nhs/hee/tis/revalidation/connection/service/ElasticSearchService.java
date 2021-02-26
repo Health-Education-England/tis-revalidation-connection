@@ -20,12 +20,7 @@ public class ElasticSearchService {
 
   public void addExceptionViews(List<ExceptionView> dataToSave) {
     if (CollectionUtils.isNotEmpty(dataToSave)) {
-      List<ExceptionView> dataForES = dataToSave.stream().map(gmcDoctor -> ExceptionView.builder()
-          .gmcReferenceNumber(gmcDoctor.getGmcReferenceNumber())
-          .doctorFirstName(gmcDoctor.getDoctorFirstName())
-          .doctorLastName(gmcDoctor.getDoctorLastName())
-          .build()).collect(toList());
-      exceptionElasticSearchRepository.saveAll(dataForES);
+      exceptionElasticSearchRepository.saveAll(dataToSave);
     }
   }
 

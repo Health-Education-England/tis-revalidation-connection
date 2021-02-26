@@ -216,7 +216,8 @@ public class ConnectionService {
       ConnectionInfoDto exceptionInfo = ConnectionInfoDto.builder()
           .gmcReferenceNumber(gmcId)
           .build();
-      rabbitTemplate.convertAndSend(exchange, esTisRoutingKey, exceptionInfo);
+      // 4.
+      //rabbitTemplate.convertAndSend(exchange, esTisRoutingKey, exceptionInfo);
     }
   }
 

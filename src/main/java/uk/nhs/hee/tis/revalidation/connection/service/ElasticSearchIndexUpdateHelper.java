@@ -32,16 +32,22 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   public List<ExceptionView> getExceptionViews(final ConnectionInfoDto connectionInfo) {
-    //get gmc fields from reval db
+    // TODO 2. get missing fields from gmc/mongodb
     List<ExceptionView> exceptions = new ArrayList<ExceptionView>();
     exceptions.add(
         ExceptionView.builder()
             .gmcReferenceNumber(connectionInfo.getGmcReferenceNumber())
             .doctorFirstName(connectionInfo.getDoctorFirstName())
             .doctorLastName(connectionInfo.getDoctorLastName())
+            .submissionDate(connectionInfo.getSubmissionDate())
             .programmeName(connectionInfo.getProgrammeName())
+            .programmeMembershipType(connectionInfo.getProgrammeMembershipType())
             .designatedBody(connectionInfo.getDesignatedBody())
+            .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
             .programmeOwner(connectionInfo.getProgrammeOwner())
+            .connectionStatus(getConnectionStatus(connectionInfo.getDesignatedBody()))
+            .programmeMembershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
+            .programmeMembershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
             .build()
     );
     return exceptions;
@@ -56,6 +62,10 @@ public class ElasticSearchIndexUpdateHelper {
       return true;
     }
     return false;
+  }
+
+  private String getConnectionStatus(final String designatedBody) {
+    return (designatedBody == null || designatedBody.equals("")) ? "No" : "Yes";
   }
 
 }

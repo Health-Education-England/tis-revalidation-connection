@@ -28,5 +28,4 @@ public class ExceptionView {
   private String connectionStatus;
   private LocalDate programmeMembershipStartDate;
   private LocalDate programmeMembershipEndDate;
-  private String dataSource;
 }

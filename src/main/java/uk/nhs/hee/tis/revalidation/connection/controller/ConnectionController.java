@@ -193,9 +193,7 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    final ExceptionSummaryDto exceptionSummaryDto;
-
-    exceptionSummaryDto = exceptionElasticSearchService
+    final ExceptionSummaryDto exceptionSummaryDto = exceptionElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(exceptionSummaryDto);

@@ -14,7 +14,7 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
   elasticsearch:
     rest:
-      uris: http://localhost:9200
+      uris: ${ES_URLS:http://localhost:9200}
   data:
     mongodb:
       uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1

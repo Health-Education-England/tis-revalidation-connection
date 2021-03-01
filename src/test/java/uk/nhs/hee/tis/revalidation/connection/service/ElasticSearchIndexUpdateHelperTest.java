@@ -19,20 +19,7 @@ public class ElasticSearchIndexUpdateHelperTest {
   private static final String CONNECTED = "Yes";
   private static final String DISCONNECTED = "No";
 
-  private ConnectionInfoDto expiredExceptionDto = ConnectionInfoDto.builder()
-      .gmcReferenceNumber("123")
-      .doctorFirstName("first")
-      .doctorLastName("last")
-      .submissionDate(LocalDate.now())
-      .programmeName("programme")
-      .programmeMembershipType(SUBSTANTIVE)
-      .designatedBody("body")
-      .tcsDesignatedBody("tcsbody")
-      .programmeOwner("owner")
-      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
-      .programmeMembershipEndDate(LocalDate.now().minusDays(10))
-      .dataSource("source")
-      .build();
+
 
   private ConnectionInfoDto visitorExceptionDto = ConnectionInfoDto.builder()
       .gmcReferenceNumber("123")
@@ -44,8 +31,6 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody("body")
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
-      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
-      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -59,8 +44,6 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody(null)
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
-      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
-      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -75,8 +58,6 @@ public class ElasticSearchIndexUpdateHelperTest {
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
       .connectionStatus("status")
-      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
-      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -95,15 +76,7 @@ public class ElasticSearchIndexUpdateHelperTest {
   }
 
   @Test
-  void shouldAddExceptionIfExpired() {
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(expiredExceptionDto);
-    verify(elasticSearchService).addExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(expiredExceptionDto)
-    );
-  }
-
-  @Test
-  void shouldRemoveExceptionIfNotVisitorOrExpired() {
+  void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
     verify(elasticSearchService).removeExceptionView(
         noExceptionDto.getGmcReferenceNumber()
@@ -127,10 +100,6 @@ public class ElasticSearchIndexUpdateHelperTest {
     assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
     assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
     assert (returnedView.getConnectionStatus()).equals(CONNECTED);
-    assert (returnedView.getProgrammeMembershipStartDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
-    assert (returnedView.getProgrammeMembershipEndDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
   }
 
   @Test

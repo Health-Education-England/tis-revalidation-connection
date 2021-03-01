@@ -26,6 +26,4 @@ public class ExceptionView {
   private String tcsDesignatedBody;
   private String programmeOwner;
   private String connectionStatus;
-  private LocalDate programmeMembershipStartDate;
-  private LocalDate programmeMembershipEndDate;
 }

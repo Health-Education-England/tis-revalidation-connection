@@ -29,7 +29,6 @@ public class ElasticSearchIndexUpdateHelper {
       elasticSearchService.addExceptionViews(getExceptionViews(connectionInfo));
     }
     else {
-      //NEED TO CHECK IF FAILURE BEFORE REMOVING
       elasticSearchService.removeExceptionView(connectionInfo.getGmcReferenceNumber());
     }
   }
@@ -53,8 +52,6 @@ public class ElasticSearchIndexUpdateHelper {
             .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
             .programmeOwner(connectionInfo.getProgrammeOwner())
             .connectionStatus(getConnectionStatus(connectionInfo.getDesignatedBody()))
-            .programmeMembershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
-            .programmeMembershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
             .build()
     );
     return exceptions;
@@ -62,8 +59,7 @@ public class ElasticSearchIndexUpdateHelper {
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
     boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now());
-    //NEED TO CHECK IF FAILURE
+    boolean isExpired = false;
     return isVisitor || isExpired;
   }
 

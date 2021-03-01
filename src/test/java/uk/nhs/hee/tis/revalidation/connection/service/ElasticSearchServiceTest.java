@@ -45,8 +45,6 @@ public class ElasticSearchServiceTest {
         .tcsDesignatedBody("tcsbody")
         .programmeOwner("owner")
         .connectionStatus("Yes")
-        .programmeMembershipStartDate(LocalDate.now().minusDays(100))
-        .programmeMembershipEndDate(LocalDate.now().minusDays(10))
         .build();
     exceptionViews.add(exceptionView);
   }

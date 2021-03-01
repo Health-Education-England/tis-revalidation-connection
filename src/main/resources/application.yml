@@ -12,6 +12,9 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
   data:
     mongodb:
       uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1
@@ -30,6 +33,11 @@ app:
     exchange: ${EXCHANGE:gmc-connect-exchange}
     connection.queue: ${CONNECTION_QUEUE:connection-queue}
     connection.routingKey: ${CONNECTION_ROUTING_KEY:uk.nhs.hee.connection}
+    es.exchange: ${EXCHANGE:reval-es-exchange}
+    es.queue: ${QUEUE:reval-es-queue}
+    es.routingKey: ${ROUTING_KEY:uk.nhs.hee.reval.es}
+    es.tis.queue: ${QUEUE:reval-es-tis-queue}
+    es.tis.routingKey: ${ROUTING_KEY:uk.nhs.hee.reval.es.tis}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

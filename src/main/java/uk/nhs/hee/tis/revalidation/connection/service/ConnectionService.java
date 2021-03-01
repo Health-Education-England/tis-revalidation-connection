@@ -17,12 +17,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.*;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -55,8 +50,14 @@ public class ConnectionService {
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
+  @Value("${app.rabbit.es.exchange}")
+  private String esExchange;
+
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
+
+  @Value("${app.rabbit.es.tis.routingKey}")
+  private String esTisRoutingKey;
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -151,6 +152,7 @@ public class ConnectionService {
     if (addRemoveResponseFiltered.isPresent()) {
       final var errorMessage = getReturnMessage(addRemoveResponseFiltered.get().getMessage(),
           addDoctorDto.getDoctors().size());
+      //send to rabbit
       return UpdateConnectionResponseDto.builder().message(errorMessage).build();
     }
     return UpdateConnectionResponseDto.builder().message(SUCCESS.getMessage()).build();
@@ -211,6 +213,11 @@ public class ConnectionService {
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
       exceptionService.createExceptionLog(gmcId, returnCode);
+      ConnectionInfoDto exceptionInfo = ConnectionInfoDto.builder()
+          .gmcReferenceNumber(gmcId)
+          .build();
+      // 4.
+      //rabbitTemplate.convertAndSend(exchange, esTisRoutingKey, exceptionInfo);
     }
   }
 

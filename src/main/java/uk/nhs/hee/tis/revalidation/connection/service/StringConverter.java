@@ -64,7 +64,7 @@ public class StringConverter {
     if (this.str != null) {
       StringBuilder sb = new StringBuilder();
 
-      for(int i = 0; i < this.str.length(); ++i) {
+      for (int i = 0; i < this.str.length(); ++i) {
         char c = this.str.charAt(i);
         if (c == '\\' || c == '"') {
           sb.append('\\');
@@ -83,7 +83,7 @@ public class StringConverter {
     if (this.str != null) {
       StringBuilder sb = new StringBuilder();
 
-      for(int i = 0; i < this.str.length(); ++i) {
+      for (int i = 0; i < this.str.length(); ++i) {
         char c = this.str.charAt(i);
         if (c == '\\' || c == '"' || c == '\'' || c == '%' || c == '_') {
           sb.append('\\');

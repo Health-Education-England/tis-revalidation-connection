@@ -1,19 +1,20 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static java.util.stream.Collectors.toList;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 public class ExceptionElasticSearchService {
@@ -22,6 +23,13 @@ public class ExceptionElasticSearchService {
   @Autowired
   ExceptionElasticSearchRepository exceptionElasticSearchRepository;
 
+
+  /**
+   * Get exceptions from exception elasticsearch index
+   *
+   * @param searchQuery query to run
+   * @param pageable pagination information
+   */
   public ExceptionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
 
     try {
@@ -35,18 +43,16 @@ public class ExceptionElasticSearchService {
       // add the free text query with a must to the column filters query
       BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
-      LOG.info("Query {}", fullQuery.toString());
+      LOG.info("Query {}", fullQuery);
 
       Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
-//      LOG.info("Result {}", result.toString());
 
       final var exceptions = result.get().collect(toList());
-      final var exceptionResponseDto = ExceptionSummaryDto.builder()
+      return ExceptionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
           .exceptionRecord(exceptions)
           .build();
-      return exceptionResponseDto;
 
     } catch (RuntimeException re) {
       LOG.error("An exception occurred while attempting to do an ES search", re);
@@ -65,8 +71,6 @@ public class ExceptionElasticSearchService {
           .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
           .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
     }
-
-    //LOG.debug("Query is : {}", shouldQuery);
     return shouldQuery;
   }
 }

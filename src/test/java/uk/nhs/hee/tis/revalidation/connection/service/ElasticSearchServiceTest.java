@@ -1,9 +1,12 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,10 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 public class ElasticSearchServiceTest {
@@ -57,8 +56,8 @@ public class ElasticSearchServiceTest {
 
   @Test
   void shouldRemoveExceptionView() {
-        elasticSearchService.removeExceptionView(GMCID);
-        verify(repository).deleteById(GMCID);
+    elasticSearchService.removeExceptionView(GMCID);
+    verify(repository).deleteById(GMCID);
 
   }
 

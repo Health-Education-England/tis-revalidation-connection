@@ -242,17 +242,17 @@ class ConnectionControllerTest {
         .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
+            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].doctorFirstName").value(hasItem(firstName2)))
+            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].doctorLastName").value(hasItem(lastName2)))
+            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].programmeName").value(hasItem(programmeName2)))
+            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].designatedBody").value(hasItem(designatedBody2)))
+            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
         .andExpect(
-            jsonPath("$.exceptionRecord.[*].programmeOwner").value(hasItem(programmeOwner2)));
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
   }
 
   private ConnectionDto prepareConnectionDto() {
@@ -283,7 +283,7 @@ class ConnectionControllerTest {
   private ExceptionSummaryDto prepareExceptionSummary() {
     final var doctorsForDB = buildDoctorsForDBList();
     return ExceptionSummaryDto.builder()
-        .exceptionRecord(doctorsForDB)
+        .connections(doctorsForDB)
         .totalResults(doctorsForDB.size())
         .build();
   }

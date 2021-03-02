@@ -51,7 +51,7 @@ public class ExceptionElasticSearchService {
       return ExceptionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .exceptionRecord(exceptions)
+          .connections(exceptions)
           .build();
 
     } catch (RuntimeException re) {

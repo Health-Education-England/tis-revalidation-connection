@@ -12,5 +12,5 @@ public class ExceptionSummaryDto {
   private long countTotal;
   private long totalPages;
   private long totalResults;
-  private List<ExceptionView> exceptionRecord;
+  private List<ExceptionView> connections;
 }

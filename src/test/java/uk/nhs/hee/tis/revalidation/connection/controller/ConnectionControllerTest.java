@@ -29,12 +29,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.*;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
@@ -288,8 +283,8 @@ class ConnectionControllerTest {
         .build();
   }
 
-  private List<ExceptionView> buildDoctorsForDBList() {
-    final var doctor1 = ExceptionView.builder()
+  private List<ConnectionInfoDto> buildDoctorsForDBList() {
+    final var doctor1 = ConnectionInfoDto.builder()
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
         .doctorLastName(lastName1)
@@ -299,7 +294,7 @@ class ConnectionControllerTest {
         .programmeOwner(programmeOwner1)
         .build();
 
-    final var doctor2 = ExceptionView.builder()
+    final var doctor2 = ConnectionInfoDto.builder()
         .gmcReferenceNumber(gmcRef2)
         .doctorFirstName(firstName2)
         .doctorLastName(lastName2)

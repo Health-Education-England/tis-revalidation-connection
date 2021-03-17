@@ -47,11 +47,13 @@ public class ElasticSearchIndexUpdateHelper {
             .doctorLastName(connectionInfo.getDoctorLastName())
             .submissionDate(connectionInfo.getSubmissionDate())
             .programmeName(connectionInfo.getProgrammeName())
-            .programmeMembershipType(connectionInfo.getProgrammeMembershipType())
+            .membershipType(connectionInfo.getProgrammeMembershipType())
             .designatedBody(connectionInfo.getDesignatedBody())
             .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
             .programmeOwner(connectionInfo.getProgrammeOwner())
             .connectionStatus(getConnectionStatus(connectionInfo.getDesignatedBody()))
+            .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
+            .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
             .build()
     );
     return exceptions;

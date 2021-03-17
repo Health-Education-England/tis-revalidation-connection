@@ -31,6 +31,8 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody("body")
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
+      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
+      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -44,6 +46,8 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody(null)
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
+      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
+      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -58,6 +62,8 @@ public class ElasticSearchIndexUpdateHelperTest {
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
       .connectionStatus("status")
+      .programmeMembershipStartDate(LocalDate.now().minusDays(100))
+      .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
@@ -94,11 +100,15 @@ public class ElasticSearchIndexUpdateHelperTest {
     assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
     assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
     assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
-    assert (returnedView.getProgrammeMembershipType())
+    assert (returnedView.getMembershipType())
         .equals(visitorExceptionDto.getProgrammeMembershipType());
     assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
     assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
     assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
+    assert (returnedView.getMembershipStartDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
+    assert (returnedView.getMembershipEndDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
     assert (returnedView.getConnectionStatus()).equals(CONNECTED);
   }
 

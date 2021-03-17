@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
 @Service
@@ -22,6 +23,9 @@ public class ExceptionElasticSearchService {
 
   @Autowired
   ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+
+  @Autowired
+  ConnectionInfoMapper connectionInfoMapper;
 
 
   /**
@@ -51,7 +55,7 @@ public class ExceptionElasticSearchService {
       return ExceptionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(exceptions)
+          .connections(connectionInfoMapper.toDtos(exceptions))
           .build();
 
     } catch (RuntimeException re) {

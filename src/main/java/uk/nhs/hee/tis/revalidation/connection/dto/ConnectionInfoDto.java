@@ -1,10 +1,15 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class ConnectionInfoDto {
 

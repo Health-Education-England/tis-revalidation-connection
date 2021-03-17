@@ -39,7 +39,7 @@ public class ElasticSearchServiceTest {
         .doctorLastName("last")
         .submissionDate(LocalDate.now())
         .programmeName("programme")
-        .programmeMembershipType(SUBSTANTIVE)
+        .membershipType(SUBSTANTIVE)
         .designatedBody("body")
         .tcsDesignatedBody("tcsbody")
         .programmeOwner("owner")

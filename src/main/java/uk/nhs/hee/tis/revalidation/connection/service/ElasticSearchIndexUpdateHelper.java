@@ -29,7 +29,9 @@ public class ElasticSearchIndexUpdateHelper {
       elasticSearchService.addExceptionViews(getExceptionViews(connectionInfo));
     }
     else {
-      elasticSearchService.removeExceptionView(connectionInfo.getGmcReferenceNumber());
+      if (connectionInfo.getGmcReferenceNumber() != null) {
+        elasticSearchService.removeExceptionView(connectionInfo.getGmcReferenceNumber());
+      }
     }
   }
 

@@ -1,7 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -123,20 +122,8 @@ public class ElasticSearchServiceTest {
   }
 
   @Test
-  void shouldNotRemoveExceptionViewByGmcNumberIfNull() {
-    elasticSearchService.removeExceptionViewByGmcNumber(null);
-    verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
-  }
-
-  @Test
   void shouldRemoveExceptionViewByTcsPersonId() {
     elasticSearchService.removeExceptionViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
-  }
-
-  @Test
-  void shouldNotRemoveExceptionViewByTcsPersonIdIfNull() {
-    elasticSearchService.removeExceptionViewByTcsPersonId(null);
-    verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

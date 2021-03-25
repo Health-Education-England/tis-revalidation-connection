@@ -86,6 +86,32 @@ public class ElasticSearchIndexUpdateHelperTest {
   }
 
   @Test
+  void shouldNotRemoveExceptionIfGmcReferenceNumberNull() {
+    ConnectionInfoDto noGmcExceptionDto = noExceptionDto;
+    noGmcExceptionDto.setGmcReferenceNumber(null);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noGmcExceptionDto);
+    verify(elasticSearchService, never()).removeExceptionViewByGmcNumber(
+        noGmcExceptionDto.getGmcReferenceNumber()
+    );
+    verify(elasticSearchService).removeExceptionViewByTcsPersonId(
+        noGmcExceptionDto.getTcsPersonId()
+    );
+  }
+
+  @Test
+  void shouldNotRemoveExceptionIfTcsPersonIdNull() {
+    ConnectionInfoDto noPersonIdExceptionDto = noExceptionDto;
+    noPersonIdExceptionDto.setTcsPersonId(null);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noPersonIdExceptionDto);
+    verify(elasticSearchService, never()).removeExceptionViewByTcsPersonId(
+        noPersonIdExceptionDto.getTcsPersonId()
+    );
+    verify(elasticSearchService).removeExceptionViewByGmcNumber(
+        noPersonIdExceptionDto.getGmcReferenceNumber()
+    );
+  }
+
+  @Test
   void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
     verify(elasticSearchService).removeExceptionViewByGmcNumber(

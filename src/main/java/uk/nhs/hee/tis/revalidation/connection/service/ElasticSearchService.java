@@ -40,9 +40,7 @@ public class ElasticSearchService {
    * @param gmcReferenceNumber id of exception to remove
    */
   public void removeExceptionViewByGmcNumber(String gmcReferenceNumber) {
-    if (gmcReferenceNumber != null) {
-      exceptionElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
-    }
+    exceptionElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
   }
 
   /**
@@ -51,9 +49,7 @@ public class ElasticSearchService {
    * @param tcsPersonId id of exception to remove
    */
   public void removeExceptionViewByTcsPersonId(Long tcsPersonId) {
-    if (tcsPersonId != null) {
-      exceptionElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
-    }
+    exceptionElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
   }
 
   /**

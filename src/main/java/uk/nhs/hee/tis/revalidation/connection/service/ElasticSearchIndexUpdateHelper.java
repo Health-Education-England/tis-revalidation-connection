@@ -26,8 +26,15 @@ public class ElasticSearchIndexUpdateHelper {
       elasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
     }
     else {
-      elasticSearchService.removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      elasticSearchService.removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
+      // If the trainee does not have a gmc number
+      if (connectionInfo.getGmcReferenceNumber() != null) {
+        elasticSearchService.removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+      }
+
+      // If the trainee does not have a person Id from TCS
+      if (connectionInfo.getTcsPersonId() != null) {
+        elasticSearchService.removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
+      }
     }
   }
 

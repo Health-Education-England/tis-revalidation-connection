@@ -47,7 +47,7 @@ public class ExceptionElasticSearchService {
       // add the free text query with a must to the column filters query
       BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
-//      LOG.info("Query {}", fullQuery);
+      LOG.debug("Query {}", fullQuery);
 
       Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
 

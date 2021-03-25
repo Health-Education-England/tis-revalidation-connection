@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -78,6 +79,16 @@ public class ElasticSearchIndexUpdateHelperTest {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorExceptionDto);
     verify(elasticSearchService).addExceptionViews(
         elasticSearchIndexUpdateHelper.getExceptionViews(visitorExceptionDto)
+    );
+  }
+
+  @Test
+  void shouldNotRemoveExceptionIfGmcReferenceNumberNull() {
+    ConnectionInfoDto noGmcExceptionDto = noExceptionDto;
+    noGmcExceptionDto.setGmcReferenceNumber(null);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noGmcExceptionDto);
+    verify(elasticSearchService, never()).removeExceptionView(
+        noGmcExceptionDto.getGmcReferenceNumber()
     );
   }
 

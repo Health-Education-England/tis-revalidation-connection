@@ -1,6 +1,9 @@
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +23,10 @@ import java.time.LocalDate;
 @Document(indexName = "exceptionindex")
 public class ExceptionView {
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private String id;
+  private Long tcsPersonId;
   private String gmcReferenceNumber;
   private String doctorFirstName;
   private String doctorLastName;

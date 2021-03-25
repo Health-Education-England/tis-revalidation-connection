@@ -23,6 +23,7 @@ public class ElasticSearchIndexUpdateHelperTest {
 
 
   private ConnectionInfoDto visitorExceptionDto = ConnectionInfoDto.builder()
+      .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
       .doctorFirstName("first")
       .doctorLastName("last")
@@ -38,6 +39,7 @@ public class ElasticSearchIndexUpdateHelperTest {
       .build();
 
   private ConnectionInfoDto noConnectionExceptionDto = ConnectionInfoDto.builder()
+      .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
       .doctorFirstName("first")
       .doctorLastName("last")
@@ -53,6 +55,7 @@ public class ElasticSearchIndexUpdateHelperTest {
       .build();
 
   private ConnectionInfoDto noExceptionDto = ConnectionInfoDto.builder()
+      .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
       .doctorFirstName("first")
       .doctorLastName("last")
@@ -77,33 +80,26 @@ public class ElasticSearchIndexUpdateHelperTest {
   @Test
   void shouldAddExceptionIfVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorExceptionDto);
-    verify(elasticSearchService).addExceptionViews(
+    verify(elasticSearchService).saveExceptionViews(
         elasticSearchIndexUpdateHelper.getExceptionViews(visitorExceptionDto)
-    );
-  }
-
-  @Test
-  void shouldNotRemoveExceptionIfGmcReferenceNumberNull() {
-    ConnectionInfoDto noGmcExceptionDto = noExceptionDto;
-    noGmcExceptionDto.setGmcReferenceNumber(null);
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noGmcExceptionDto);
-    verify(elasticSearchService, never()).removeExceptionView(
-        noGmcExceptionDto.getGmcReferenceNumber()
     );
   }
 
   @Test
   void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
-    verify(elasticSearchService).removeExceptionView(
+    verify(elasticSearchService).removeExceptionViewByGmcNumber(
         noExceptionDto.getGmcReferenceNumber()
+    );
+    verify(elasticSearchService).removeExceptionViewByTcsPersonId(
+        noExceptionDto.getTcsPersonId()
     );
   }
 
   @Test
   void shouldGetExceptionViews() {
     final ExceptionView returnedView = elasticSearchIndexUpdateHelper
-        .getExceptionViews(visitorExceptionDto).get(0);
+        .getExceptionViews(visitorExceptionDto);
 
     assert (returnedView.getGmcReferenceNumber())
         .equals(visitorExceptionDto.getGmcReferenceNumber());
@@ -126,7 +122,7 @@ public class ElasticSearchIndexUpdateHelperTest {
   @Test
   void shouldReturnPositiveConnectionStatus() {
     final ExceptionView returnedView = elasticSearchIndexUpdateHelper
-        .getExceptionViews(noConnectionExceptionDto).get(0);
+        .getExceptionViews(noConnectionExceptionDto);
     assert (returnedView.getConnectionStatus()).equals(DISCONNECTED);
   }
 }

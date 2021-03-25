@@ -46,6 +46,7 @@ public class ExceptionElasticSearchServiceTest {
   @BeforeEach
   public void setup() {
     ExceptionView exceptionView = ExceptionView.builder()
+        .tcsPersonId((long) 111)
         .gmcReferenceNumber(GMCID)
         .doctorFirstName("first")
         .doctorLastName("last")

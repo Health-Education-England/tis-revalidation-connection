@@ -90,7 +90,7 @@ public class ElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("gmcReferenceNumber", gmcNumberNullexceptionView.getGmcReferenceNumber()));
+        .should(new MatchQueryBuilder("-b gmcReferenceNumber", gmcNumberNullexceptionView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
     elasticSearchService.saveExceptionViews(gmcNumberNullexceptionView);

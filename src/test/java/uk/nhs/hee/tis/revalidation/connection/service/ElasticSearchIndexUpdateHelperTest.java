@@ -86,6 +86,29 @@ public class ElasticSearchIndexUpdateHelperTest {
   }
 
   @Test
+  void shouldAddExceptionIfProgrammeMembershipExpired() {
+    ConnectionInfoDto pmExpiredExceptionDto = noExceptionDto;
+    pmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
+    pmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(pmExpiredExceptionDto);
+    verify(elasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(pmExpiredExceptionDto)
+    );
+  }
+
+  @Test
+  void shouldAddExceptionIfVisitorAndProgrammeMembershipExpired() {
+    ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
+    visitorPmExpiredExceptionDto.setProgrammeMembershipType(VISITOR);
+    visitorPmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
+    visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(elasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto)
+    );
+  }
+
+  @Test
   void shouldNotRemoveExceptionIfGmcReferenceNumberNull() {
     ConnectionInfoDto noGmcExceptionDto = noExceptionDto;
     noGmcExceptionDto.setGmcReferenceNumber(null);

@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import java.time.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -63,7 +64,12 @@ public class ElasticSearchIndexUpdateHelper {
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
     boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    return isVisitor;
+    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now());
+
+    if(isVisitor || isExpired) {
+      return true;
+    }
+    return false;
   }
 
   private String getConnectionStatus(final String designatedBody) {

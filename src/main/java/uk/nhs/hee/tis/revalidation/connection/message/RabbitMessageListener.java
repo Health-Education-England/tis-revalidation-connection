@@ -1,17 +1,13 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
 
-import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.UpdateExceptionElasticSearchService;
 
 
 @Slf4j
@@ -19,7 +15,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchService;
 public class RabbitMessageListener {
 
   @Autowired
-  private ElasticSearchService elasticSearchService;
+  private UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
 
   @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;

@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ExceptionElasticSearchServiceTest {
+public class ExceptionUpdateExceptionElasticSearchServiceTest {
 
   @Mock
   ExceptionElasticSearchRepository exceptionElasticSearchRepository;

@@ -45,15 +45,10 @@ public class ElasticSearchIndexUpdateHelper {
       updateExceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
     }
     else {
-      // If the trainee does not have a gmc number
-      if (connectionInfo.getGmcReferenceNumber() != null) {
-        updateExceptionElasticSearchService.removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      }
-
-      // If the trainee does not have a person Id from TCS
-      if (connectionInfo.getTcsPersonId() != null) {
-        updateExceptionElasticSearchService.removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
-      }
+      updateExceptionElasticSearchService
+          .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+      updateExceptionElasticSearchService
+          .removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 
@@ -63,24 +58,21 @@ public class ElasticSearchIndexUpdateHelper {
       updateConnectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
 
       // Delete connected trainee from Disconnected ES index
-      if (connectionInfo.getGmcReferenceNumber() != null) {
-        updateDisconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      }
-      if (connectionInfo.getTcsPersonId() != null) {
-        updateDisconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
-      }
+      updateDisconnectedElasticSearchService
+          .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+      updateDisconnectedElasticSearchService
+          .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
     else {
-      // Save disconnected trainee to disconnected ES index
-      updateDisconnectedElasticSearchService.saveDisconnectedViews(getDisconnectedViews(connectionInfo));
+      // Save disconnected trainee to Disconnected ES index
+      updateDisconnectedElasticSearchService
+          .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
 
-      // Delete disconnected trainee from connected ES index
-      if (connectionInfo.getGmcReferenceNumber() != null) {
-        updateConnectedElasticSearchService.removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      }
-      if (connectionInfo.getTcsPersonId() != null) {
-        updateConnectedElasticSearchService.removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
-      }
+      // Delete disconnected trainee from Connected ES index
+      updateConnectedElasticSearchService
+          .removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+      updateConnectedElasticSearchService
+          .removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 
@@ -108,7 +100,7 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   /**
-   * Create entry for connected elasticsearch index
+   * Create entry for connected elasticsearch index.
    *
    * @param connectionInfo details of changes that need to be propagated to elasticsearch
    */
@@ -131,7 +123,7 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   /**
-   * Create entry for disconnected elasticsearch index
+   * Create entry for disconnected elasticsearch index.
    *
    * @param connectionInfo details of changes that need to be propagated to elasticsearch
    */
@@ -157,10 +149,7 @@ public class ElasticSearchIndexUpdateHelper {
     boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
     boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now());
 
-    if(isVisitor || isExpired) {
-      return true;
-    }
-    return false;
+    return (isVisitor || isExpired);
   }
 
   private boolean isConnected(final ConnectionInfoDto connectionInfo) {

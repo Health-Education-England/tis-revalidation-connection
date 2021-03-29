@@ -40,7 +40,9 @@ public class UpdateConnectedElasticSearchService {
    * @param gmcReferenceNumber id of connected trainee to remove
    */
   public void removeConnectedViewByGmcNumber(String gmcReferenceNumber) {
-    connectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+    if (gmcReferenceNumber != null) {
+      connectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+    }
   }
 
   /**
@@ -49,7 +51,9 @@ public class UpdateConnectedElasticSearchService {
    * @param tcsPersonId id of connected trainee to remove
    */
   public void removeConnectedViewByTcsPersonId(Long tcsPersonId) {
-    connectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+    if (tcsPersonId != null) {
+      connectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+    }
   }
 
   /**

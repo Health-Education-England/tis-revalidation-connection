@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateConnectedElasticSearchServiceTest {
+class UpdateConnectedElasticSearchServiceTest {
 
   private static final Long PERSONID = (long) 111;
   private static final String GMCID = "123";
@@ -32,6 +33,9 @@ public class UpdateConnectedElasticSearchServiceTest {
   private ConnectedView connectedView = new ConnectedView();
   private ArrayList<ConnectedView> existingRecords = new ArrayList<>();
 
+  /**
+   * setup data for testing.
+   */
   @BeforeEach
   public void setup() {
     connectedView = ConnectedView.builder()
@@ -90,7 +94,8 @@ public class UpdateConnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("-b gmcReferenceNumber", gmcNumberNullconnectedView.getGmcReferenceNumber()));
+        .should(new MatchQueryBuilder("-b gmcReferenceNumber",
+            gmcNumberNullconnectedView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
     updateConnectedElasticSearchService.saveConnectedViews(gmcNumberNullconnectedView);
@@ -122,8 +127,20 @@ public class UpdateConnectedElasticSearchServiceTest {
   }
 
   @Test
+  void shouldNotRemoveConnectedViewByGmcNumberIfNull() {
+    updateConnectedElasticSearchService.removeConnectedViewByGmcNumber(null);
+    verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
+  }
+
+  @Test
   void shouldRemoveConnectedViewByTcsPersonId() {
     updateConnectedElasticSearchService.removeConnectedViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
+  }
+
+  @Test
+  void shouldNotRemoveConnectedViewByTcsPersonIdIfNull() {
+    updateConnectedElasticSearchService.removeConnectedViewByTcsPersonId(null);
+    verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

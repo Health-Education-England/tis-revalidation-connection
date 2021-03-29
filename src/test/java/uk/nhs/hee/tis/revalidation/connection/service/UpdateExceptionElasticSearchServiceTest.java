@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateExceptionElasticSearchServiceTest {
+class UpdateExceptionElasticSearchServiceTest {
 
   private static final Long PERSONID = (long) 111;
   private static final String GMCID = "123";
@@ -32,6 +33,9 @@ public class UpdateExceptionElasticSearchServiceTest {
   private ExceptionView exceptionView = new ExceptionView();
   private ArrayList<ExceptionView> existingRecords = new ArrayList<>();
 
+  /**
+   * setup data for testing.
+   */
   @BeforeEach
   public void setup() {
     exceptionView = ExceptionView.builder()
@@ -90,7 +94,8 @@ public class UpdateExceptionElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("-b gmcReferenceNumber", gmcNumberNullexceptionView.getGmcReferenceNumber()));
+        .should(new MatchQueryBuilder("-b gmcReferenceNumber",
+            gmcNumberNullexceptionView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
     updateExceptionElasticSearchService.saveExceptionViews(gmcNumberNullexceptionView);
@@ -122,8 +127,20 @@ public class UpdateExceptionElasticSearchServiceTest {
   }
 
   @Test
+  void shouldNotRemoveExceptionViewByGmcNumberIfNull() {
+    updateExceptionElasticSearchService.removeExceptionViewByGmcNumber(null);
+    verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
+  }
+
+  @Test
   void shouldRemoveExceptionViewByTcsPersonId() {
     updateExceptionElasticSearchService.removeExceptionViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
+  }
+
+  @Test
+  void shouldNotRemoveExceptionViewByTcsPersonIdIfNull() {
+    updateExceptionElasticSearchService.removeExceptionViewByTcsPersonId(null);
+    verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

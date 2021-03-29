@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
@@ -31,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.*;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
 
@@ -68,7 +66,8 @@ class ConnectionControllerTest {
   private LocalDateTime requestTime;
   private String responseCode;
 
-
+  private Long personId1;
+  private Long personId2;
   private String gmcRef1, gmcRef2;
   private String firstName1, firstName2;
   private String lastName1, lastName2;
@@ -103,6 +102,8 @@ class ConnectionControllerTest {
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
 
+    personId1 = (long) faker.hashCode();
+    personId2 = (long) faker.hashCode();
     gmcRef1 = faker.number().digits(8);
     gmcRef2 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
@@ -237,6 +238,8 @@ class ConnectionControllerTest {
         .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
+        .andExpect(
             jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
         .andExpect(
             jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
@@ -285,6 +288,7 @@ class ConnectionControllerTest {
 
   private List<ConnectionInfoDto> buildDoctorsForDBList() {
     final var doctor1 = ConnectionInfoDto.builder()
+        .tcsPersonId(personId1)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
         .doctorLastName(lastName1)
@@ -295,6 +299,7 @@ class ConnectionControllerTest {
         .build();
 
     final var doctor2 = ConnectionInfoDto.builder()
+        .tcsPersonId(personId2)
         .gmcReferenceNumber(gmcRef2)
         .doctorFirstName(firstName2)
         .doctorLastName(lastName2)

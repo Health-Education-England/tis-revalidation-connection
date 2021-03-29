@@ -7,4 +7,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 @Repository
 public interface ExceptionElasticSearchRepository extends ElasticsearchRepository<ExceptionView, String> {
 
+  void deleteByGmcReferenceNumber(String gmcReferenceNumber);
+
+  void deleteByTcsPersonId(Long tcsPersonId);
 }

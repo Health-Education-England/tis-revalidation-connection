@@ -1,8 +1,5 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,12 +23,11 @@ public class ElasticSearchIndexUpdateHelper {
    */
   public void updateElasticSearchIndex(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
-      elasticSearchService.addExceptionViews(getExceptionViews(connectionInfo));
+      elasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
     }
     else {
-      if (connectionInfo.getGmcReferenceNumber() != null) {
-        elasticSearchService.removeExceptionView(connectionInfo.getGmcReferenceNumber());
-      }
+      elasticSearchService.removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+      elasticSearchService.removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 
@@ -40,25 +36,22 @@ public class ElasticSearchIndexUpdateHelper {
    *
    * @param connectionInfo details of changes that need to be propagated to elasticsearch
    */
-  public List<ExceptionView> getExceptionViews(final ConnectionInfoDto connectionInfo) {
-    List<ExceptionView> exceptions = new ArrayList<>();
-    exceptions.add(
-        ExceptionView.builder()
-            .gmcReferenceNumber(connectionInfo.getGmcReferenceNumber())
-            .doctorFirstName(connectionInfo.getDoctorFirstName())
-            .doctorLastName(connectionInfo.getDoctorLastName())
-            .submissionDate(connectionInfo.getSubmissionDate())
-            .programmeName(connectionInfo.getProgrammeName())
-            .membershipType(connectionInfo.getProgrammeMembershipType())
-            .designatedBody(connectionInfo.getDesignatedBody())
-            .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
-            .programmeOwner(connectionInfo.getProgrammeOwner())
-            .connectionStatus(getConnectionStatus(connectionInfo.getDesignatedBody()))
-            .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
-            .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
-            .build()
-    );
-    return exceptions;
+  public ExceptionView getExceptionViews(final ConnectionInfoDto connectionInfo) {
+    return ExceptionView.builder()
+      .tcsPersonId(connectionInfo.getTcsPersonId())
+      .gmcReferenceNumber(connectionInfo.getGmcReferenceNumber())
+      .doctorFirstName(connectionInfo.getDoctorFirstName())
+      .doctorLastName(connectionInfo.getDoctorLastName())
+      .submissionDate(connectionInfo.getSubmissionDate())
+      .programmeName(connectionInfo.getProgrammeName())
+      .membershipType(connectionInfo.getProgrammeMembershipType())
+      .designatedBody(connectionInfo.getDesignatedBody())
+      .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
+      .programmeOwner(connectionInfo.getProgrammeOwner())
+      .connectionStatus(getConnectionStatus(connectionInfo.getDesignatedBody()))
+      .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
+      .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
+      .build();
   }
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {

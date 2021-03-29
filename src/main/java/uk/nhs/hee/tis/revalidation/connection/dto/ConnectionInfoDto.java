@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class ConnectionInfoDto {
 
+  Long tcsPersonId;
   String gmcReferenceNumber;
   String doctorFirstName;
   String doctorLastName;

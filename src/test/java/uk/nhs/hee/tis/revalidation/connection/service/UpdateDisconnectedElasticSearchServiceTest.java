@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.repository.DisconnectedElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateDisconnectedElasticSearchServiceTest {
+class UpdateDisconnectedElasticSearchServiceTest {
 
   private static final Long PERSONID = (long) 111;
   private static final String GMCID = "123";
@@ -32,6 +33,9 @@ public class UpdateDisconnectedElasticSearchServiceTest {
   private DisconnectedView disconnectedView = new DisconnectedView();
   private ArrayList<DisconnectedView> existingRecords = new ArrayList<>();
 
+  /**
+   * setup data for testing.
+   */
   @BeforeEach
   public void setup() {
     disconnectedView = DisconnectedView.builder()
@@ -54,7 +58,8 @@ public class UpdateDisconnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("gmcReferenceNumber", disconnectedView.getGmcReferenceNumber()));
+        .should(
+            new MatchQueryBuilder("gmcReferenceNumber", disconnectedView.getGmcReferenceNumber()));
     shouldQuery
         .should(new MatchQueryBuilder("tcsPersonId", disconnectedView.getTcsPersonId()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
@@ -73,7 +78,8 @@ public class UpdateDisconnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("tcsPersonId", gmcNumberNulldisconnectedView.getTcsPersonId()));
+        .should(
+            new MatchQueryBuilder("tcsPersonId", gmcNumberNulldisconnectedView.getTcsPersonId()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
     doReturn(existingRecords).when(repository).search(fullQuery);
@@ -90,7 +96,8 @@ public class UpdateDisconnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("-b gmcReferenceNumber", gmcNumberNulldisconnectedView.getGmcReferenceNumber()));
+        .should(new MatchQueryBuilder("-b gmcReferenceNumber",
+            gmcNumberNulldisconnectedView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
     updateDisconnectedElasticSearchService.saveDisconnectedViews(gmcNumberNulldisconnectedView);
@@ -102,7 +109,8 @@ public class UpdateDisconnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     shouldQuery
-        .should(new MatchQueryBuilder("gmcReferenceNumber", disconnectedView.getGmcReferenceNumber()));
+        .should(
+            new MatchQueryBuilder("gmcReferenceNumber", disconnectedView.getGmcReferenceNumber()));
     shouldQuery
         .should(new MatchQueryBuilder("tcsPersonId", disconnectedView.getTcsPersonId()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
@@ -122,8 +130,20 @@ public class UpdateDisconnectedElasticSearchServiceTest {
   }
 
   @Test
+  void shouldNotRemoveDisconnectedViewByGmcNumberIfNull() {
+    updateDisconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(null);
+    verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
+  }
+
+  @Test
   void shouldRemoveDisconnectedViewByTcsPersonId() {
     updateDisconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
+  }
+
+  @Test
+  void shouldNotRemoveDisconnectedViewByTcsPersonIdIfNull() {
+    updateDisconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(null);
+    verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

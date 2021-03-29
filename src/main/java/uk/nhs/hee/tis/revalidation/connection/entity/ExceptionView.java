@@ -31,7 +31,7 @@ public class ExceptionView {
   private String doctorFirstName;
   private String doctorLastName;
   @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate submissionDate;
   private String programmeName;
   private String membershipType;
@@ -40,9 +40,9 @@ public class ExceptionView {
   private String programmeOwner;
   private String connectionStatus;
   @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipStartDate;
   @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipEndDate;
 }

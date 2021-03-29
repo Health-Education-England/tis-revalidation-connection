@@ -22,7 +22,8 @@ public class UpdateDisconnectedElasticSearchService {
    * @param dataToSave disconnected trainee to go in elasticsearch
    */
   public void saveDisconnectedViews(DisconnectedView dataToSave) {
-    Iterable<DisconnectedView> existingRecords = findDisconnectedViewsByGmcNumberPersonId(dataToSave);
+    Iterable<DisconnectedView> existingRecords
+        = findDisconnectedViewsByGmcNumberPersonId(dataToSave);
 
     // if trainee already exists in ES index, then update the existing record
     if (Iterables.size(existingRecords) > 0) {
@@ -40,7 +41,9 @@ public class UpdateDisconnectedElasticSearchService {
    * @param gmcReferenceNumber id of disconnected trainee to remove
    */
   public void removeDisconnectedViewByGmcNumber(String gmcReferenceNumber) {
-    disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+    if (gmcReferenceNumber != null) {
+      disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+    }
   }
 
   /**
@@ -49,7 +52,9 @@ public class UpdateDisconnectedElasticSearchService {
    * @param tcsPersonId id of disconnected trainee to remove
    */
   public void removeDisconnectedViewByTcsPersonId(Long tcsPersonId) {
-    disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+    if (tcsPersonId != null) {
+      disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+    }
   }
 
   /**
@@ -57,7 +62,8 @@ public class UpdateDisconnectedElasticSearchService {
    *
    * @param dataToSave disconnected trainee to be searched in elasticsearch
    */
-  private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(DisconnectedView dataToSave) {
+  private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(
+      DisconnectedView dataToSave) {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
 

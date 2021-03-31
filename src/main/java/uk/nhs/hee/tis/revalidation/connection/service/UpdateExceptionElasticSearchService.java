@@ -11,7 +11,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchR
 
 @Slf4j
 @Service
-public class ElasticSearchService {
+public class UpdateExceptionElasticSearchService {
 
   @Autowired
   private ExceptionElasticSearchRepository exceptionElasticSearchRepository;
@@ -22,6 +22,7 @@ public class ElasticSearchService {
    * @param dataToSave exceptions to go in elasticsearch
    */
   public void saveExceptionViews(ExceptionView dataToSave) {
+    // find trainee record from Exception ES index
     Iterable<ExceptionView> existingRecords = findExceptionViewsByGmcNumberPersonId(dataToSave);
 
     // if trainee already exists in ES index, then update the existing record

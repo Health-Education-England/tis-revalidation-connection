@@ -1,5 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -10,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,9 +23,14 @@ public class ElasticSearchIndexUpdateHelperTest {
   private static final String SUBSTANTIVE = "Substantive";
   private static final String CONNECTED = "Yes";
   private static final String DISCONNECTED = "No";
-
-
-
+  @Mock
+  UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
+  @Mock
+  UpdateConnectedElasticSearchService updateConnectedElasticSearchService;
+  @Mock
+  UpdateDisconnectedElasticSearchService updateDisconnectedElasticSearchService;
+  @InjectMocks
+  ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
   private ConnectionInfoDto visitorExceptionDto = ConnectionInfoDto.builder()
       .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
@@ -33,11 +42,11 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody("body")
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
+      .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
-
   private ConnectionInfoDto noConnectionExceptionDto = ConnectionInfoDto.builder()
       .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
@@ -49,11 +58,11 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody(null)
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
+      .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
-
   private ConnectionInfoDto noExceptionDto = ConnectionInfoDto.builder()
       .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
@@ -65,33 +74,65 @@ public class ElasticSearchIndexUpdateHelperTest {
       .designatedBody("body")
       .tcsDesignatedBody("tcsbody")
       .programmeOwner("owner")
-      .connectionStatus("status")
+      .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
       .dataSource("source")
       .build();
 
-  @Mock
-  ElasticSearchService elasticSearchService;
-
-  @InjectMocks
-  ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
-
   @Test
   void shouldAddExceptionIfVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorExceptionDto);
-    verify(elasticSearchService).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorExceptionDto)
-    );
+    verify(updateExceptionElasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorExceptionDto));
+    verify(updateConnectedElasticSearchService).saveConnectedViews(
+        elasticSearchIndexUpdateHelper.getConnectedViews(visitorExceptionDto));
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+        visitorExceptionDto.getGmcReferenceNumber());
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+        visitorExceptionDto.getTcsPersonId());
+  }
+
+  @Test
+  void shouldAddExceptionIfProgrammeMembershipExpired() {
+    ConnectionInfoDto pmExpiredExceptionDto = noExceptionDto;
+    pmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
+    pmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(pmExpiredExceptionDto);
+    verify(updateExceptionElasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(pmExpiredExceptionDto));
+    verify(updateConnectedElasticSearchService).saveConnectedViews(
+        elasticSearchIndexUpdateHelper.getConnectedViews(pmExpiredExceptionDto));
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+        pmExpiredExceptionDto.getGmcReferenceNumber());
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+        pmExpiredExceptionDto.getTcsPersonId());
+  }
+
+  @Test
+  void shouldAddExceptionIfVisitorAndProgrammeMembershipExpired() {
+    ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
+    visitorPmExpiredExceptionDto.setProgrammeMembershipType(VISITOR);
+    visitorPmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
+    visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(updateExceptionElasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    verify(updateConnectedElasticSearchService).saveConnectedViews(
+        elasticSearchIndexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+        visitorPmExpiredExceptionDto.getGmcReferenceNumber());
+    verify(updateDisconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+        visitorPmExpiredExceptionDto.getTcsPersonId());
   }
 
   @Test
   void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
-    verify(elasticSearchService).removeExceptionViewByGmcNumber(
+    verify(updateExceptionElasticSearchService).removeExceptionViewByGmcNumber(
         noExceptionDto.getGmcReferenceNumber()
     );
-    verify(elasticSearchService).removeExceptionViewByTcsPersonId(
+    verify(updateExceptionElasticSearchService).removeExceptionViewByTcsPersonId(
         noExceptionDto.getTcsPersonId()
     );
   }
@@ -116,13 +157,52 @@ public class ElasticSearchIndexUpdateHelperTest {
         .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
     assert (returnedView.getMembershipEndDate())
         .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
-    assert (returnedView.getConnectionStatus()).equals(CONNECTED);
+    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
   }
 
   @Test
-  void shouldReturnPositiveConnectionStatus() {
-    final ExceptionView returnedView = elasticSearchIndexUpdateHelper
-        .getExceptionViews(noConnectionExceptionDto);
-    assert (returnedView.getConnectionStatus()).equals(DISCONNECTED);
+  void shouldGetConnectedViews() {
+    final ConnectedView returnedView = elasticSearchIndexUpdateHelper
+        .getConnectedViews(visitorExceptionDto);
+
+    assert (returnedView.getGmcReferenceNumber())
+        .equals(visitorExceptionDto.getGmcReferenceNumber());
+    assert (returnedView.getDoctorFirstName()).equals(visitorExceptionDto.getDoctorFirstName());
+    assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
+    assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
+    assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
+    assert (returnedView.getMembershipType())
+        .equals(visitorExceptionDto.getProgrammeMembershipType());
+    assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
+    assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
+    assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
+    assert (returnedView.getMembershipStartDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
+    assert (returnedView.getMembershipEndDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
+    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
+  }
+
+  @Test
+  void shouldGetDisconnectedViews() {
+    final DisconnectedView returnedView = elasticSearchIndexUpdateHelper
+        .getDisconnectedViews(visitorExceptionDto);
+
+    assert (returnedView.getGmcReferenceNumber())
+        .equals(visitorExceptionDto.getGmcReferenceNumber());
+    assert (returnedView.getDoctorFirstName()).equals(visitorExceptionDto.getDoctorFirstName());
+    assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
+    assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
+    assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
+    assert (returnedView.getMembershipType())
+        .equals(visitorExceptionDto.getProgrammeMembershipType());
+    assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
+    assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
+    assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
+    assert (returnedView.getMembershipStartDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
+    assert (returnedView.getMembershipEndDate())
+        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
+    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
   }
 }

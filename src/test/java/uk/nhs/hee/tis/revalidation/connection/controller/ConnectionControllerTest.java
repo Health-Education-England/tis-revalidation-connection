@@ -28,7 +28,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.nhs.hee.tis.revalidation.connection.dto.*;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
@@ -36,45 +42,6 @@ import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchServ
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
-
-  private final Faker faker = new Faker();
-
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockBean
-  private ConnectionService connectionService;
-
-  @MockBean
-  private ExceptionElasticSearchService exceptionElasticSearchService;
-
-  private String changeReason;
-  private String designatedBodyCode;
-  private String gmcId;
-  private String message;
-
-  private String connectionId;
-  private String gmcClientId;
-  private String newDesignatedBodyCode;
-  private String previousDesignatedBodyCode;
-  private String reason;
-  private String reasonMessage;
-  private ConnectionRequestType requestType;
-  private LocalDateTime requestTime;
-  private String responseCode;
-
-  private Long personId1;
-  private Long personId2;
-  private String gmcRef1, gmcRef2;
-  private String firstName1, firstName2;
-  private String lastName1, lastName2;
-  private LocalDate submissionDate1, submissionDate2;
-  private String designatedBody1, designatedBody2;
-  private String programmeName1, programmeName2;
-  private String programmeOwner1, programmeOwner2;
 
   private static final String SORT_COLUMN = "sortColumn";
   private static final String SORT_ORDER = "sortOrder";
@@ -84,6 +51,44 @@ class ConnectionControllerTest {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
+  private final Faker faker = new Faker();
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private ObjectMapper objectMapper;
+  @MockBean
+  private ConnectionService connectionService;
+  @MockBean
+  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private String changeReason;
+  private String designatedBodyCode;
+  private String gmcId;
+  private String message;
+  private String connectionId;
+  private String gmcClientId;
+  private String newDesignatedBodyCode;
+  private String previousDesignatedBodyCode;
+  private String reason;
+  private String reasonMessage;
+  private ConnectionRequestType requestType;
+  private LocalDateTime requestTime;
+  private String responseCode;
+  private Long personId1;
+  private Long personId2;
+  private String gmcRef1;
+  private String gmcRef2;
+  private String firstName1;
+  private String firstName2;
+  private String lastName1;
+  private String lastName2;
+  private LocalDate submissionDate1;
+  private LocalDate submissionDate2;
+  private String designatedBody1;
+  private String designatedBody2;
+  private String programmeName1;
+  private String programmeName2;
+  private String programmeOwner1;
+  private String programmeOwner2;
 
   @BeforeEach
   public void setup() {
@@ -228,7 +233,8 @@ class ConnectionControllerTest {
     final var exceptionSummary = prepareExceptionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
-    when(exceptionElasticSearchService.searchForPage(EMPTY_STRING,pageableAndSortable)).thenReturn(exceptionSummary);
+    when(exceptionElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(exceptionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
         .param(SORT_ORDER, "asc")

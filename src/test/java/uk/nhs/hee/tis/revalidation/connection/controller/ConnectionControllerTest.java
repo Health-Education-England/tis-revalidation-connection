@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,12 +32,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
+import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,6 +63,10 @@ class ConnectionControllerTest {
   private ConnectionService connectionService;
   @MockBean
   private ExceptionElasticSearchService exceptionElasticSearchService;
+  @MockBean
+  private ConnectedElasticSearchService connectedElasticSearchService;
+  @MockBean
+  private DisconnectedElasticSearchService disconnectedElasticSearchService;
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
@@ -229,12 +236,12 @@ class ConnectionControllerTest {
   }
 
   @Test
-  public void shouldReturnTraineeDoctorsInformation() throws Exception {
-    final var exceptionSummary = prepareExceptionSummary();
+  void shouldReturnExceptionTraineeDoctorsInformation() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
     when(exceptionElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
-        .thenReturn(exceptionSummary);
+        .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
         .param(SORT_ORDER, "asc")
@@ -257,6 +264,125 @@ class ConnectionControllerTest {
             jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
         .andExpect(
             jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
+  }
+
+  @Test
+  void shouldReturnExceptionTraineeDoctorsInformationDesc() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber.keyword"));
+    when(exceptionElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/exception")
+        .param(SORT_ORDER, "desc")
+        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+        .param(SEARCH_QUERY, EMPTY_STRING)
+        .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  @Test
+  void shouldReturnConnectedTraineeDoctorsInformation() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/connected")
+        .param(SORT_ORDER, "asc")
+        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+        .param(SEARCH_QUERY, EMPTY_STRING)
+        .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
+        .andExpect(
+            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
+  }
+
+  @Test
+  void shouldReturnConnectedTraineeDoctorsInformationDesc() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber.keyword"));
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/connected")
+        .param(SORT_ORDER, "desc")
+        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+        .param(SEARCH_QUERY, EMPTY_STRING)
+        .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  @Test
+  void shouldReturnDisconnectedTraineeDoctorsInformation() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+    when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/disconnected")
+        .param(SORT_ORDER, "asc")
+        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+        .param(SEARCH_QUERY, EMPTY_STRING)
+        .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
+        .andExpect(
+            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
+  }
+
+  @Test
+  void shouldReturnDisconnectedTraineeDoctorsInformationDesc() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber.keyword"));
+    when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/disconnected")
+        .param(SORT_ORDER, "desc")
+        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+        .param(SEARCH_QUERY, EMPTY_STRING)
+        .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
   }
 
   private ConnectionDto prepareConnectionDto() {
@@ -284,9 +410,9 @@ class ConnectionControllerTest {
     return List.of(doc1, doc2);
   }
 
-  private ExceptionSummaryDto prepareExceptionSummary() {
+  private ConnectionSummaryDto prepareConnectionSummary() {
     final var doctorsForDB = buildDoctorsForDBList();
-    return ExceptionSummaryDto.builder()
+    return ConnectionSummaryDto.builder()
         .connections(doctorsForDB)
         .totalResults(doctorsForDB.size())
         .build();

@@ -13,23 +13,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
 
 @Service
-public class ExceptionElasticSearchService {
-  private static final Logger LOG = LoggerFactory.getLogger(ExceptionElasticSearchService.class);
+public class ConnectedElasticSearchService {
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectedElasticSearchService.class);
 
   @Autowired
-  ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+  ConnectedElasticSearchRepository connectedElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
 
 
   /**
-   * Get exceptions from exception elasticsearch index.
+   * Get connected trainees from Connected elasticsearch index.
    *
    * @param searchQuery query to run
    * @param pageable pagination information
@@ -48,13 +48,13 @@ public class ExceptionElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
+      Page<ConnectedView> result = connectedElasticSearchRepository.search(fullQuery, pageable);
 
-      final var exceptions = result.get().collect(toList());
+      final var connectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.exceptionToDtos(exceptions))
+          .connections(connectionInfoMapper.connectedToDtos(connectedTrainees))
           .build();
 
     } catch (RuntimeException re) {

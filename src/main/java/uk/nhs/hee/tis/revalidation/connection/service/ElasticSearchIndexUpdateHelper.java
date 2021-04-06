@@ -147,7 +147,8 @@ public class ElasticSearchIndexUpdateHelper {
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
     boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now());
+    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
+        && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes");
 
     return (isVisitor || isExpired);
   }

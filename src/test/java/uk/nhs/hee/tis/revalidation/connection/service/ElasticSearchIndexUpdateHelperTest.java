@@ -127,6 +127,26 @@ public class ElasticSearchIndexUpdateHelperTest {
   }
 
   @Test
+  void shouldNotAddExceptionIfProgrammeMembershipExpiredButDisconnected() {
+    ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
+    visitorPmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
+    visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
+    visitorPmExpiredExceptionDto.setDesignatedBody(null);
+    visitorPmExpiredExceptionDto.setConnectionStatus("No");
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(updateExceptionElasticSearchService, never()).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    verify(updateConnectedElasticSearchService, never()).saveConnectedViews(
+        elasticSearchIndexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
+    verify(updateExceptionElasticSearchService).removeExceptionViewByGmcNumber(
+        visitorPmExpiredExceptionDto.getGmcReferenceNumber());
+    verify(updateExceptionElasticSearchService).removeExceptionViewByTcsPersonId(
+        visitorPmExpiredExceptionDto.getTcsPersonId());
+    verify(updateDisconnectedElasticSearchService, never()).removeDisconnectedViewByTcsPersonId(
+        visitorPmExpiredExceptionDto.getTcsPersonId());
+  }
+
+  @Test
   void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
     verify(updateExceptionElasticSearchService).removeExceptionViewByGmcNumber(

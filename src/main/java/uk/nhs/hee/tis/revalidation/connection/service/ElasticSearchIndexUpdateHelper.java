@@ -1,3 +1,24 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright 2021 Crown Copyright (Health Education England)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import java.time.LocalDate;
@@ -43,8 +64,7 @@ public class ElasticSearchIndexUpdateHelper {
   private void checkException(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
       updateExceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
-    }
-    else {
+    } else {
       updateExceptionElasticSearchService
           .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
       updateExceptionElasticSearchService
@@ -62,8 +82,7 @@ public class ElasticSearchIndexUpdateHelper {
           .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
       updateDisconnectedElasticSearchService
           .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
-    }
-    else {
+    } else {
       // Save disconnected trainee to Disconnected ES index
       updateDisconnectedElasticSearchService
           .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
@@ -83,20 +102,20 @@ public class ElasticSearchIndexUpdateHelper {
    */
   public ExceptionView getExceptionViews(final ConnectionInfoDto connectionInfo) {
     return ExceptionView.builder()
-      .tcsPersonId(connectionInfo.getTcsPersonId())
-      .gmcReferenceNumber(connectionInfo.getGmcReferenceNumber())
-      .doctorFirstName(connectionInfo.getDoctorFirstName())
-      .doctorLastName(connectionInfo.getDoctorLastName())
-      .submissionDate(connectionInfo.getSubmissionDate())
-      .programmeName(connectionInfo.getProgrammeName())
-      .membershipType(connectionInfo.getProgrammeMembershipType())
-      .designatedBody(connectionInfo.getDesignatedBody())
-      .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
-      .programmeOwner(connectionInfo.getProgrammeOwner())
-      .connectionStatus(connectionInfo.getConnectionStatus())
-      .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
-      .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
-      .build();
+        .tcsPersonId(connectionInfo.getTcsPersonId())
+        .gmcReferenceNumber(connectionInfo.getGmcReferenceNumber())
+        .doctorFirstName(connectionInfo.getDoctorFirstName())
+        .doctorLastName(connectionInfo.getDoctorLastName())
+        .submissionDate(connectionInfo.getSubmissionDate())
+        .programmeName(connectionInfo.getProgrammeName())
+        .membershipType(connectionInfo.getProgrammeMembershipType())
+        .designatedBody(connectionInfo.getDesignatedBody())
+        .tcsDesignatedBody(connectionInfo.getTcsDesignatedBody())
+        .programmeOwner(connectionInfo.getProgrammeOwner())
+        .connectionStatus(connectionInfo.getConnectionStatus())
+        .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
+        .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
+        .build();
   }
 
   /**

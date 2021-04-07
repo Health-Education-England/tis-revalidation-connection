@@ -1,3 +1,24 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright 2021 Crown Copyright (Health Education England)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
 import static java.util.List.of;
@@ -179,10 +200,10 @@ public class ConnectionController {
   /**
    * GET  /exception : get exception summary.
    *
-   * @param sortColumn column to be sorted
-   * @param sortOrder sorting order (ASC or DESC)
-   * @param pageNumber page number of data to get
-   * @param dbcs designated body code of the user
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
@@ -194,8 +215,7 @@ public class ConnectionController {
       final String sortOrder,
       @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
       final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false)
-      final List<String> dbcs,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
           String searchQuery
   ) throws IOException {
@@ -216,10 +236,10 @@ public class ConnectionController {
   /**
    * GET  /connected : get connected summary.
    *
-   * @param sortColumn column to be sorted
-   * @param sortOrder sorting order (ASC or DESC)
-   * @param pageNumber page number of data to get
-   * @param dbcs designated body code of the user
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and connected summary in body
    */
@@ -231,8 +251,7 @@ public class ConnectionController {
       final String sortOrder,
       @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
       final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false)
-      final List<String> dbcs,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
           String searchQuery
   ) throws IOException {
@@ -252,10 +271,10 @@ public class ConnectionController {
   /**
    * GET  /disconnected : get disconnected summary.
    *
-   * @param sortColumn column to be sorted
-   * @param sortOrder sorting order (ASC or DESC)
-   * @param pageNumber page number of data to get
-   * @param dbcs designated body code of the user
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and connected summary in body
    */
@@ -267,8 +286,7 @@ public class ConnectionController {
       final String sortOrder,
       @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
       final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false)
-      final List<String> dbcs,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
           String searchQuery
   ) throws IOException {

@@ -1,6 +1,32 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright 2021 Crown Copyright (Health Education England)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
 import static java.util.List.of;
+import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.domain.Sort.by;
+import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -19,17 +45,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
+import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
-
-import static org.springframework.data.domain.PageRequest.of;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-import static org.springframework.data.domain.Sort.by;
-import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 @Slf4j
 @RestController
@@ -44,12 +66,19 @@ public class ConnectionController {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
+  private static final String KEYWORD = ".keyword";
 
   @Autowired
   private ConnectionService connectionService;
 
   @Autowired
   private ExceptionElasticSearchService exceptionElasticSearchService;
+
+  @Autowired
+  private ConnectedElasticSearchService connectedElasticSearchService;
+
+  @Autowired
+  private DisconnectedElasticSearchService disconnectedElasticSearchService;
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -171,32 +200,106 @@ public class ConnectionController {
   /**
    * GET  /exception : get exception summary.
    *
-   * @param sortColumn column to be sorted
-   * @param sortOrder sorting order (ASC or DESC)
-   * @param pageNumber page number of data to get
-   * @param dbcs designated body code of the user
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
   @GetMapping("/exception")
-  public ResponseEntity<ExceptionSummaryDto> getSummaryExceptions(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber,
+  public ResponseEntity<ConnectionSummaryDto> getSummaryExceptions(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
+      final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
-      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false) String searchQuery
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+          String searchQuery
   ) throws IOException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn.concat(".keyword")));
+        by(direction, sortColumn.concat(KEYWORD)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    final ExceptionSummaryDto exceptionSummaryDto = exceptionElasticSearchService
+    final ConnectionSummaryDto connectionSummaryDto = exceptionElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
-    return ResponseEntity.ok(exceptionSummaryDto);
+    return ResponseEntity.ok(connectionSummaryDto);
 
+  }
+
+  /**
+   * GET  /connected : get connected summary.
+   *
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
+   * @param searchQuery search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and connected summary in body
+   */
+  @GetMapping("/connected")
+  public ResponseEntity<ConnectionSummaryDto> getSummaryConnected(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
+      final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+          String searchQuery
+  ) throws IOException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, sortColumn.concat(KEYWORD)));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString();
+    final ConnectionSummaryDto connectionSummaryDto = connectedElasticSearchService
+        .searchForPage(searchQueryES, pageableAndSortable);
+
+    return ResponseEntity.ok(connectionSummaryDto);
+  }
+
+  /**
+   * GET  /disconnected : get disconnected summary.
+   *
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
+   * @param searchQuery search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and connected summary in body
+   */
+  @GetMapping("/disconnected")
+  public ResponseEntity<ConnectionSummaryDto> getSummaryDisconnected(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
+      final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+          String searchQuery
+  ) throws IOException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, sortColumn.concat(KEYWORD)));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString();
+    final ConnectionSummaryDto connectionSummaryDto = disconnectedElasticSearchService
+        .searchForPage(searchQueryES, pageableAndSortable);
+
+    return ResponseEntity.ok(connectionSummaryDto);
   }
 }

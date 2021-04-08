@@ -34,24 +34,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.DisconnectedElasticSearchRepository;
 
 @Service
-public class ExceptionElasticSearchService {
+public class DisconnectedElasticSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ExceptionElasticSearchService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DisconnectedElasticSearchService.class);
 
   @Autowired
-  ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+  DisconnectedElasticSearchRepository disconnectedElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
 
 
   /**
-   * Get exceptions from exception elasticsearch index.
+   * Get disconnected trainees from Disconnected elasticsearch index.
    *
    * @param searchQuery query to run
    * @param pageable    pagination information
@@ -70,13 +70,14 @@ public class ExceptionElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
+      Page<DisconnectedView> result = disconnectedElasticSearchRepository
+          .search(fullQuery, pageable);
 
-      final var exceptions = result.get().collect(toList());
+      final var disconnectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.exceptionToDtos(exceptions))
+          .connections(connectionInfoMapper.disconnectedToDtos(disconnectedTrainees))
           .build();
 
     } catch (RuntimeException re) {

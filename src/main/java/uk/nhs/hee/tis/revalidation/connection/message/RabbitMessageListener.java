@@ -22,11 +22,14 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
 
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
+import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.UpdateExceptionElasticSearchService;
 
@@ -41,9 +44,30 @@ public class RabbitMessageListener {
   @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
+  @Autowired
+  private ConnectionService connectionService;
+
+  /**
+   * handle rabbit message.
+   *
+   * @param connectionInfo connection information of the trainee
+   */
   @RabbitListener(queues = "${app.rabbit.es.queue}")
   public void receiveMessage(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
+
+    // TODO: change to get data from ES 'Master' index instead of mongoDB
+    //  when 'Master' index is implemented
+    // Get Gmc data and aggregate it to connectionInfo
+    if (connectionInfo.getGmcReferenceNumber() != null) {
+      Optional<DoctorsForDB> optionalGmcData = connectionService
+          .getDoctorsForDbByGmcId(connectionInfo.getGmcReferenceNumber());
+      if (optionalGmcData.isPresent()) {
+        final DoctorsForDB gmcData = optionalGmcData.get();
+        connectionInfo.setSubmissionDate(gmcData.getSubmissionDate());
+        connectionInfo.setDesignatedBody(gmcData.getDesignatedBodyCode());
+      }
+    }
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
   }
 

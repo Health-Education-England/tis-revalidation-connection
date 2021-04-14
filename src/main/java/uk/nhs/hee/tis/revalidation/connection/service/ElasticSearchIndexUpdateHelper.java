@@ -165,10 +165,15 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
-    boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
-        && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes");
-
+    boolean isVisitor = false;
+    if (connectionInfo.getProgrammeMembershipType() != null) {
+      isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
+    }
+    boolean isExpired = false;
+    if (connectionInfo.getProgrammeMembershipEndDate() != null) {
+      isExpired = (connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
+          && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes"));
+    }
     return (isVisitor || isExpired);
   }
 

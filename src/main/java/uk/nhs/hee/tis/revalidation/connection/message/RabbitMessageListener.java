@@ -52,7 +52,7 @@ public class RabbitMessageListener {
    *
    * @param connectionInfo connection information of the trainee
    */
-  @RabbitListener(queues = "${app.rabbit.es.queue}")
+  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
   public void receiveMessage(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
 

@@ -83,13 +83,13 @@ public class ConnectionService {
   @Value("${app.rabbit.exchange}")
   private String exchange;
 
-  @Value("${app.rabbit.es.exchange}")
+  @Value("${app.rabbit.reval.exchange}")
   private String esExchange;
 
   @Value("${app.rabbit.connection.routingKey}")
   private String routingKey;
 
-  @Value("${app.rabbit.es.tis.routingKey}")
+  @Value("${app.rabbit.reval.queue.connection.update}}")
   private String esTisRoutingKey;
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {

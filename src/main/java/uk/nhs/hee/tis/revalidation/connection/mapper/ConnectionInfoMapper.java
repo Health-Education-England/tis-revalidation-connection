@@ -28,6 +28,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
 @Mapper(componentModel = "spring")
 public interface ConnectionInfoMapper {
@@ -55,4 +56,14 @@ public interface ConnectionInfoMapper {
   ConnectionInfoDto disconnectedToDto(DisconnectedView userType);
 
   List<ConnectionInfoDto> disconnectedToDtos(List<DisconnectedView> userTypes);
+
+  @Mapping(target = "programmeMembershipType", source = "membershipType")
+  @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
+  @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
+  @Mapping(target = "dataSource", ignore = true)
+  ConnectionInfoDto masterToDto(MasterDoctorView userType);
+
+  List<ConnectionInfoDto> masterToDtos(List<MasterDoctorView> userTypes);
+
+  List<ConnectionInfoDto> masterToDtos(Iterable<MasterDoctorView> userTypes);
 }

@@ -168,6 +168,24 @@ public class ElasticSearchIndexUpdateHelperTest {
   }
 
   @Test
+  void shouldNotThrowErrorIfProgrammeMembershipTypeNull() {
+    ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
+    visitorPmExpiredExceptionDto.setProgrammeMembershipType(null);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(updateExceptionElasticSearchService, never()).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+  }
+
+  @Test
+  void shouldNotThrowErrorIfProgrammeMembershipEndDateNull() {
+    ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
+    visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(null);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(updateExceptionElasticSearchService, never()).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+  }
+
+  @Test
   void shouldRemoveExceptionIfNotVisitor() {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
     verify(updateExceptionElasticSearchService).removeExceptionViewByGmcNumber(

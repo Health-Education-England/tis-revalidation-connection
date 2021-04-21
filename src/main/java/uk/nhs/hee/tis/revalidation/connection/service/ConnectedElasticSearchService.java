@@ -132,8 +132,8 @@ public class ConnectedElasticSearchService {
    * @param dataToSave connected trainee to be searched in elasticsearch
    */
   private Iterable<ConnectedView> findConnectedViewsByGmcNumberPersonId(ConnectedView dataToSave) {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
+    var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+    var shouldQuery = new BoolQueryBuilder();
 
     if (dataToSave.getGmcReferenceNumber() != null) {
       shouldQuery

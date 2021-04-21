@@ -38,13 +38,13 @@ public class ElasticSearchIndexUpdateHelper {
   private static final String VISITOR = "Visitor";
 
   @Autowired
-  UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
+  ExceptionElasticSearchService exceptionElasticSearchService;
 
   @Autowired
-  UpdateConnectedElasticSearchService updateConnectedElasticSearchService;
+  ConnectedElasticSearchService connectedElasticSearchService;
 
   @Autowired
-  UpdateDisconnectedElasticSearchService updateDisconnectedElasticSearchService;
+  DisconnectedElasticSearchService disconnectedElasticSearchService;
 
   /**
    * Route changes to correct elasticsearch index
@@ -63,11 +63,11 @@ public class ElasticSearchIndexUpdateHelper {
 
   private void checkException(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
-      updateExceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
+      exceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
     } else {
-      updateExceptionElasticSearchService
+      exceptionElasticSearchService
           .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateExceptionElasticSearchService
+      exceptionElasticSearchService
           .removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
@@ -75,22 +75,22 @@ public class ElasticSearchIndexUpdateHelper {
   private void checkTraineeConnection(final ConnectionInfoDto connectionInfo) {
     if (isConnected(connectionInfo)) {
       // Save connected trainee to Connected ES index
-      updateConnectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
+      connectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
 
       // Delete connected trainee from Disconnected ES index
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     } else {
       // Save disconnected trainee to Disconnected ES index
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
 
       // Delete disconnected trainee from Connected ES index
-      updateConnectedElasticSearchService
+      connectedElasticSearchService
           .removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateConnectedElasticSearchService
+      connectedElasticSearchService
           .removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }

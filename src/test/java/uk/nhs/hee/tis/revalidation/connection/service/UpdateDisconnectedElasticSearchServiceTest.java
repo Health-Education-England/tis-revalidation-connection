@@ -49,7 +49,7 @@ class UpdateDisconnectedElasticSearchServiceTest {
   DisconnectedElasticSearchRepository repository;
 
   @InjectMocks
-  UpdateDisconnectedElasticSearchService updateDisconnectedElasticSearchService;
+  DisconnectedElasticSearchService disconnectedElasticSearchService;
 
   private DisconnectedView disconnectedView = new DisconnectedView();
   private ArrayList<DisconnectedView> existingRecords = new ArrayList<>();
@@ -87,7 +87,7 @@ class UpdateDisconnectedElasticSearchServiceTest {
 
     doReturn(existingRecords).when(repository).search(fullQuery);
 
-    updateDisconnectedElasticSearchService.saveDisconnectedViews(disconnectedView);
+    disconnectedElasticSearchService.saveDisconnectedViews(disconnectedView);
     verify(repository).save(disconnectedView);
   }
 
@@ -105,7 +105,7 @@ class UpdateDisconnectedElasticSearchServiceTest {
 
     doReturn(existingRecords).when(repository).search(fullQuery);
 
-    updateDisconnectedElasticSearchService.saveDisconnectedViews(gmcNumberNulldisconnectedView);
+    disconnectedElasticSearchService.saveDisconnectedViews(gmcNumberNulldisconnectedView);
     verify(repository).save(gmcNumberNulldisconnectedView);
   }
 
@@ -121,7 +121,7 @@ class UpdateDisconnectedElasticSearchServiceTest {
             gmcNumberNulldisconnectedView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
-    updateDisconnectedElasticSearchService.saveDisconnectedViews(gmcNumberNulldisconnectedView);
+    disconnectedElasticSearchService.saveDisconnectedViews(gmcNumberNulldisconnectedView);
     verify(repository).save(gmcNumberNulldisconnectedView);
   }
 
@@ -140,31 +140,31 @@ class UpdateDisconnectedElasticSearchServiceTest {
     doReturn(existingRecords).when(repository).search(fullQuery);
 
     disconnectedView.setId(existingRecords.get(0).getId());
-    updateDisconnectedElasticSearchService.saveDisconnectedViews(disconnectedView);
+    disconnectedElasticSearchService.saveDisconnectedViews(disconnectedView);
     verify(repository).save(disconnectedView);
   }
 
   @Test
   void shouldRemoveDisconnectedViewByGmcNumber() {
-    updateDisconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(GMCID);
+    disconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(GMCID);
     verify(repository).deleteByGmcReferenceNumber(GMCID);
   }
 
   @Test
   void shouldNotRemoveDisconnectedViewByGmcNumberIfNull() {
-    updateDisconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(null);
+    disconnectedElasticSearchService.removeDisconnectedViewByGmcNumber(null);
     verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
   }
 
   @Test
   void shouldRemoveDisconnectedViewByTcsPersonId() {
-    updateDisconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(PERSONID);
+    disconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
   }
 
   @Test
   void shouldNotRemoveDisconnectedViewByTcsPersonIdIfNull() {
-    updateDisconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(null);
+    disconnectedElasticSearchService.removeDisconnectedViewByTcsPersonId(null);
     verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

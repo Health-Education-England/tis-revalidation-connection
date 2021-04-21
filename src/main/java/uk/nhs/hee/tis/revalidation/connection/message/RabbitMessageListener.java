@@ -33,15 +33,11 @@ import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.UpdateExceptionElasticSearchService;
 
 
 @Slf4j
 @Component
 public class RabbitMessageListener {
-
-  @Autowired
-  private UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
 
   @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;

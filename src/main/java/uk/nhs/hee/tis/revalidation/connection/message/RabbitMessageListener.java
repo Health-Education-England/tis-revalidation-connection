@@ -21,18 +21,18 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.common.util.iterable.Iterables;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 
 @Slf4j
@@ -46,13 +46,13 @@ public class RabbitMessageListener {
   private ConnectionService connectionService;
 
   @Autowired
-  private MasterElasticSearchRepository masterElasticSearchRepository ;
+  private MasterElasticSearchService masterElasticSearchService;
 
   @Autowired
   private ConnectionInfoMapper connectionInfoMapper;
 
   /**
-   * handle update event.
+   * handle rabbit message.
    *
    * @param connectionInfo connection information of the trainee
    */
@@ -60,14 +60,16 @@ public class RabbitMessageListener {
   public void receiveMessage(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
 
+    // TODO: change to get data from ES 'Master' index instead of mongoDB
+    //  when 'Master' index is implemented
     // Get Gmc data and aggregate it to connectionInfo
     if (connectionInfo.getGmcReferenceNumber() != null) {
-      Optional<MasterDoctorView> optionalGmcData = masterElasticSearchRepository
-          .findFirstByGmcReferenceNumberOrderBySubmissionDateDesc(connectionInfo.getGmcReferenceNumber());
+      Optional<DoctorsForDB> optionalGmcData = connectionService
+          .getDoctorsForDbByGmcId(connectionInfo.getGmcReferenceNumber());
       if (optionalGmcData.isPresent()) {
-        final MasterDoctorView masterData = optionalGmcData.get();
-        connectionInfo.setSubmissionDate(masterData.getSubmissionDate());
-        connectionInfo.setDesignatedBody(masterData.getDesignatedBody());
+        final DoctorsForDB gmcData = optionalGmcData.get();
+        connectionInfo.setSubmissionDate(gmcData.getSubmissionDate());
+        connectionInfo.setDesignatedBody(gmcData.getDesignatedBodyCode());
       }
     }
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
@@ -78,9 +80,9 @@ public class RabbitMessageListener {
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}")
   public void receiveMessage() {
-    final Iterable<MasterDoctorView> masterList = masterElasticSearchRepository.findAll();
-    log.info("Found {} records from ES Master index: ", Iterables.size(masterList));
-    connectionInfoMapper.masterToDtos(masterList).forEach(connectionInfo ->
+    final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllMasterToDto();
+    log.info("Found {} records from ES Master index: ", masterList.size());
+    masterList.forEach(connectionInfo ->
         elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
   }
 

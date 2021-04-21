@@ -19,17 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.service;
 
-import java.util.Optional;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 
-@Repository
-public interface MasterElasticSearchRepository
-    extends ElasticsearchRepository<MasterDoctorView, String> {
+@Service
+public class MasterElasticSearchService {
+  
+  @Autowired
+  MasterElasticSearchRepository masterElasticSearchRepository;
 
-  Optional<MasterDoctorView> findFirstByGmcReferenceNumberOrderBySubmissionDateDesc(
-      final String gmcId);
+  @Autowired
+  ConnectionInfoMapper connectionInfoMapper;
+
+  /**
+   * find all trainee from ES Master Index.
+   */
+  public List<ConnectionInfoDto> findAllMasterToDto() {
+    Iterable<MasterDoctorView> masterList = masterElasticSearchRepository.findAll();
+    return connectionInfoMapper.masterToDtos(masterList);
+  }
 }

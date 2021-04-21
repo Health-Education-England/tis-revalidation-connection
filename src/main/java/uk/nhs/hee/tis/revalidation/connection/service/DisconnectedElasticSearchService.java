@@ -135,8 +135,8 @@ public class DisconnectedElasticSearchService {
    */
   private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(
       DisconnectedView dataToSave) {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
+    var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+    var shouldQuery = new BoolQueryBuilder();
 
     if (dataToSave.getGmcReferenceNumber() != null) {
       shouldQuery

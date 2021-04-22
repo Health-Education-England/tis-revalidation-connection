@@ -57,7 +57,7 @@ public class RabbitMessageListener {
    * @param connectionInfo connection information of the trainee
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
-  public void receiveMessage(final ConnectionInfoDto connectionInfo) {
+  public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
 
     // TODO: change to get data from ES 'Master' index instead of mongoDB
@@ -79,11 +79,12 @@ public class RabbitMessageListener {
    * get trainee from Master index then update connection indexes.
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}")
-  public void receiveMessage() {
-    final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllMasterToDto();
-    log.info("Found {} records from ES Master index: ", masterList.size());
-    masterList.forEach(connectionInfo ->
-        elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
+  public void receiveMessageGetMaster(final String getMaster) {
+    if (getMaster != null && getMaster.equals("getMaster")) {
+      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllMasterToDto();
+      log.info("Found {} records from ES Master index: ", masterList.size());
+      masterList.forEach(connectionInfo ->
+          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
+    }
   }
-
 }

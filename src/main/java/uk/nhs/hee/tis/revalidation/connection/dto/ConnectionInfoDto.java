@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ConnectionInfoDto {
 
   Long tcsPersonId;

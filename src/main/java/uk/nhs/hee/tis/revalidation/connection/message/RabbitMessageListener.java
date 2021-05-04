@@ -51,6 +51,9 @@ public class RabbitMessageListener {
   @Autowired
   private ConnectionInfoMapper connectionInfoMapper;
 
+  private static final List<String> ES_INDICES = List
+      .of("connectedindex", "disconnectedindex", "exceptionindex");
+
   /**
    * handle rabbit message.
    *
@@ -81,6 +84,10 @@ public class RabbitMessageListener {
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}")
   public void receiveMessageGetMaster(final String getMaster) {
     if (getMaster != null && getMaster.equals("getMaster")) {
+
+      //Delete and create elastic search index
+      elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
+
       final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllMasterToDto();
       log.info("Found {} records from ES Master index: ", masterList.size());
       masterList.forEach(connectionInfo ->

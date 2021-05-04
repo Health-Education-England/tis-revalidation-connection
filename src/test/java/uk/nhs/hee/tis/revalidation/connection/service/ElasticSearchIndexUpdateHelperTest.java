@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
@@ -45,13 +46,15 @@ public class ElasticSearchIndexUpdateHelperTest {
   private static final String CONNECTED = "Yes";
   private static final String DISCONNECTED = "No";
   @Mock
-  ExceptionElasticSearchService exceptionElasticSearchService;
+  private ExceptionElasticSearchService exceptionElasticSearchService;
   @Mock
-  ConnectedElasticSearchService connectedElasticSearchService;
+  private ConnectedElasticSearchService connectedElasticSearchService;
   @Mock
-  DisconnectedElasticSearchService disconnectedElasticSearchService;
+  private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  @Mock
+  private ElasticsearchOperations elasticSearchOperations;
   @InjectMocks
-  ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
   private ConnectionInfoDto visitorExceptionDto = ConnectionInfoDto.builder()
       .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")

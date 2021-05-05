@@ -22,8 +22,11 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
@@ -45,6 +48,9 @@ public class ElasticSearchIndexUpdateHelper {
 
   @Autowired
   DisconnectedElasticSearchService disconnectedElasticSearchService;
+
+  @Autowired
+  private ElasticsearchOperations elasticSearchOperations;
 
   /**
    * Route changes to correct elasticsearch index
@@ -185,4 +191,33 @@ public class ElasticSearchIndexUpdateHelper {
     return (designatedBody == null || designatedBody.equals("")) ? "No" : "Yes";
   }
 
+  public void clearConnectionIndexes(List<String> connectionIndices) {
+    connectionIndices.forEach(conIndex -> deleteConnectionIndex(conIndex));
+    connectionIndices.forEach(conIndex -> createConnectionIndex(conIndex));
+  }
+
+  private void deleteConnectionIndex(String esIndex) {
+    log.info("deleting connection index elastic search index");
+    try {
+      elasticSearchOperations.deleteIndex(esIndex);
+    } catch (IndexNotFoundException e) {
+      log.info("Could not delete an index that does not exist, continuing");
+    }
+  }
+
+  private void createConnectionIndex(String esIndex) {
+    log.info("creating and updating mappings");
+    elasticSearchOperations.createIndex(esIndex);
+    switch (esIndex) {
+      case "connectedindex":
+        elasticSearchOperations.putMapping(ConnectedView.class);
+        break;
+      case "disconnectedindex":
+        elasticSearchOperations.putMapping(DisconnectedView.class);
+        break;
+      case "exceptionindex":
+        elasticSearchOperations.putMapping(ExceptionView.class);
+        break;
+    }
+  }
 }

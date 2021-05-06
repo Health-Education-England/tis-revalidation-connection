@@ -22,7 +22,6 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
 import static java.time.LocalDate.now;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,7 +94,7 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldReceiveMessageGetMaster() {
-    when(masterElasticSearchService.findAllMasterToDto()).thenReturn(connectionInfoDtos);
+    when(masterElasticSearchService.findAllScroll()).thenReturn(connectionInfoDtos);
     rabbitMessageListener.receiveMessageGetMaster("getMaster");
     verify(elasticSearchIndexUpdateHelper, times(1))
         .updateElasticSearchIndex(connectionInfoDtos.get(0));

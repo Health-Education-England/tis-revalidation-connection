@@ -37,7 +37,12 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web-services"
   implementation "org.springframework.boot:spring-boot-starter-data-mongodb"
   implementation "org.springframework.boot:spring-boot-starter-amqp"
+
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-elasticsearch', version: '2.4.5'
+  implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+  implementation "org.elasticsearch.client:elasticsearch-rest-client"
+  implementation "org.elasticsearch:elasticsearch"
+  implementation group: 'io.vertx', name: 'vertx-core', version: '2.1.5'
 
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude group: "org.junit.vintage", module: "junit-vintage-engine"

@@ -197,16 +197,16 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   private void deleteConnectionIndex(String esIndex) {
-    log.info("deleting connection index elastic search index");
+    log.info("Deleting elastic search index: {}", esIndex);
     try {
       elasticSearchOperations.deleteIndex(esIndex);
     } catch (IndexNotFoundException e) {
-      log.info("Could not delete an index that does not exist, continuing");
+      log.info("Could not delete an index that does not exist: {}, continuing", esIndex);
     }
   }
 
   private void createConnectionIndex(String esIndex) {
-    log.info("creating and updating mappings");
+    log.info("Creating elastic search index: {}", esIndex);
     elasticSearchOperations.createIndex(esIndex);
     switch (esIndex) {
       case "connectedindex":

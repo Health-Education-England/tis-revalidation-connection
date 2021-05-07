@@ -21,10 +21,12 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.search.ClearScrollRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
@@ -34,7 +36,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.vertx.java.core.json.JsonObject;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
@@ -46,11 +51,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class MasterElasticSearchService {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MasterElasticSearchService.class);
+
   @Autowired
   MasterElasticSearchRepository masterElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
+
+  @Value("${spring.elasticsearch.rest.uris}")
+  private URL ES_URL;
 
   private final int PAGE_SIZE = 100;
 
@@ -69,32 +79,52 @@ public class MasterElasticSearchService {
   @SneakyThrows
   public List<ConnectionInfoDto> findAllScroll() {
 
-    RestHighLevelClient client = new RestHighLevelClient(
-        RestClient.builder(
-            new HttpHost("localhost", 9200, "http")));
-
     List<ConnectionInfoDto> results = new ArrayList<>();
 
-    // Initial search
-    SearchRequest searchRequest = new SearchRequest("masterdoctorindex");
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.size(PAGE_SIZE);
-    searchRequest.source(searchSourceBuilder);
-    searchRequest.scroll("5m");
-    SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-    String scrollId = searchResponse.getScrollId();
-    SearchHits hits = searchResponse.getHits();
-    results.addAll(hitsToDto(hits));
+    RestHighLevelClient client = new RestHighLevelClient(
+        RestClient.builder(
+            new HttpHost(ES_URL.getHost(), ES_URL.getPort(), ES_URL.getProtocol())));
 
-    // while it is not the end of master index, do scroll search
-    while (hits.getHits().length == PAGE_SIZE) {
-      SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
-      scrollRequest.scroll("5m");
-      SearchResponse searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
-      scrollId = searchScrollResponse.getScrollId();
-      hits = searchScrollResponse.getHits();
+    try {
+
+      // Initial search
+      SearchRequest searchRequest = new SearchRequest("masterdoctorindex");
+      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+      searchSourceBuilder.size(PAGE_SIZE);
+      searchRequest.source(searchSourceBuilder);
+      searchRequest.scroll("5m");
+      SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+      String scrollId = searchResponse.getScrollId();
+      SearchHits hits = searchResponse.getHits();
+      // add records to results
       results.addAll(hitsToDto(hits));
+
+      // while it is not the end of master index, do scroll search
+      while (hits.getHits().length == PAGE_SIZE) {
+        // Search with last scrollId
+        SearchScrollRequest scrollRequest = new SearchScrollRequest(scrollId);
+        scrollRequest.scroll("5m");
+        SearchResponse searchScrollResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT);
+
+        // clear last scrollId
+        ClearScrollRequest request = new ClearScrollRequest();
+        request.addScrollId(scrollId);
+
+        // update new scrollId and hits records
+        scrollId = searchScrollResponse.getScrollId();
+        hits = searchScrollResponse.getHits();
+        // add records to results
+        results.addAll(hitsToDto(hits));
+      }
     }
+    catch (Exception e) {
+      LOG.error("An exception occurred while getting all data from Master Index with Scroll API", e);
+      throw e;
+    }
+    finally {
+      client.close();
+    }
+
 
     return results;
   }

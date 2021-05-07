@@ -27,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,6 +46,8 @@ public class ElasticSearchIndexUpdateHelperTest {
   private static final String SUBSTANTIVE = "Substantive";
   private static final String CONNECTED = "Yes";
   private static final String DISCONNECTED = "No";
+  private static final List<String> ES_INDICES = List
+      .of("connectedindex", "disconnectedindex", "exceptionindex");
   @Mock
   private ExceptionElasticSearchService exceptionElasticSearchService;
   @Mock
@@ -266,5 +269,24 @@ public class ElasticSearchIndexUpdateHelperTest {
     assert (returnedView.getMembershipEndDate())
         .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
     assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
+  }
+
+  @Test
+  void shouldClearConnectionIndex() {
+    elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
+    verify(elasticSearchOperations).deleteIndex("connectedindex");
+    verify(elasticSearchOperations).deleteIndex("disconnectedindex");
+    verify(elasticSearchOperations).deleteIndex("exceptionindex");
+    verify(elasticSearchOperations).putMapping(ConnectedView.class);
+    verify(elasticSearchOperations).putMapping(DisconnectedView.class);
+    verify(elasticSearchOperations).putMapping(ExceptionView.class);
+  }
+
+  @Test
+  void shouldNotClearConnectionIndexIfNotMatch() {
+    elasticSearchIndexUpdateHelper.clearConnectionIndexes(List.of("randomText"));
+    verify(elasticSearchOperations, never()).putMapping(ConnectedView.class);
+    verify(elasticSearchOperations, never()).putMapping(DisconnectedView.class);
+    verify(elasticSearchOperations, never()).putMapping(ExceptionView.class);
   }
 }

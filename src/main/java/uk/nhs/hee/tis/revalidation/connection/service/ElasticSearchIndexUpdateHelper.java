@@ -22,8 +22,11 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
@@ -38,13 +41,16 @@ public class ElasticSearchIndexUpdateHelper {
   private static final String VISITOR = "Visitor";
 
   @Autowired
-  UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
+  ExceptionElasticSearchService exceptionElasticSearchService;
 
   @Autowired
-  UpdateConnectedElasticSearchService updateConnectedElasticSearchService;
+  ConnectedElasticSearchService connectedElasticSearchService;
 
   @Autowired
-  UpdateDisconnectedElasticSearchService updateDisconnectedElasticSearchService;
+  DisconnectedElasticSearchService disconnectedElasticSearchService;
+
+  @Autowired
+  private ElasticsearchOperations elasticSearchOperations;
 
   /**
    * Route changes to correct elasticsearch index
@@ -63,11 +69,11 @@ public class ElasticSearchIndexUpdateHelper {
 
   private void checkException(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
-      updateExceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
+      exceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
     } else {
-      updateExceptionElasticSearchService
+      exceptionElasticSearchService
           .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateExceptionElasticSearchService
+      exceptionElasticSearchService
           .removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
@@ -75,22 +81,22 @@ public class ElasticSearchIndexUpdateHelper {
   private void checkTraineeConnection(final ConnectionInfoDto connectionInfo) {
     if (isConnected(connectionInfo)) {
       // Save connected trainee to Connected ES index
-      updateConnectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
+      connectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
 
       // Delete connected trainee from Disconnected ES index
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     } else {
       // Save disconnected trainee to Disconnected ES index
-      updateDisconnectedElasticSearchService
+      disconnectedElasticSearchService
           .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
 
       // Delete disconnected trainee from Connected ES index
-      updateConnectedElasticSearchService
+      connectedElasticSearchService
           .removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
-      updateConnectedElasticSearchService
+      connectedElasticSearchService
           .removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
@@ -165,10 +171,15 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   private boolean isException(final ConnectionInfoDto connectionInfo) {
-    boolean isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
-    boolean isExpired = connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
-        && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes");
-
+    var isVisitor = false;
+    if (connectionInfo.getProgrammeMembershipType() != null) {
+      isVisitor = connectionInfo.getProgrammeMembershipType().equalsIgnoreCase(VISITOR);
+    }
+    var isExpired = false;
+    if (connectionInfo.getProgrammeMembershipEndDate() != null) {
+      isExpired = (connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
+          && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes"));
+    }
     return (isVisitor || isExpired);
   }
 
@@ -180,4 +191,33 @@ public class ElasticSearchIndexUpdateHelper {
     return (designatedBody == null || designatedBody.equals("")) ? "No" : "Yes";
   }
 
+  public void clearConnectionIndexes(List<String> connectionIndices) {
+    connectionIndices.forEach(conIndex -> deleteConnectionIndex(conIndex));
+    connectionIndices.forEach(conIndex -> createConnectionIndex(conIndex));
+  }
+
+  private void deleteConnectionIndex(String esIndex) {
+    log.info("Deleting elastic search index: {}", esIndex);
+    try {
+      elasticSearchOperations.deleteIndex(esIndex);
+    } catch (IndexNotFoundException e) {
+      log.info("Could not delete an index that does not exist: {}, continuing", esIndex);
+    }
+  }
+
+  private void createConnectionIndex(String esIndex) {
+    log.info("Creating elastic search index: {}", esIndex);
+    elasticSearchOperations.createIndex(esIndex);
+    switch (esIndex) {
+      case "connectedindex":
+        elasticSearchOperations.putMapping(ConnectedView.class);
+        break;
+      case "disconnectedindex":
+        elasticSearchOperations.putMapping(DisconnectedView.class);
+        break;
+      case "exceptionindex":
+        elasticSearchOperations.putMapping(ExceptionView.class);
+        break;
+    }
+  }
 }

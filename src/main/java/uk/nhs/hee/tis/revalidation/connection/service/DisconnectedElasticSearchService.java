@@ -24,6 +24,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.util.stream.Collectors.toList;
 
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
@@ -84,6 +85,93 @@ public class DisconnectedElasticSearchService {
       LOG.error("An exception occurred while attempting to do an ES search", re);
       throw re;
     }
+  }
+
+  /**
+   * add new disconnected trainee to elasticsearch index.
+   *
+   * @param dataToSave disconnected trainee to go in elasticsearch
+   */
+  public void saveDisconnectedViews(DisconnectedView dataToSave) {
+    Iterable<DisconnectedView> existingRecords
+        = findDisconnectedViewsByGmcNumberPersonId(dataToSave);
+
+    // if trainee already exists in ES index, then update the existing record
+    if (Iterables.size(existingRecords) > 0) {
+      updateDisconnectedViews(existingRecords, dataToSave);
+    }
+    // otherwise, add a new record
+    else {
+      addDisconnectedViews(dataToSave);
+    }
+  }
+
+  /**
+   * remove disconnected trainee from elasticsearch index by gmcReferenceNumber.
+   *
+   * @param gmcReferenceNumber id of disconnected trainee to remove
+   */
+  public void removeDisconnectedViewByGmcNumber(String gmcReferenceNumber) {
+    if (gmcReferenceNumber != null) {
+      disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+    }
+  }
+
+  /**
+   * remove disconnected trainee from elasticsearch index by tcsPersonId.
+   *
+   * @param tcsPersonId id of disconnected trainee to remove
+   */
+  public void removeDisconnectedViewByTcsPersonId(Long tcsPersonId) {
+    if (tcsPersonId != null) {
+      disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+    }
+  }
+
+  /**
+   * find existing disconnected trainee from elasticsearch index by gmcNumber or tcsPersonId.
+   *
+   * @param dataToSave disconnected trainee to be searched in elasticsearch
+   */
+  private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(
+      DisconnectedView dataToSave) {
+    var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+    var shouldQuery = new BoolQueryBuilder();
+
+    if (dataToSave.getGmcReferenceNumber() != null) {
+      shouldQuery
+          .should(new MatchQueryBuilder("gmcReferenceNumber", dataToSave.getGmcReferenceNumber()));
+    }
+    if (dataToSave.getTcsPersonId() != null) {
+      shouldQuery
+          .should(new MatchQueryBuilder("tcsPersonId", dataToSave.getTcsPersonId()));
+    }
+
+    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
+    return disconnectedElasticSearchRepository.search(fullQuery);
+  }
+
+  /**
+   * add new disconnected trainee to elasticsearch index.
+   *
+   * @param dataToSave disconnected trainee to go in elasticsearch
+   */
+  private void addDisconnectedViews(DisconnectedView dataToSave) {
+    disconnectedElasticSearchRepository.save(dataToSave);
+  }
+
+  /**
+   * update existing disconnected trainee to elasticsearch index.
+   *
+   * @param existingRecords existing disconnected trainee to be updated in elasticsearch
+   * @param dataToSave      new disconnected trainee details to be saved in elasticsearch
+   */
+  private void updateDisconnectedViews(Iterable<DisconnectedView> existingRecords,
+      DisconnectedView dataToSave) {
+    existingRecords.forEach(disconnectedView -> {
+      dataToSave.setId(disconnectedView.getId());
+      disconnectedElasticSearchRepository.save(dataToSave);
+    });
   }
 
   private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {

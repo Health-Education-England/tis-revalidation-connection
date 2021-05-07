@@ -21,7 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message;
 
-
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -29,9 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.UpdateExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 
 @Slf4j
@@ -39,13 +40,19 @@ import uk.nhs.hee.tis.revalidation.connection.service.UpdateExceptionElasticSear
 public class RabbitMessageListener {
 
   @Autowired
-  private UpdateExceptionElasticSearchService updateExceptionElasticSearchService;
-
-  @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
   @Autowired
   private ConnectionService connectionService;
+
+  @Autowired
+  private MasterElasticSearchService masterElasticSearchService;
+
+  @Autowired
+  private ConnectionInfoMapper connectionInfoMapper;
+
+  private static final List<String> ES_INDICES = List
+      .of("connectedindex", "disconnectedindex", "exceptionindex");
 
   /**
    * handle rabbit message.
@@ -53,7 +60,7 @@ public class RabbitMessageListener {
    * @param connectionInfo connection information of the trainee
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
-  public void receiveMessage(final ConnectionInfoDto connectionInfo) {
+  public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
     log.info("MESSAGE RECEIVED: " + connectionInfo);
 
     // TODO: change to get data from ES 'Master' index instead of mongoDB
@@ -71,4 +78,22 @@ public class RabbitMessageListener {
     elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
   }
 
+  /**
+   * get trainee from Master index then update connection indexes.
+   */
+  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}")
+  public void receiveMessageGetMaster(final String getMaster) {
+    if (getMaster != null && getMaster.equals("getMaster")) {
+
+      //Delete and create elastic search index
+      elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
+
+      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
+      log.info("Found {} records from ES Master index. ", masterList.size());
+
+      masterList.forEach(connectionInfo ->
+          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
+      log.info("ES indexes update completed.");
+    }
+  }
 }

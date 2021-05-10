@@ -42,7 +42,7 @@ dependencies {
   implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
   implementation "org.elasticsearch.client:elasticsearch-rest-client"
   implementation "org.elasticsearch:elasticsearch"
-  implementation group: 'io.vertx', name: 'vertx-core', version: '2.1.5'
+  implementation group: 'io.vertx', name: 'vertx-core', version: '4.0.3'
 
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude group: "org.junit.vintage", module: "junit-vintage-engine"

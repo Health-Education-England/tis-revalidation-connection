@@ -88,7 +88,7 @@ public class RabbitMessageListener {
       //Delete and create elastic search index
       elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
 
-      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
+      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllBySpringDataScroll();
       log.info("Found {} records from ES Master index. ", masterList.size());
 
       masterList.forEach(connectionInfo ->

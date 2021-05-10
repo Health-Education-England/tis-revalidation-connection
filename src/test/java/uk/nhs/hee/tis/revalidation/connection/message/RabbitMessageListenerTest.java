@@ -95,7 +95,7 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldReceiveMessageGetMaster() {
-    when(masterElasticSearchService.findAllScroll()).thenReturn(connectionInfoDtos);
+    when(masterElasticSearchService.findAllBySpringDataScroll()).thenReturn(connectionInfoDtos);
     rabbitMessageListener.receiveMessageGetMaster("getMaster");
     verify(elasticSearchIndexUpdateHelper, times(1))
         .updateElasticSearchIndex(connectionInfoDtos.get(0));

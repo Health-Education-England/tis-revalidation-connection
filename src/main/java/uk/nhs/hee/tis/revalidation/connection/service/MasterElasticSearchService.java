@@ -39,14 +39,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class MasterElasticSearchService {
 
-  @Autowired
-  MasterElasticSearchRepository masterElasticSearchRepository;
+  private MasterElasticSearchRepository masterElasticSearchRepository;
 
-  @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
+  private ConnectionInfoMapper connectionInfoMapper;
 
-  @Autowired
-  ElasticsearchRestTemplate elasticsearchTemplate;
+  private ElasticsearchRestTemplate elasticsearchTemplate;
+
+  public MasterElasticSearchService(
+      MasterElasticSearchRepository masterElasticSearchRepository,
+      ConnectionInfoMapper connectionInfoMapper,
+      ElasticsearchRestTemplate elasticsearchTemplate) {
+    this.masterElasticSearchRepository = masterElasticSearchRepository;
+    this.connectionInfoMapper = connectionInfoMapper;
+    this.elasticsearchTemplate = elasticsearchTemplate;
+  }
 
   private final int PAGE_SIZE = 1000;
 
@@ -62,10 +68,10 @@ public class MasterElasticSearchService {
    * find all trainee from ES Master Index.
    * (by `scroll` to avoid ES index max_result_window excess error)
    */
-  public List<ConnectionInfoDto> findAllBySpringDataScroll() {
+  public List<ConnectionInfoDto> findAllScroll() {
     final ObjectMapper mapper = new ObjectMapper();
     List<MasterDoctorView> masterViews = new ArrayList<>();
-    List<String> scrollIdList = new ArrayList<>();
+    List<String> scrollIds = new ArrayList<>();
 
     IndexCoordinates index = IndexCoordinates.of("masterdoctorindex");
 
@@ -82,11 +88,11 @@ public class MasterElasticSearchService {
       }
 
       // do search scroll with last scrollId
-      var scrollId = scroll.getScrollId();
+      String scrollId = scroll.getScrollId();
       scroll = elasticsearchTemplate.searchScrollContinue(scrollId, PAGE_SIZE, MasterDoctorView.class, index);
-      scrollIdList.add(scrollId);
+      scrollIds.add(scrollId);
     }
-    elasticsearchTemplate.searchScrollClear(scrollIdList);
+    elasticsearchTemplate.searchScrollClear(scrollIds);
 
     return connectionInfoMapper.masterToDtos(masterViews);
   }

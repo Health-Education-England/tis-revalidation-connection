@@ -54,7 +54,7 @@ public class MasterElasticSearchService {
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
 
-  private final int PAGE_SIZE = 1000;
+  private static final int SCROLL_TIMEOUT_MS = 30000;
 
   /**
    * find all trainee from ES Master Index.
@@ -77,7 +77,13 @@ public class MasterElasticSearchService {
 
     // initial search
     var searchQuery = new NativeSearchQueryBuilder().build();
-    SearchScrollHits<MasterDoctorView> scroll = elasticsearchTemplate.searchScrollStart(PAGE_SIZE, searchQuery, MasterDoctorView.class, index);
+    SearchScrollHits<MasterDoctorView> scroll = elasticsearchTemplate
+        .searchScrollStart(
+          SCROLL_TIMEOUT_MS,
+          searchQuery,
+          MasterDoctorView.class,
+          index
+        );
 
     // while it is not the end of data
     while (scroll.hasSearchHits()) {
@@ -89,7 +95,13 @@ public class MasterElasticSearchService {
 
       // do search scroll with last scrollId
       String scrollId = scroll.getScrollId();
-      scroll = elasticsearchTemplate.searchScrollContinue(scrollId, PAGE_SIZE, MasterDoctorView.class, index);
+      scroll = elasticsearchTemplate
+          .searchScrollContinue(
+            scrollId,
+            SCROLL_TIMEOUT_MS,
+            MasterDoctorView.class,
+            index
+          );
       scrollIds.add(scrollId);
     }
     elasticsearchTemplate.searchScrollClear(scrollIds);

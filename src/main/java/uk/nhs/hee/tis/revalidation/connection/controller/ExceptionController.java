@@ -41,9 +41,6 @@ public class ExceptionController {
   private static final String DESC = "desc";
   private static final String PAGE_NUMBER = "pageNumber";
   private static final String PAGE_NUMBER_VALUE = "0";
-  private static final String DESIGNATED_BODY_CODES = "dbcs";
-  private static final String SEARCH_QUERY = "searchQuery";
-  private static final String EMPTY_STRING = "";
 
   @Autowired
   private ExceptionService exceptionService;
@@ -58,9 +55,12 @@ public class ExceptionController {
    */
   @GetMapping
   public ResponseEntity<ExceptionResponseDto> getExceptions(
-      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = DESC, required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber) {
+      @RequestParam(name = SORT_COLUMN, defaultValue = SUBMISSION_DATE, required = false)
+      final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = DESC, required = false)
+      final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
+      final int pageNumber) {
 
     final var exceptionRequestDto = ExceptionRequestDto.builder().sortColumn(sortColumn)
         .sortOrder(sortOrder)

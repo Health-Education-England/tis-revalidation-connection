@@ -58,6 +58,13 @@ public class GmcClientService {
   @Value("${app.gmc.soapActionBase}")
   private String gmcSoapBaseAction;
 
+  /**
+   * add GMC connection for a doctor.
+   *
+   * @param gmcId id of doctor to add
+   * @param changeReason reason for adding doctor
+   * @param designatedBodyCode DBC which is going to add for the doctor
+   */
   public GmcConnectionResponseDto tryAddDoctor(final String gmcId, final String changeReason,
       final String designatedBodyCode) {
     log.info("Preparing to submit add doctor request to GMC: {}", gmcId);
@@ -72,6 +79,13 @@ public class GmcClientService {
         .build();
   }
 
+  /**
+   * remove GMC connection from a doctor.
+   *
+   * @param gmcId id of doctor to remove
+   * @param changeReason reason for removing doctor
+   * @param designatedBodyCode DBC which is going to remove from the doctor
+   */
   public GmcConnectionResponseDto tryRemoveDoctor(final String gmcId, final String changeReason,
       final String designatedBodyCode) {
     log.info("Preparing to submit remove doctor request to GMC: {}", gmcId);

@@ -432,14 +432,14 @@ class ConnectionControllerTest {
   }
 
   private ConnectionSummaryDto prepareConnectionSummary() {
-    final var doctorsForDB = buildDoctorsForDBList();
+    final var doctorsForDB = buildDoctorsForDbList();
     return ConnectionSummaryDto.builder()
         .connections(doctorsForDB)
         .totalResults(doctorsForDB.size())
         .build();
   }
 
-  private List<ConnectionInfoDto> buildDoctorsForDBList() {
+  private List<ConnectionInfoDto> buildDoctorsForDbList() {
     final var doctor1 = ConnectionInfoDto.builder()
         .tcsPersonId(personId1)
         .gmcReferenceNumber(gmcRef1)

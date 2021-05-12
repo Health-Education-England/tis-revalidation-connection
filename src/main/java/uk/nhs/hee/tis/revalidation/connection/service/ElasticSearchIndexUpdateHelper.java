@@ -53,7 +53,7 @@ public class ElasticSearchIndexUpdateHelper {
   private ElasticsearchOperations elasticSearchOperations;
 
   /**
-   * Route changes to correct elasticsearch index
+   * Route changes to correct elasticsearch index.
    *
    * @param connectionInfo details of changes that need to be propagated to elasticsearch
    */
@@ -102,7 +102,7 @@ public class ElasticSearchIndexUpdateHelper {
   }
 
   /**
-   * Create entry for exception elasticsearch index
+   * Create entry for exception elasticsearch index.
    *
    * @param connectionInfo details of changes that need to be propagated to elasticsearch
    */

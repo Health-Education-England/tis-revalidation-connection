@@ -61,7 +61,7 @@ public class RabbitMessageListener {
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
   public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
-    log.info("MESSAGE RECEIVED: " + connectionInfo);
+    log.debug("MESSAGE RECEIVED: " + connectionInfo);
 
     // TODO: change to get data from ES 'Master' index instead of mongoDB
     //  when 'Master' index is implemented

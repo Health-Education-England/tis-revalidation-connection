@@ -71,6 +71,11 @@ public class ExceptionService {
     repository.deleteById(gmcId);
   }
 
+  /**
+   * Get exception log.
+   *
+   * @param requestDto request for getting exception log
+   */
   public ExceptionResponseDto getExceptionLog(final ExceptionRequestDto requestDto) {
     final var direction = "asc".equalsIgnoreCase(requestDto.getSortOrder()) ? ASC : DESC;
     final var pageableAndSortable = of(requestDto.getPageNumber(), 20,
@@ -78,12 +83,11 @@ public class ExceptionService {
 
     final var exceptionLogPage = repository.findAll(pageableAndSortable);
     final var exceptionLogs = exceptionLogPage.get().collect(toList());
-    final var exceptionResponseDto = ExceptionResponseDto.builder()
+    return ExceptionResponseDto.builder()
         .totalPages(exceptionLogPage.getTotalPages())
         .totalResults(exceptionLogPage.getTotalElements())
         .exceptionRecord(buildExceptionRecords(exceptionLogs))
         .build();
-    return exceptionResponseDto;
   }
 
   private List<ExceptionRecordDto> buildExceptionRecords(final List<ExceptionLog> exceptionLogs) {

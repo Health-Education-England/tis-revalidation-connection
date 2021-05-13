@@ -31,7 +31,6 @@ import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.get
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -184,7 +183,7 @@ public class ConnectionController {
    * GET  /connections/hidden : get all gmcIds of hidden connections.
    *
    * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in
-   * body
+   *     body
    */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
@@ -217,16 +216,15 @@ public class ConnectionController {
       final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery
-  ) throws IOException {
+          String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
-    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    final ConnectionSummaryDto connectionSummaryDto = exceptionElasticSearchService
+    var connectionSummaryDto = exceptionElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
@@ -253,16 +251,15 @@ public class ConnectionController {
       final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery
-  ) throws IOException {
+          String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
-    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    final ConnectionSummaryDto connectionSummaryDto = connectedElasticSearchService
+    var connectionSummaryDto = connectedElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
@@ -288,16 +285,15 @@ public class ConnectionController {
       final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery
-  ) throws IOException {
+          String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
-    String searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    final ConnectionSummaryDto connectionSummaryDto = disconnectedElasticSearchService
+    var connectionSummaryDto = disconnectedElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);

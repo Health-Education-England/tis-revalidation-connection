@@ -21,7 +21,6 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +49,9 @@ public class StringConverter {
 
   }
 
+  /**
+   * encode URL.
+   */
   public StringConverter encodeUrl() {
     if (this.str != null) {
       this.str = URLEncoder.encode(this.str, StandardCharsets.UTF_8);
@@ -58,6 +60,9 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * decode URL.
+   */
   public StringConverter decodeUrl() {
     if (this.str != null) {
       try {
@@ -71,6 +76,9 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * escape for Elastic Search.
+   */
   public StringConverter escapeForElasticSearch() {
     if (this.str != null) {
       this.str = QueryParserBase.escape(this.str);
@@ -79,12 +87,15 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * escape for Json.
+   */
   public StringConverter escapeForJson() {
     if (this.str != null) {
-      StringBuilder sb = new StringBuilder();
+      var sb = new StringBuilder();
 
-      for (int i = 0; i < this.str.length(); ++i) {
-        char c = this.str.charAt(i);
+      for (var i = 0; i < this.str.length(); ++i) {
+        var c = this.str.charAt(i);
         if (c == '\\' || c == '"') {
           sb.append('\\');
         }
@@ -98,12 +109,15 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * escape for SQL.
+   */
   public StringConverter escapeForSql() {
     if (this.str != null) {
-      StringBuilder sb = new StringBuilder();
+      var sb = new StringBuilder();
 
-      for (int i = 0; i < this.str.length(); ++i) {
-        char c = this.str.charAt(i);
+      for (var i = 0; i < this.str.length(); ++i) {
+        var c = this.str.charAt(i);
         if (c == '\\' || c == '"' || c == '\'' || c == '%' || c == '_') {
           sb.append('\\');
         }
@@ -117,6 +131,9 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * from Json.
+   */
   public StringConverter fromJson() {
     if (this.str != null) {
       this.str = this.str.replaceAll("^\"(.*)\"$", "$1");
@@ -125,6 +142,9 @@ public class StringConverter {
     return this;
   }
 
+  /**
+   * to string.
+   */
   public String toString() {
     return this.str;
   }

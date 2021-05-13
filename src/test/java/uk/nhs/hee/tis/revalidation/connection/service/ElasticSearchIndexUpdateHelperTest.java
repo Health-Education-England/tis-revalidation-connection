@@ -40,7 +40,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 
 @ExtendWith(MockitoExtension.class)
-public class ElasticSearchIndexUpdateHelperTest {
+class ElasticSearchIndexUpdateHelperTest {
 
   private static final String VISITOR = "Visitor";
   private static final String SUBSTANTIVE = "Substantive";

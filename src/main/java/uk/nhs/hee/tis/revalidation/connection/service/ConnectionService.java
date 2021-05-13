@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
@@ -117,10 +116,10 @@ public class ConnectionService {
    */
   public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
-    final ConnectionDto connectionDto = new ConnectionDto();
+    var connectionDto = new ConnectionDto();
     final var connections = repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
-      String reasonMessage = "";
+      var reasonMessage = "";
       if (connection.getRequestType().equals(ADD)) {
         reasonMessage = AddConnectionReasonCode.fromCode(connection.getReason());
       } else if (connection.getRequestType().equals(REMOVE)) {
@@ -153,10 +152,9 @@ public class ConnectionService {
    */
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
-    final var hiddenGmcIds = allConnections.stream().map(hidden -> {
+    return allConnections.stream().map(hidden -> {
       return hidden.getGmcId();
     }).collect(toList());
-    return hiddenGmcIds;
   }
 
   /**
@@ -256,9 +254,6 @@ public class ConnectionService {
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
       exceptionService.createExceptionLog(gmcId, returnCode);
-      ConnectionInfoDto exceptionInfo = ConnectionInfoDto.builder()
-          .gmcReferenceNumber(gmcId)
-          .build();
     }
   }
 

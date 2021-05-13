@@ -23,7 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
@@ -34,7 +34,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class MasterElasticSearchService {
@@ -45,6 +44,9 @@ public class MasterElasticSearchService {
 
   private ElasticsearchRestTemplate elasticsearchTemplate;
 
+  /**
+   * constructor.
+   */
   public MasterElasticSearchService(
       MasterElasticSearchRepository masterElasticSearchRepository,
       ConnectionInfoMapper connectionInfoMapper,
@@ -69,11 +71,11 @@ public class MasterElasticSearchService {
    * (by `scroll` to avoid ES index max_result_window excess error)
    */
   public List<ConnectionInfoDto> findAllScroll() {
-    final ObjectMapper mapper = new ObjectMapper();
+    var mapper = new ObjectMapper();
     List<MasterDoctorView> masterViews = new ArrayList<>();
     List<String> scrollIds = new ArrayList<>();
 
-    IndexCoordinates index = IndexCoordinates.of("masterdoctorindex");
+    var index = IndexCoordinates.of("masterdoctorindex");
 
     // initial search
     var searchQuery = new NativeSearchQueryBuilder().build();
@@ -89,7 +91,7 @@ public class MasterElasticSearchService {
     while (scroll.hasSearchHits()) {
       // convert and store data to list
       for (SearchHit hit : scroll.getSearchHits()) {
-        MasterDoctorView masterDoctorView = mapper.convertValue(hit.getContent(), MasterDoctorView.class);
+        var masterDoctorView = mapper.convertValue(hit.getContent(), MasterDoctorView.class);
         masterViews.add(masterDoctorView);
       }
 

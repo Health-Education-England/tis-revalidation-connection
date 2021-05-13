@@ -61,7 +61,7 @@ public class ExceptionElasticSearchService {
 
     try {
       // for each column filter set, place a must between them
-      BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+      var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
 
       //apply free text search on the searchable columns
       BoolQueryBuilder shouldQuery = applyTextBasedSearchQuery(searchQuery.toLowerCase());
@@ -174,7 +174,7 @@ public class ExceptionElasticSearchService {
 
   private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
     // place a should between all of the searchable fields
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
+    var shouldQuery = new BoolQueryBuilder();
     if (StringUtils.isNotEmpty(searchQuery)) {
       searchQuery = StringUtils
           .remove(searchQuery, '"'); //remove any quotations that were added from the FE

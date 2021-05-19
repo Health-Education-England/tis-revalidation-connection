@@ -1,0 +1,18 @@
+version: 2
+# CodeArtificact registry is required but not currently supported.
+
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    reviewers:
+      - Health-Education-England/full-stack
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    reviewers:
+      - Health-Education-England/full-stack
+      - Health-Education-England/operations

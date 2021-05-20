@@ -81,7 +81,8 @@ public class RabbitMessageListener {
   /**
    * get trainee from Master index then update connection indexes.
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}")
+  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}",
+      ackMode = "NONE")
   public void receiveMessageGetMaster(final String getMaster) {
     if (getMaster != null && getMaster.equals("getMaster")) {
 

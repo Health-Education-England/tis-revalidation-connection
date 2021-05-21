@@ -47,3 +47,8 @@ app:
 sentry:
   dsn: ${SENTRY_DSN:}
   environment: ${SENTRY_ENVIRONMENT:}
+
+logging:
+  level:
+    org.springframework.*: ERROR
+    uk.nhs.hee.tis.revalidation.connection: INFO

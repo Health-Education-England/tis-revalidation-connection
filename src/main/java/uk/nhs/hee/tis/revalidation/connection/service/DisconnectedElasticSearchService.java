@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -82,7 +83,8 @@ public class DisconnectedElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search", re);
+      LOG.error("An exception occurred while attempting to do an ES search - Disconnected Index",
+          re);
       throw re;
     }
   }
@@ -113,7 +115,13 @@ public class DisconnectedElasticSearchService {
    */
   public void removeDisconnectedViewByGmcNumber(String gmcReferenceNumber) {
     if (gmcReferenceNumber != null) {
-      disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      try {
+        disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeDisconnectedViewByGmcNumber` (GmcId: {}): {}",
+            gmcReferenceNumber,  ex);
+      }
     }
   }
 
@@ -124,7 +132,13 @@ public class DisconnectedElasticSearchService {
    */
   public void removeDisconnectedViewByTcsPersonId(Long tcsPersonId) {
     if (tcsPersonId != null) {
-      disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      try {
+        disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeDisconnectedViewByTcsPersonId` (PersonId: {}): {}",
+            tcsPersonId,  ex);
+      }
     }
   }
 
@@ -135,6 +149,7 @@ public class DisconnectedElasticSearchService {
    */
   private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(
       DisconnectedView dataToSave) {
+    Iterable<DisconnectedView> result = new ArrayList<>();
     var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     var shouldQuery = new BoolQueryBuilder();
 
@@ -148,7 +163,16 @@ public class DisconnectedElasticSearchService {
     }
 
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-    return disconnectedElasticSearchRepository.search(fullQuery);
+    try {
+      result = disconnectedElasticSearchRepository.search(fullQuery);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `findDisconnectedViewsByGmcNumberPersonId` "
+              + "(GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
+
+    return result;
   }
 
   /**
@@ -157,7 +181,13 @@ public class DisconnectedElasticSearchService {
    * @param dataToSave disconnected trainee to go in elasticsearch
    */
   private void addDisconnectedViews(DisconnectedView dataToSave) {
-    disconnectedElasticSearchRepository.save(dataToSave);
+    try {
+      disconnectedElasticSearchRepository.save(dataToSave);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `addDisconnectedViews` (GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
   }
 
   /**
@@ -170,7 +200,13 @@ public class DisconnectedElasticSearchService {
       DisconnectedView dataToSave) {
     existingRecords.forEach(disconnectedView -> {
       dataToSave.setId(disconnectedView.getId());
-      disconnectedElasticSearchRepository.save(dataToSave);
+      try {
+        disconnectedElasticSearchRepository.save(dataToSave);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `updateDisconnectedViews` (GmcId: {}; PersonId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+      }
     });
   }
 

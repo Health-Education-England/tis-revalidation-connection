@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -81,7 +82,7 @@ public class ExceptionElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search", re);
+      LOG.error("An exception occurred while attempting to do an ES search - Exception index", re);
       throw re;
     }
   }
@@ -112,7 +113,13 @@ public class ExceptionElasticSearchService {
    */
   public void removeExceptionViewByGmcNumber(String gmcReferenceNumber) {
     if (gmcReferenceNumber != null) {
-      exceptionElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      try {
+        exceptionElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeExceptionViewByGmcNumber` (GmcId: {}): {}",
+            gmcReferenceNumber,  ex);
+      }
     }
   }
 
@@ -123,7 +130,13 @@ public class ExceptionElasticSearchService {
    */
   public void removeExceptionViewByTcsPersonId(Long tcsPersonId) {
     if (tcsPersonId != null) {
-      exceptionElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      try {
+        exceptionElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeExceptionViewByTcsPersonId` (PersonId: {}): {}",
+            tcsPersonId,  ex);
+      }
     }
   }
 
@@ -133,6 +146,7 @@ public class ExceptionElasticSearchService {
    * @param dataToSave exception to be searched in elasticsearch
    */
   private Iterable<ExceptionView> findExceptionViewsByGmcNumberPersonId(ExceptionView dataToSave) {
+    Iterable<ExceptionView> result = new ArrayList<>();
     var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     var shouldQuery = new BoolQueryBuilder();
 
@@ -146,7 +160,15 @@ public class ExceptionElasticSearchService {
     }
 
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-    return exceptionElasticSearchRepository.search(fullQuery);
+    try {
+      result = exceptionElasticSearchRepository.search(fullQuery);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `findExceptionViewsByGmcNumberPersonId` (GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
+
+    return result;
   }
 
   /**
@@ -155,7 +177,13 @@ public class ExceptionElasticSearchService {
    * @param dataToSave exceptions to go in elasticsearch
    */
   private void addExceptionViews(ExceptionView dataToSave) {
-    exceptionElasticSearchRepository.save(dataToSave);
+    try {
+      exceptionElasticSearchRepository.save(dataToSave);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `addConnectedViews` (GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
   }
 
   /**
@@ -168,7 +196,13 @@ public class ExceptionElasticSearchService {
       ExceptionView dataToSave) {
     existingRecords.forEach(exceptionView -> {
       dataToSave.setId(exceptionView.getId());
-      exceptionElasticSearchRepository.save(dataToSave);
+      try {
+        exceptionElasticSearchRepository.save(dataToSave);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `updateExceptionViews` (GmcId: {}; PersonId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+      }
     });
   }
 

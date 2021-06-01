@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -81,7 +82,8 @@ public class ConnectedElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search", re);
+      LOG.error("An exception occurred while attempting to do an ES search - Connected index",
+          re);
       throw re;
     }
   }
@@ -111,7 +113,13 @@ public class ConnectedElasticSearchService {
    */
   public void removeConnectedViewByGmcNumber(String gmcReferenceNumber) {
     if (gmcReferenceNumber != null) {
-      connectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      try {
+        connectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeConnectedViewByGmcNumber` (GmcId: {}): {}",
+            gmcReferenceNumber,  ex);
+      }
     }
   }
 
@@ -122,7 +130,13 @@ public class ConnectedElasticSearchService {
    */
   public void removeConnectedViewByTcsPersonId(Long tcsPersonId) {
     if (tcsPersonId != null) {
-      connectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      try {
+        connectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `removeConnectedViewByTcsPersonId` (PersonId: {}): {}",
+            tcsPersonId,  ex);
+      }
     }
   }
 
@@ -132,6 +146,7 @@ public class ConnectedElasticSearchService {
    * @param dataToSave connected trainee to be searched in elasticsearch
    */
   private Iterable<ConnectedView> findConnectedViewsByGmcNumberPersonId(ConnectedView dataToSave) {
+    Iterable<ConnectedView> result = new ArrayList<>();
     var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     var shouldQuery = new BoolQueryBuilder();
 
@@ -145,7 +160,15 @@ public class ConnectedElasticSearchService {
     }
 
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-    return connectedElasticSearchRepository.search(fullQuery);
+    try {
+      result = connectedElasticSearchRepository.search(fullQuery);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `findConnectedViewsByGmcNumberPersonId` (GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
+
+    return result;
   }
 
   /**
@@ -154,7 +177,13 @@ public class ConnectedElasticSearchService {
    * @param dataToSave connected trainee to go in elasticsearch
    */
   private void addConnectedViews(ConnectedView dataToSave) {
-    connectedElasticSearchRepository.save(dataToSave);
+    try {
+      connectedElasticSearchRepository.save(dataToSave);
+    }
+    catch (Exception ex) {
+      LOG.info("Exception in `addConnectedViews` (GmcId: {}; PersonId: {}): {}",
+          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+    }
   }
 
   /**
@@ -167,7 +196,13 @@ public class ConnectedElasticSearchService {
       ConnectedView dataToSave) {
     existingRecords.forEach(connectedView -> {
       dataToSave.setId(connectedView.getId());
-      connectedElasticSearchRepository.save(dataToSave);
+      try {
+        connectedElasticSearchRepository.save(dataToSave);
+      }
+      catch (Exception ex) {
+        LOG.info("Exception in `updateConnectedViews` (GmcId: {}; PersonId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+      }
     });
   }
 

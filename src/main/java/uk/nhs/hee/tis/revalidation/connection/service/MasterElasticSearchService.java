@@ -29,9 +29,9 @@ import org.elasticsearch.common.util.iterable.Iterables;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.config.ElasticSearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
@@ -59,8 +59,6 @@ public class MasterElasticSearchService {
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
 
-  private static final int SCROLL_TIMEOUT_MS = 30000;
-
   /**
    * find all trainee from ES Master Index.
    */
@@ -78,16 +76,14 @@ public class MasterElasticSearchService {
     List<MasterDoctorView> masterViews = new ArrayList<>();
     List<String> scrollIds = new ArrayList<>();
 
-    var index = IndexCoordinates.of("masterdoctorindex");
-
     // initial search
     var searchQuery = new NativeSearchQueryBuilder().build();
     SearchScrollHits<MasterDoctorView> scroll = elasticsearchTemplate
         .searchScrollStart(
-          SCROLL_TIMEOUT_MS,
+          ElasticSearchConfig.SCROLL_TIMEOUT_MS,
           searchQuery,
           MasterDoctorView.class,
-          index
+          ElasticSearchConfig.MASTER_DOCTOR_INDEX
         );
 
     // while it is not the end of data
@@ -103,9 +99,9 @@ public class MasterElasticSearchService {
       scroll = elasticsearchTemplate
           .searchScrollContinue(
             scrollId,
-            SCROLL_TIMEOUT_MS,
+            ElasticSearchConfig.SCROLL_TIMEOUT_MS,
             MasterDoctorView.class,
-            index
+            ElasticSearchConfig.MASTER_DOCTOR_INDEX
           );
       scrollIds.add(scrollId);
     }

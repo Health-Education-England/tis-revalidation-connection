@@ -51,7 +51,7 @@ class UpdateExceptionElasticSearchServiceTest {
   @InjectMocks
   ExceptionElasticSearchService exceptionElasticSearchService;
 
-  private ExceptionView exceptionView = new ExceptionView();
+  private ExceptionView exceptionView = ExceptionView.builder().build();
   private ArrayList<ExceptionView> existingRecords = new ArrayList<>();
 
   /**
@@ -86,7 +86,7 @@ class UpdateExceptionElasticSearchServiceTest {
 
     doReturn(existingRecords).when(repository).search(fullQuery);
 
-    exceptionElasticSearchService.saveExceptionViews(exceptionView);
+    exceptionElasticSearchService.saveViews(exceptionView);
     verify(repository).save(exceptionView);
   }
 
@@ -103,7 +103,7 @@ class UpdateExceptionElasticSearchServiceTest {
 
     doReturn(existingRecords).when(repository).search(fullQuery);
 
-    exceptionElasticSearchService.saveExceptionViews(gmcNumberNullexceptionView);
+    exceptionElasticSearchService.saveViews(gmcNumberNullexceptionView);
     verify(repository).save(gmcNumberNullexceptionView);
   }
 
@@ -119,7 +119,7 @@ class UpdateExceptionElasticSearchServiceTest {
             gmcNumberNullexceptionView.getGmcReferenceNumber()));
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
 
-    exceptionElasticSearchService.saveExceptionViews(gmcNumberNullexceptionView);
+    exceptionElasticSearchService.saveViews(gmcNumberNullexceptionView);
     verify(repository).save(gmcNumberNullexceptionView);
   }
 
@@ -137,31 +137,31 @@ class UpdateExceptionElasticSearchServiceTest {
     doReturn(existingRecords).when(repository).search(fullQuery);
 
     exceptionView.setId(existingRecords.get(0).getId());
-    exceptionElasticSearchService.saveExceptionViews(exceptionView);
+    exceptionElasticSearchService.saveViews(exceptionView);
     verify(repository).save(exceptionView);
   }
 
   @Test
   void shouldRemoveExceptionViewByGmcNumber() {
-    exceptionElasticSearchService.removeExceptionViewByGmcNumber(GMCID);
+    exceptionElasticSearchService.removeViewByGmcNumber(GMCID);
     verify(repository).deleteByGmcReferenceNumber(GMCID);
   }
 
   @Test
   void shouldNotRemoveExceptionViewByGmcNumberIfNull() {
-    exceptionElasticSearchService.removeExceptionViewByGmcNumber(null);
+    exceptionElasticSearchService.removeViewByGmcNumber(null);
     verify(repository, never()).deleteByGmcReferenceNumber(GMCID);
   }
 
   @Test
   void shouldRemoveExceptionViewByTcsPersonId() {
-    exceptionElasticSearchService.removeExceptionViewByTcsPersonId(PERSONID);
+    exceptionElasticSearchService.removeViewByTcsPersonId(PERSONID);
     verify(repository).deleteByTcsPersonId(PERSONID);
   }
 
   @Test
   void shouldNotRemoveExceptionViewByTcsPersonIdIfNull() {
-    exceptionElasticSearchService.removeExceptionViewByTcsPersonId(null);
+    exceptionElasticSearchService.removeViewByTcsPersonId(null);
     verify(repository, never()).deleteByTcsPersonId(PERSONID);
   }
 }

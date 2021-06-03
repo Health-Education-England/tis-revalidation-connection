@@ -69,35 +69,35 @@ public class ElasticSearchIndexUpdateHelper {
 
   private void checkException(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
-      exceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
+      exceptionElasticSearchService.saveViews(getExceptionViews(connectionInfo));
     } else {
       exceptionElasticSearchService
-          .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
       exceptionElasticSearchService
-          .removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 
   private void checkTraineeConnection(final ConnectionInfoDto connectionInfo) {
     if (isConnected(connectionInfo)) {
       // Save connected trainee to Connected ES index
-      connectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
+      connectedElasticSearchService.saveViews(getConnectedViews(connectionInfo));
 
       // Delete connected trainee from Disconnected ES index
       disconnectedElasticSearchService
-          .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
       disconnectedElasticSearchService
-          .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     } else {
       // Save disconnected trainee to Disconnected ES index
       disconnectedElasticSearchService
-          .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
+          .saveViews(getDisconnectedViews(connectionInfo));
 
       // Delete disconnected trainee from Connected ES index
       connectedElasticSearchService
-          .removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
       connectedElasticSearchService
-          .removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 

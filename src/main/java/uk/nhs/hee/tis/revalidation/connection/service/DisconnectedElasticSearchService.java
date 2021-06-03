@@ -21,9 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -31,59 +29,93 @@ import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchScrollHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.config.ElasticSearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.DisconnectedElasticSearchRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
-public class DisconnectedElasticSearchService {
+public class DisconnectedElasticSearchService extends AbstractElasticSearchService<DisconnectedView>{
 
   private static final Logger LOG = LoggerFactory.getLogger(DisconnectedElasticSearchService.class);
 
-  @Autowired
-  DisconnectedElasticSearchRepository disconnectedElasticSearchRepository;
+  DisconnectedElasticSearchRepository repository;
 
-  @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
+  ConnectionInfoMapper mapper;
+
+  private ElasticsearchRestTemplate elasticsearchTemplate;
+
+  public DisconnectedElasticSearchService(
+      DisconnectedElasticSearchRepository repository,
+      ConnectionInfoMapper mapper,
+      ElasticsearchRestTemplate elasticsearchTemplate) {
+    super(repository, mapper);
+    this.repository = repository;
+    this.mapper = mapper;
+    this.elasticsearchTemplate = elasticsearchTemplate;
+  }
 
 
-  /**
-   * Get disconnected trainees from Disconnected elasticsearch index.
-   *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
-   */
+  @Override
   public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
-
     try {
-      // for each column filter set, place a must between them
-      var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+      var objectMapper = new ObjectMapper();
+      List<DisconnectedView> views = new ArrayList<>();
+      List<String> scrollIds = new ArrayList<>();
 
-      //apply free text search on the searchable columns
-      BoolQueryBuilder shouldQuery = applyTextBasedSearchQuery(searchQuery.toLowerCase());
+      // initial search
+      var query = new NativeSearchQueryBuilder().build();
+      SearchScrollHits<DisconnectedView> scroll = elasticsearchTemplate
+          .searchScrollStart(
+              ElasticSearchConfig.SCROLL_TIMEOUT_MS,
+              query,
+              DisconnectedView.class,
+              ElasticSearchConfig.DISCONNECTED_INDEX
+          );
 
-      // add the free text query with a must to the column filters query
-      BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
+      // while it is not the end of data
+      while (scroll.hasSearchHits()) {
+        // convert and store data to list
+        for (SearchHit hit : scroll.getSearchHits()) {
+          var view = objectMapper.convertValue(hit.getContent(), DisconnectedView.class);
+          views.add(view);
+        }
 
-      LOG.debug("Query {}", fullQuery);
+        // do search scroll with last scrollId
+        String scrollId = scroll.getScrollId();
+        scroll = elasticsearchTemplate
+            .searchScrollContinue(
+                scrollId,
+                ElasticSearchConfig.SCROLL_TIMEOUT_MS,
+                DisconnectedView.class,
+                ElasticSearchConfig.DISCONNECTED_INDEX
+            );
+        scrollIds.add(scrollId);
+      }
+      elasticsearchTemplate.searchScrollClear(scrollIds);
+      Page<DisconnectedView> result = new PageImpl<>(views, pageable, views.size());
 
-      Page<DisconnectedView> result = disconnectedElasticSearchRepository
-          .search(fullQuery, pageable);
-
-      final var disconnectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.disconnectedToDtos(disconnectedTrainees))
+          .connections(mapper.disconnectedToDtos(views))
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search - Disconnected Index",
+      LOG.error("An exception occurred while attempting to do an ES search - Disconnected index",
           re);
       throw re;
     }
@@ -94,17 +126,18 @@ public class DisconnectedElasticSearchService {
    *
    * @param dataToSave disconnected trainee to go in elasticsearch
    */
-  public void saveDisconnectedViews(DisconnectedView dataToSave) {
+  @Override
+  public void saveViews(DisconnectedView dataToSave) {
     Iterable<DisconnectedView> existingRecords
-        = findDisconnectedViewsByGmcNumberPersonId(dataToSave);
+        = findViewsByGmcNumberPersonId(dataToSave);
 
     // if trainee already exists in ES index, then update the existing record
     if (Iterables.size(existingRecords) > 0) {
-      updateDisconnectedViews(existingRecords, dataToSave);
+      updateViews(existingRecords, dataToSave);
     }
     // otherwise, add a new record
     else {
-      addDisconnectedViews(dataToSave);
+      addViews(dataToSave);
     }
   }
 
@@ -113,10 +146,11 @@ public class DisconnectedElasticSearchService {
    *
    * @param gmcReferenceNumber id of disconnected trainee to remove
    */
-  public void removeDisconnectedViewByGmcNumber(String gmcReferenceNumber) {
+  @Override
+  public void removeViewByGmcNumber(String gmcReferenceNumber) {
     if (gmcReferenceNumber != null) {
       try {
-        disconnectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+        repository.deleteByGmcReferenceNumber(gmcReferenceNumber);
       }
       catch (Exception ex) {
         LOG.info("Exception in `removeDisconnectedViewByGmcNumber` (GmcId: {}): {}",
@@ -130,10 +164,11 @@ public class DisconnectedElasticSearchService {
    *
    * @param tcsPersonId id of disconnected trainee to remove
    */
-  public void removeDisconnectedViewByTcsPersonId(Long tcsPersonId) {
+  @Override
+  public void removeViewByTcsPersonId(Long tcsPersonId) {
     if (tcsPersonId != null) {
       try {
-        disconnectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+        repository.deleteByTcsPersonId(tcsPersonId);
       }
       catch (Exception ex) {
         LOG.info("Exception in `removeDisconnectedViewByTcsPersonId` (PersonId: {}): {}",
@@ -142,85 +177,4 @@ public class DisconnectedElasticSearchService {
     }
   }
 
-  /**
-   * find existing disconnected trainee from elasticsearch index by gmcNumber or tcsPersonId.
-   *
-   * @param dataToSave disconnected trainee to be searched in elasticsearch
-   */
-  private Iterable<DisconnectedView> findDisconnectedViewsByGmcNumberPersonId(
-      DisconnectedView dataToSave) {
-    Iterable<DisconnectedView> result = new ArrayList<>();
-    var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    var shouldQuery = new BoolQueryBuilder();
-
-    if (dataToSave.getGmcReferenceNumber() != null) {
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", dataToSave.getGmcReferenceNumber()));
-    }
-    if (dataToSave.getTcsPersonId() != null) {
-      shouldQuery
-          .should(new MatchQueryBuilder("tcsPersonId", dataToSave.getTcsPersonId()));
-    }
-
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-    try {
-      result = disconnectedElasticSearchRepository.search(fullQuery);
-    }
-    catch (Exception ex) {
-      LOG.info("Exception in `findDisconnectedViewsByGmcNumberPersonId` "
-              + "(GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-    }
-
-    return result;
-  }
-
-  /**
-   * add new disconnected trainee to elasticsearch index.
-   *
-   * @param dataToSave disconnected trainee to go in elasticsearch
-   */
-  private void addDisconnectedViews(DisconnectedView dataToSave) {
-    try {
-      disconnectedElasticSearchRepository.save(dataToSave);
-    }
-    catch (Exception ex) {
-      LOG.info("Exception in `addDisconnectedViews` (GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-    }
-  }
-
-  /**
-   * update existing disconnected trainee to elasticsearch index.
-   *
-   * @param existingRecords existing disconnected trainee to be updated in elasticsearch
-   * @param dataToSave      new disconnected trainee details to be saved in elasticsearch
-   */
-  private void updateDisconnectedViews(Iterable<DisconnectedView> existingRecords,
-      DisconnectedView dataToSave) {
-    existingRecords.forEach(disconnectedView -> {
-      dataToSave.setId(disconnectedView.getId());
-      try {
-        disconnectedElasticSearchRepository.save(dataToSave);
-      }
-      catch (Exception ex) {
-        LOG.info("Exception in `updateDisconnectedViews` (GmcId: {}; PersonId: {}): {}",
-            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-      }
-    });
-  }
-
-  private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
-    // place a should between all of the searchable fields
-    var shouldQuery = new BoolQueryBuilder();
-    if (StringUtils.isNotEmpty(searchQuery)) {
-      searchQuery = StringUtils
-          .remove(searchQuery, '"'); //remove any quotations that were added from the FE
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-          .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-          .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-    }
-    return shouldQuery;
-  }
 }

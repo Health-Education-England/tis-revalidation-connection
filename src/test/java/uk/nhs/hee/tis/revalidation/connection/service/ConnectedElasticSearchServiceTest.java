@@ -25,6 +25,8 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -32,10 +34,12 @@ import static org.springframework.data.domain.Sort.by;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +50,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.*;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import uk.nhs.hee.tis.revalidation.connection.config.ElasticSearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
@@ -61,6 +68,8 @@ class ConnectedElasticSearchServiceTest {
   ConnectedElasticSearchRepository connectedElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
+  @Mock
+  ElasticsearchRestTemplate elasticsearchRestTemplate;
   @InjectMocks
   ConnectedElasticSearchService connectedElasticSearchService;
   private String responseCode;
@@ -82,6 +91,9 @@ class ConnectedElasticSearchServiceTest {
   private String programmeOwner2;
   private Page<ConnectedView> searchResult;
   private List<ConnectedView> connectedViews = new ArrayList<>();
+  private List<SearchHit<ConnectedView>> searchHits = new ArrayList<>();
+  private SearchScrollHits<ConnectedView> scrollHits;
+  private BoolQueryBuilder query;
 
   /**
    * Set up data for testing.
@@ -106,6 +118,7 @@ class ConnectedElasticSearchServiceTest {
     programmeOwner1 = faker.lorem().characters(20);
     programmeOwner2 = faker.lorem().characters(20);
 
+
     ConnectedView connectedView = ConnectedView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
@@ -118,6 +131,24 @@ class ConnectedElasticSearchServiceTest {
         .build();
     connectedViews.add(connectedView);
     searchResult = new PageImpl<>(connectedViews);
+    SearchHit<ConnectedView> searchHit = new SearchHit<ConnectedView>(
+        null,
+        null,
+        1,
+        null,
+        new LinkedHashMap<>(),
+        connectedView
+    );
+    searchHits.add(searchHit);
+    SearchScrollHits<ConnectedView> scrollHits = new SearchHitsImpl<ConnectedView>(
+        1,
+        TotalHitsRelation.EQUAL_TO,
+        1,
+        "1",
+        searchHits,
+        null
+    );
+    query = connectedElasticSearchService.applyTextBasedSearchQuery("");
   }
 
   @Test
@@ -128,8 +159,14 @@ class ConnectedElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(connectedElasticSearchRepository.search(fullQuery, pageableAndSortable))
-        .thenReturn(searchResult);
+    lenient().when(elasticsearchRestTemplate.searchScrollStart(
+        ElasticSearchConfig.SCROLL_TIMEOUT_MS,
+        new NativeSearchQueryBuilder()
+            .withQuery(query)
+            .build(),
+        ConnectedView.class,
+        ElasticSearchConfig.CONNECTED_INDEX))
+        .thenReturn(scrollHits);
 
     final var records = searchResult.get().collect(toList());
     var connectionSummary = ConnectionSummaryDto.builder()

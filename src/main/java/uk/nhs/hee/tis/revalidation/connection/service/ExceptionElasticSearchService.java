@@ -21,9 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -31,58 +29,93 @@ import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchScrollHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.config.ElasticSearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
-public class ExceptionElasticSearchService {
+public class ExceptionElasticSearchService extends AbstractElasticSearchService<ExceptionView>{
 
   private static final Logger LOG = LoggerFactory.getLogger(ExceptionElasticSearchService.class);
 
-  @Autowired
-  ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+  ExceptionElasticSearchRepository repository;
 
-  @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
+  ConnectionInfoMapper mapper;
 
+  private ElasticsearchRestTemplate elasticsearchTemplate;
 
-  /**
-   * Get exceptions from exception elasticsearch index.
-   *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
-   */
+  public ExceptionElasticSearchService(
+      ExceptionElasticSearchRepository repository,
+      ConnectionInfoMapper mapper,
+      ElasticsearchRestTemplate elasticsearchTemplate) {
+    super(repository, mapper);
+    this.repository = repository;
+    this.mapper = mapper;
+    this.elasticsearchTemplate = elasticsearchTemplate;
+  }
+
+  @Override
   public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
-
     try {
-      // for each column filter set, place a must between them
-      var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
+      var objectMapper = new ObjectMapper();
+      List<ExceptionView> views = new ArrayList<>();
+      List<String> scrollIds = new ArrayList<>();
 
-      //apply free text search on the searchable columns
-      BoolQueryBuilder shouldQuery = applyTextBasedSearchQuery(searchQuery.toLowerCase());
+      // initial search
+      var query = new NativeSearchQueryBuilder().build();
+      SearchScrollHits<ExceptionView> scroll = elasticsearchTemplate
+          .searchScrollStart(
+              ElasticSearchConfig.SCROLL_TIMEOUT_MS,
+              query,
+              ExceptionView.class,
+              ElasticSearchConfig.EXCEPTIONS_INDEX
+          );
 
-      // add the free text query with a must to the column filters query
-      BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
+      // while it is not the end of data
+      while (scroll.hasSearchHits()) {
+        // convert and store data to list
+        for (SearchHit hit : scroll.getSearchHits()) {
+          var view = objectMapper.convertValue(hit.getContent(), ExceptionView.class);
+          views.add(view);
+        }
 
-      LOG.debug("Query {}", fullQuery);
+        // do search scroll with last scrollId
+        String scrollId = scroll.getScrollId();
+        scroll = elasticsearchTemplate
+            .searchScrollContinue(
+                scrollId,
+                ElasticSearchConfig.SCROLL_TIMEOUT_MS,
+                ExceptionView.class,
+                ElasticSearchConfig.EXCEPTIONS_INDEX
+            );
+        scrollIds.add(scrollId);
+      }
+      elasticsearchTemplate.searchScrollClear(scrollIds);
+      Page<ExceptionView> result = new PageImpl<>(views, pageable, views.size());
 
-      Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
-
-      final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.exceptionToDtos(exceptions))
+          .connections(mapper.exceptionToDtos(views))
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search - Exception index", re);
+      LOG.error("An exception occurred while attempting to do an ES search - Exception index",
+          re);
       throw re;
     }
   }
@@ -92,17 +125,17 @@ public class ExceptionElasticSearchService {
    *
    * @param dataToSave exceptions to go in elasticsearch
    */
-  public void saveExceptionViews(ExceptionView dataToSave) {
+  public void saveViews(ExceptionView dataToSave) {
     // find trainee record from Exception ES index
-    Iterable<ExceptionView> existingRecords = findExceptionViewsByGmcNumberPersonId(dataToSave);
+    Iterable<ExceptionView> existingRecords = findViewsByGmcNumberPersonId(dataToSave);
 
     // if trainee already exists in ES index, then update the existing record
     if (Iterables.size(existingRecords) > 0) {
-      updateExceptionViews(existingRecords, dataToSave);
+      updateViews(existingRecords, dataToSave);
     }
     // otherwise, add a new record
     else {
-      addExceptionViews(dataToSave);
+      addViews(dataToSave);
     }
   }
 
@@ -111,10 +144,10 @@ public class ExceptionElasticSearchService {
    *
    * @param gmcReferenceNumber id of exception to remove
    */
-  public void removeExceptionViewByGmcNumber(String gmcReferenceNumber) {
+  public void removeViewByGmcNumber(String gmcReferenceNumber) {
     if (gmcReferenceNumber != null) {
       try {
-        exceptionElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
+        repository.deleteByGmcReferenceNumber(gmcReferenceNumber);
       }
       catch (Exception ex) {
         LOG.info("Exception in `removeExceptionViewByGmcNumber` (GmcId: {}): {}",
@@ -128,10 +161,10 @@ public class ExceptionElasticSearchService {
    *
    * @param tcsPersonId id of exception to remove
    */
-  public void removeExceptionViewByTcsPersonId(Long tcsPersonId) {
+  public void removeViewByTcsPersonId(Long tcsPersonId) {
     if (tcsPersonId != null) {
       try {
-        exceptionElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
+        repository.deleteByTcsPersonId(tcsPersonId);
       }
       catch (Exception ex) {
         LOG.info("Exception in `removeExceptionViewByTcsPersonId` (PersonId: {}): {}",
@@ -140,83 +173,5 @@ public class ExceptionElasticSearchService {
     }
   }
 
-  /**
-   * find existing exceptions from elasticsearch index by gmcNumber or tcsPersonId.
-   *
-   * @param dataToSave exception to be searched in elasticsearch
-   */
-  private Iterable<ExceptionView> findExceptionViewsByGmcNumberPersonId(ExceptionView dataToSave) {
-    Iterable<ExceptionView> result = new ArrayList<>();
-    var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    var shouldQuery = new BoolQueryBuilder();
 
-    if (dataToSave.getGmcReferenceNumber() != null) {
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", dataToSave.getGmcReferenceNumber()));
-    }
-    if (dataToSave.getTcsPersonId() != null) {
-      shouldQuery
-          .should(new MatchQueryBuilder("tcsPersonId", dataToSave.getTcsPersonId()));
-    }
-
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-    try {
-      result = exceptionElasticSearchRepository.search(fullQuery);
-    }
-    catch (Exception ex) {
-      LOG.info("Exception in `findExceptionViewsByGmcNumberPersonId` (GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-    }
-
-    return result;
-  }
-
-  /**
-   * add new exceptions to elasticsearch index.
-   *
-   * @param dataToSave exceptions to go in elasticsearch
-   */
-  private void addExceptionViews(ExceptionView dataToSave) {
-    try {
-      exceptionElasticSearchRepository.save(dataToSave);
-    }
-    catch (Exception ex) {
-      LOG.info("Exception in `addConnectedViews` (GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-    }
-  }
-
-  /**
-   * update existing exceptions to elasticsearch index.
-   *
-   * @param existingRecords existing exceptions to be updated in elasticsearch
-   * @param dataToSave      new exceptions details to be saved in elasticsearch
-   */
-  private void updateExceptionViews(Iterable<ExceptionView> existingRecords,
-      ExceptionView dataToSave) {
-    existingRecords.forEach(exceptionView -> {
-      dataToSave.setId(exceptionView.getId());
-      try {
-        exceptionElasticSearchRepository.save(dataToSave);
-      }
-      catch (Exception ex) {
-        LOG.info("Exception in `updateExceptionViews` (GmcId: {}; PersonId: {}): {}",
-            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
-      }
-    });
-  }
-
-  private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
-    // place a should between all of the searchable fields
-    var shouldQuery = new BoolQueryBuilder();
-    if (StringUtils.isNotEmpty(searchQuery)) {
-      searchQuery = StringUtils
-          .remove(searchQuery, '"'); //remove any quotations that were added from the FE
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-          .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-          .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-    }
-    return shouldQuery;
-  }
 }

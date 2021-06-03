@@ -30,40 +30,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Data
+@SuperBuilder
 @Document(indexName = "exceptionindex")
-public class ExceptionView {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id")
-  private String id;
-  private Long tcsPersonId;
-  private String gmcReferenceNumber;
-  private String doctorFirstName;
-  private String doctorLastName;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private LocalDate submissionDate;
-  private String programmeName;
-  private String membershipType;
-  private String designatedBody;
-  private String tcsDesignatedBody;
-  private String programmeOwner;
-  private String connectionStatus;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private LocalDate membershipStartDate;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private LocalDate membershipEndDate;
-}
+public class ExceptionView extends BaseConnectionView{ }

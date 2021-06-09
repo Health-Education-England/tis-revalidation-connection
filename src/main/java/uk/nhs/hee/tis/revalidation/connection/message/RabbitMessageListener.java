@@ -75,7 +75,12 @@ public class RabbitMessageListener {
         connectionInfo.setDesignatedBody(gmcData.getDesignatedBodyCode());
       }
     }
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
+    try {
+      masterElasticSearchService.updateMasterIndex(connectionInfo);
+      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
+    } catch (Exception e) {
+      log.info("Exception in receiveMessageUpdate: {}", e.getMessage());
+    }
   }
 
   /**

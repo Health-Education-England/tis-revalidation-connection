@@ -24,6 +24,8 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.common.util.iterable.Iterables;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
@@ -36,6 +38,7 @@ import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 
 @Service
+@Slf4j
 public class MasterElasticSearchService {
 
   private MasterElasticSearchRepository masterElasticSearchRepository;
@@ -109,5 +112,19 @@ public class MasterElasticSearchService {
     elasticsearchTemplate.searchScrollClear(scrollIds);
 
     return connectionInfoMapper.masterToDtos(masterViews);
+  }
+
+  public void updateMasterIndex(ConnectionInfoDto connectionInfoDto) {
+    MasterDoctorView masterDoctorToSave = connectionInfoMapper
+        .dtoToMaster(connectionInfoDto);
+    try {
+      masterElasticSearchRepository.save(masterDoctorToSave);
+     } catch (Exception e) {
+      log.info("Exception in `upsertMasterIndex`"
+              + "(GmcId: {}; PersonId: {}): {}",
+          masterDoctorToSave.getGmcReferenceNumber(),
+          masterDoctorToSave.getTcsPersonId(),
+          e.getMessage());
+    }
   }
 }

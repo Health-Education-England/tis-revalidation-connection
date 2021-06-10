@@ -41,4 +41,5 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @SuperBuilder
 @Jacksonized
 @Document(indexName = "exceptionindex")
+@AllArgsConstructor
 public class ExceptionView extends BaseConnectionView{ }

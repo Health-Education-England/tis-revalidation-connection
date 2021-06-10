@@ -41,4 +41,5 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @SuperBuilder
 @Jacksonized
 @Document(indexName = "connectedindex")
+@AllArgsConstructor
 public class ConnectedView extends BaseConnectionView{ }

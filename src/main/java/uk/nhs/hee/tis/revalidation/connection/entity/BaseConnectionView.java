@@ -1,6 +1,10 @@
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,7 +35,9 @@ public class BaseConnectionView {
   private String gmcReferenceNumber;
   private String doctorFirstName;
   private String doctorLastName;
-  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  @JsonDeserialize(using = LocalDateDeserializer.class)
+  @JsonSerialize(using = LocalDateSerializer.class)
+  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate submissionDate;
   private String programmeName;
@@ -40,10 +46,14 @@ public class BaseConnectionView {
   private String tcsDesignatedBody;
   private String programmeOwner;
   private String connectionStatus;
-  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  @JsonDeserialize(using = LocalDateDeserializer.class)
+  @JsonSerialize(using = LocalDateSerializer.class)
+  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipStartDate;
-  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  @JsonDeserialize(using = LocalDateDeserializer.class)
+  @JsonSerialize(using = LocalDateSerializer.class)
+  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipEndDate;
 }

@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
@@ -32,4 +33,11 @@ public interface MasterElasticSearchRepository
 
   Optional<MasterDoctorView> findFirstByGmcReferenceNumberOrderBySubmissionDateDesc(
       final String gmcId);
+
+  List<MasterDoctorView> findByGmcReferenceNumberAndTcsPersonId(String gmcReferenceNumber,
+                                                                Long tcsPersonId);
+
+  List<MasterDoctorView> findByGmcReferenceNumber(String gmcReferenceNumber);
+
+  List<MasterDoctorView> findByTcsPersonId(Long tcsPersonId);
 }

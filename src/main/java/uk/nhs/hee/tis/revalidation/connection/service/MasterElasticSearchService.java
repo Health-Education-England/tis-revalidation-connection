@@ -24,6 +24,8 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.common.util.iterable.Iterables;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
@@ -36,6 +38,7 @@ import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 
 @Service
+@Slf4j
 public class MasterElasticSearchService {
 
   private MasterElasticSearchRepository masterElasticSearchRepository;
@@ -109,5 +112,75 @@ public class MasterElasticSearchService {
     elasticsearchTemplate.searchScrollClear(scrollIds);
 
     return connectionInfoMapper.masterToDtos(masterViews);
+  }
+
+  public void updateMasterIndex(ConnectionInfoDto connectionInfoDto) {
+    MasterDoctorView masterDoctorToSave = connectionInfoMapper
+        .dtoToMaster(connectionInfoDto);
+    try {
+      Iterable<MasterDoctorView> existingRecords = findMasterDoctorRecordByGmcNumberPersonId(masterDoctorToSave);
+      if(Iterables.size(existingRecords) > 0) {
+        updateRecords(existingRecords, masterDoctorToSave);
+      } else {
+        masterElasticSearchRepository.save(masterDoctorToSave);
+      }
+     } catch (Exception e) {
+      log.info("Exception in `upsertMasterIndex`"
+              + "(GmcId: {}; PersonId: {}): {}",
+          masterDoctorToSave.getGmcReferenceNumber(),
+          masterDoctorToSave.getTcsPersonId(),
+          e.getMessage());
+    }
+  }
+
+  private Iterable<MasterDoctorView> findMasterDoctorRecordByGmcNumberPersonId(
+      MasterDoctorView dataToSave) {
+    Iterable<MasterDoctorView> result = new ArrayList<>();
+
+    if (dataToSave.getGmcReferenceNumber() != null && dataToSave.getTcsPersonId() != null) {
+      try {
+        result = masterElasticSearchRepository.findByGmcReferenceNumberAndTcsPersonId(
+            dataToSave.getGmcReferenceNumber(),
+            dataToSave.getTcsPersonId());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByGmcReferenceNumberAndTcsPersonId`"
+                + "(GmcId: {}; PersonId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+      }
+    }
+
+    else if (dataToSave.getGmcReferenceNumber() != null
+        && dataToSave.getTcsPersonId() == null) {
+      try {
+        result = masterElasticSearchRepository.findByGmcReferenceNumber(
+            dataToSave.getGmcReferenceNumber());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByGmcReferenceNumber` (GmcId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),  ex);
+      }
+    }
+
+    else if (dataToSave.getGmcReferenceNumber() == null
+        && dataToSave.getTcsPersonId() != null) {
+      try {
+        result = masterElasticSearchRepository.findByTcsPersonId(
+            dataToSave.getTcsPersonId());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByTcsPersonId` (PersonId: {}): {}",
+            dataToSave.getTcsPersonId(),  ex);
+      }
+    }
+
+    return result;
+  }
+
+  private void updateRecords(Iterable<MasterDoctorView> existingRecords, MasterDoctorView dataToSave) {
+    existingRecords.forEach(currentDoctorView -> {
+      dataToSave.setId(currentDoctorView.getId());
+      masterElasticSearchRepository.save(dataToSave);
+    });
   }
 }

@@ -24,13 +24,14 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,10 +58,14 @@ class MasterElasticSearchServiceTest {
   private String lastName1;
   private LocalDate submissionDate1;
   private String designatedBody1;
+  private String designatedBody2;
   private String programmeName1;
   private String programmeOwner1;
+  private String membershipType1;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
   private Iterable<MasterDoctorView> masterDoctorViews = new ArrayList<>();
+  private ConnectionInfoDto connectionInfoDto;
+  private MasterDoctorView currentDoctorView;
 
   /**
    * Set up data for testing.
@@ -73,10 +78,12 @@ class MasterElasticSearchServiceTest {
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
     designatedBody1 = faker.lorem().characters(8);
+    designatedBody2 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
+    membershipType1 = faker.lorem().characters(10);
 
-    ConnectionInfoDto connectionInfoDto = ConnectionInfoDto.builder()
+    connectionInfoDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -88,17 +95,20 @@ class MasterElasticSearchServiceTest {
         .build();
     connectionInfoDtos.add(connectionInfoDto);
 
-    MasterDoctorView masterDoctorView = MasterDoctorView.builder()
-        .tcsPersonId((long) 111)
+
+    currentDoctorView = MasterDoctorView.builder()
+        .tcsPersonId(111L)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
         .doctorLastName(lastName1)
         .submissionDate(submissionDate1)
         .programmeName(programmeName1)
+        .membershipType(membershipType1)
         .designatedBody(designatedBody1)
+        .tcsDesignatedBody(designatedBody2)
         .programmeOwner(programmeOwner1)
+        .connectionStatus("Yes")
         .build();
-    masterDoctorViews = Arrays.asList(masterDoctorView);
   }
 
   @Test
@@ -107,5 +117,12 @@ class MasterElasticSearchServiceTest {
     when(connectionInfoMapper.masterToDtos(masterDoctorViews)).thenReturn(connectionInfoDtos);
     List<ConnectionInfoDto> resultList = masterElasticSearchService.findAllMasterToDto();
     assertThat(resultList, is(connectionInfoDtos));
+  }
+
+  @Test
+  void shouldUpdateMasterIndex() {
+    when(connectionInfoMapper.dtoToMaster(connectionInfoDto)).thenReturn(currentDoctorView);
+    masterElasticSearchService.updateMasterIndex(connectionInfoDto);
+    verify(masterElasticSearchRepository).save(currentDoctorView);
   }
 }

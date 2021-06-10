@@ -64,6 +64,7 @@ class RabbitMessageListenerTest {
   private String designatedBody1;
   private String programmeName1;
   private String programmeOwner1;
+  ConnectionInfoDto connectionInfoDto;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
 
   /**
@@ -80,7 +81,7 @@ class RabbitMessageListenerTest {
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
 
-    ConnectionInfoDto connectionInfoDto = ConnectionInfoDto.builder()
+    connectionInfoDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -113,5 +114,12 @@ class RabbitMessageListenerTest {
     rabbitMessageListener.receiveMessageGetMaster("randomText");
     verify(elasticSearchIndexUpdateHelper, never())
         .updateElasticSearchIndex(connectionInfoDtos.get(0));
+  }
+
+  @Test
+  void shouldUpdateMasterIndexAndOtherIndexes() {
+    rabbitMessageListener.receiveMessageUpdate(connectionInfoDto);
+    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
+    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 }

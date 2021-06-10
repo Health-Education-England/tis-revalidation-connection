@@ -66,4 +66,10 @@ public interface ConnectionInfoMapper {
   List<ConnectionInfoDto> masterToDtos(List<MasterDoctorView> userTypes);
 
   List<ConnectionInfoDto> masterToDtos(Iterable<MasterDoctorView> userTypes);
+
+  @Mapping(target = "membershipType", source = "programmeMembershipType")
+  @Mapping(target = "membershipStartDate", source = "programmeMembershipStartDate")
+  @Mapping(target = "membershipEndDate", source = "programmeMembershipEndDate")
+  @Mapping(target = "id", ignore = true)
+  MasterDoctorView dtoToMaster(ConnectionInfoDto connectionInfoDto);
 }

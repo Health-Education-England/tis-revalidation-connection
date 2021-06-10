@@ -118,7 +118,12 @@ public class MasterElasticSearchService {
     MasterDoctorView masterDoctorToSave = connectionInfoMapper
         .dtoToMaster(connectionInfoDto);
     try {
-      masterElasticSearchRepository.save(masterDoctorToSave);
+      Iterable<MasterDoctorView> existingRecords = findMasterDoctorRecordByGmcNumberPersonId(masterDoctorToSave);
+      if(Iterables.size(existingRecords) > 0) {
+        updateRecords(existingRecords, masterDoctorToSave);
+      } else {
+        masterElasticSearchRepository.save(masterDoctorToSave);
+      }
      } catch (Exception e) {
       log.info("Exception in `upsertMasterIndex`"
               + "(GmcId: {}; PersonId: {}): {}",
@@ -126,5 +131,56 @@ public class MasterElasticSearchService {
           masterDoctorToSave.getTcsPersonId(),
           e.getMessage());
     }
+  }
+
+  private Iterable<MasterDoctorView> findMasterDoctorRecordByGmcNumberPersonId(
+      MasterDoctorView dataToSave) {
+    Iterable<MasterDoctorView> result = new ArrayList<>();
+
+    if (dataToSave.getGmcReferenceNumber() != null && dataToSave.getTcsPersonId() != null) {
+      try {
+        result = masterElasticSearchRepository.findByGmcReferenceNumberAndTcsPersonId(
+            dataToSave.getGmcReferenceNumber(),
+            dataToSave.getTcsPersonId());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByGmcReferenceNumberAndTcsPersonId`"
+                + "(GmcId: {}; PersonId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+      }
+    }
+
+    else if (dataToSave.getGmcReferenceNumber() != null
+        && dataToSave.getTcsPersonId() == null) {
+      try {
+        result = masterElasticSearchRepository.findByGmcReferenceNumber(
+            dataToSave.getGmcReferenceNumber());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByGmcReferenceNumber` (GmcId: {}): {}",
+            dataToSave.getGmcReferenceNumber(),  ex);
+      }
+    }
+
+    else if (dataToSave.getGmcReferenceNumber() == null
+        && dataToSave.getTcsPersonId() != null) {
+      try {
+        result = masterElasticSearchRepository.findByTcsPersonId(
+            dataToSave.getTcsPersonId());
+      }
+      catch (Exception ex) {
+        log.info("Exception in `findByTcsPersonId` (PersonId: {}): {}",
+            dataToSave.getTcsPersonId(),  ex);
+      }
+    }
+
+    return result;
+  }
+
+  private void updateRecords(Iterable<MasterDoctorView> existingRecords, MasterDoctorView dataToSave) {
+    existingRecords.forEach(currentDoctorView -> {
+      dataToSave.setId(currentDoctorView.getId());
+      masterElasticSearchRepository.save(dataToSave);
+    });
   }
 }

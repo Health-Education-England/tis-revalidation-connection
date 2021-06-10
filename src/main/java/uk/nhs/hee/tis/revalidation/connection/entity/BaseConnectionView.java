@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@Jacksonized
 @Data
 public class BaseConnectionView {
   @Id
@@ -29,7 +31,7 @@ public class BaseConnectionView {
   private String gmcReferenceNumber;
   private String doctorFirstName;
   private String doctorLastName;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate submissionDate;
   private String programmeName;
@@ -38,10 +40,10 @@ public class BaseConnectionView {
   private String tcsDesignatedBody;
   private String programmeOwner;
   private String connectionStatus;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipStartDate;
-  @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
+  //@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipEndDate;
 }

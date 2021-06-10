@@ -31,6 +31,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -38,5 +39,8 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @SuperBuilder
+@Jacksonized
 @Document(indexName = "disconnectedindex")
-public class DisconnectedView extends BaseConnectionView{ }
+public class DisconnectedView extends BaseConnectionView{
+
+}

@@ -12,7 +12,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHe
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Component
-public class GmcDoctorMessageReceiver extends MessageReceiverBase<GmcDoctor> {
+public class GmcDoctorMessageReceiver implements MessageReceiverBase<GmcDoctor> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -22,7 +22,15 @@ public class GmcDoctorMessageReceiver extends MessageReceiverBase<GmcDoctor> {
 
   private ConnectionInfoMapper connectionInfoMapper;
 
-  public GmcDoctorMessageReceiver (
+  /**
+   * Class to handle gmc doctor update messages
+   *
+   * @param elasticSearchIndexUpdateHelper
+   * @param masterElasticSearchService
+   * @param masterElasticSearchRepository
+   * @param connectionInfoMapper
+   */
+  public GmcDoctorMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
       MasterElasticSearchService masterElasticSearchService,
       MasterElasticSearchRepository masterElasticSearchRepository,
@@ -33,6 +41,12 @@ public class GmcDoctorMessageReceiver extends MessageReceiverBase<GmcDoctor> {
     this.masterElasticSearchRepository = masterElasticSearchRepository;
     this.connectionInfoMapper = connectionInfoMapper;
   }
+
+  /**
+   * Handles gmc doctor update messages
+   *
+   * @param message message containing GmcDoctor
+   */
   @Override
   public void handleMessage(GmcDoctor message) {
     List<MasterDoctorView> existingViews = masterElasticSearchRepository
@@ -44,7 +58,10 @@ public class GmcDoctorMessageReceiver extends MessageReceiverBase<GmcDoctor> {
     });
   }
 
-  private List<ConnectionInfoDto> updateExistingViews(List<MasterDoctorView> existingViews, GmcDoctor doctor) {
+  private List<ConnectionInfoDto> updateExistingViews(
+      List<MasterDoctorView> existingViews,
+      GmcDoctor doctor
+  ) {
     List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
     existingViews.forEach(existingView -> {
       existingView.setDoctorFirstName(doctor.getDoctorFirstName());

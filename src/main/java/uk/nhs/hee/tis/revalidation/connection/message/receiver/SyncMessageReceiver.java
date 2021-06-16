@@ -2,23 +2,27 @@ package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.config.ElasticsearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Slf4j
 @Component
-public class SyncMessageReceiver extends MessageReceiverBase<String>{
+public class SyncMessageReceiver implements MessageReceiverBase<String> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
   private MasterElasticSearchService masterElasticSearchService;
 
-  public SyncMessageReceiver (
+  /**
+   * Class to handle connection update messages
+   *
+   * @param elasticSearchIndexUpdateHelper
+   * @param masterElasticSearchService
+   */
+  public SyncMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
       MasterElasticSearchService masterElasticSearchService
   ) {
@@ -26,9 +30,14 @@ public class SyncMessageReceiver extends MessageReceiverBase<String>{
     this.masterElasticSearchService = masterElasticSearchService;
   }
 
+  /**
+   * Handles sync process messages
+   *
+   * @param message sync instruction String
+   */
   @Override
-  public void handleMessage(final String getMaster) {
-    if (getMaster != null && getMaster.equals("getMaster")) {
+  public void handleMessage(final String message) {
+    if (message != null && message.equals("getMaster")) {
 
       //Delete and create elastic search index
       elasticSearchIndexUpdateHelper.clearConnectionIndexes(ElasticsearchConfig.ES_INDICES);

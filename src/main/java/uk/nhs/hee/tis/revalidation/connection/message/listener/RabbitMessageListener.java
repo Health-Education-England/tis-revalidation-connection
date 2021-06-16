@@ -21,22 +21,15 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.listener;
 
-import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 
 @Slf4j
@@ -69,6 +62,12 @@ public class RabbitMessageListener {
     syncMessageReceiver.handleMessage(getMaster);
   }
 
+  /**
+   * handle message from gmc client.
+   *
+   * @param doctor gmc doctor information
+   */
+  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.gmcupdate}")
   public void receiveMessageGmcDoctor(final GmcDoctor doctor) {
     gmcDoctorMessageReceiver.handleMessage(doctor);
   }

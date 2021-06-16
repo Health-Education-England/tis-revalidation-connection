@@ -38,7 +38,8 @@ app:
     reval.routingKey.connection.update: ${REVAL_RABBIT_ROUTING_KEY:reval.connection.update}
     reval.queue.connection.getmaster: ${REVAL_RABBIT_GET_MASTER_QUEUE:reval.queue.connection.getmaster}
     reval.routingKey.connection.getmaster: ${REVAL_RABBIT_GETMASTER_ROUTING_KEY:reval.connection.getmaster}
-
+    reval.queue.connection.gmcupdate: ${REVAL_RABBIT_GMC_UPDATE_QUEUE:reval.queue.connection.gmcupdate}
+    reval.routingKey.gmc.update: ${REVAL_RABBIT_GMC_ROUTING_KEY:uk.nhs.hee}
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}
     soapActionBase: ${GMC_SOAP_ACTION_BASE:https://webcache.gmc-uk.org/GMCWebServices/}

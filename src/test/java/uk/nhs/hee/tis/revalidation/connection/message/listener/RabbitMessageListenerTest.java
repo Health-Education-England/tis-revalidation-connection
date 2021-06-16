@@ -64,7 +64,7 @@ class RabbitMessageListenerTest {
   private String status;
 
   @BeforeEach
-  public void setup () {
+  public void setup() {
     gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();

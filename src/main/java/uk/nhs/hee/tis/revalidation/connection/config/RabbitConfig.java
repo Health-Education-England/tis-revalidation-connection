@@ -26,6 +26,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -37,7 +38,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-
 
   @Value("${app.rabbit.exchange}")
   private String exchange;
@@ -63,6 +63,12 @@ public class RabbitConfig {
   @Value("${app.rabbit.reval.routingKey.connection.getmaster}")
   private String esGetMasterRoutingKey;
 
+  @Value("${app.rabbit.reval.queue.connection.gmcupdate}")
+  private String esGmcQueueName;
+
+  @Value("${app.rabbit.reval.routingKey.gmc.update}")
+  private String esGmcRoutingKey;
+
   @Bean
   public Queue queue() {
     return new Queue(queueName, false);
@@ -79,8 +85,13 @@ public class RabbitConfig {
   }
 
   @Bean
-  public DirectExchange exchange() {
-    return new DirectExchange(exchange);
+  public Queue esGmcQueue() {
+    return new Queue(esGmcQueueName, false);
+  }
+
+  @Bean
+  public FanoutExchange exchange() {
+    return new FanoutExchange(exchange);
   }
 
   @Bean
@@ -101,6 +112,11 @@ public class RabbitConfig {
   @Bean
   public Binding esGetMasterBinding(final Queue esGetMasterQueue, final DirectExchange esExchange) {
     return BindingBuilder.bind(esGetMasterQueue).to(esExchange).with(esGetMasterRoutingKey);
+  }
+
+  @Bean
+  public Binding esGmcBinding(final Queue esGmcQueue, final FanoutExchange exchange) {
+    return BindingBuilder.bind(esGmcQueue).to(exchange);
   }
 
   @Bean

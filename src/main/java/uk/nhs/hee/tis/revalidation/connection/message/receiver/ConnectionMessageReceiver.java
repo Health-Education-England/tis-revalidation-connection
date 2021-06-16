@@ -11,7 +11,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService
 
 @Slf4j
 @Component
-public class ConnectionMessageReceiver extends MessageReceiverBase<ConnectionInfoDto> {
+public class ConnectionMessageReceiver implements MessageReceiverBase<ConnectionInfoDto> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -19,7 +19,14 @@ public class ConnectionMessageReceiver extends MessageReceiverBase<ConnectionInf
 
   private ConnectionService connectionService;
 
-  public ConnectionMessageReceiver (
+  /**
+   * Class to handle connection update messages
+   *
+   * @param elasticSearchIndexUpdateHelper
+   * @param masterElasticSearchService
+   * @param connectionService
+   */
+  public ConnectionMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
       MasterElasticSearchService masterElasticSearchService,
       ConnectionService connectionService
@@ -29,6 +36,11 @@ public class ConnectionMessageReceiver extends MessageReceiverBase<ConnectionInf
     this.connectionService = connectionService;
   }
 
+  /**
+   * Handles connection update messages
+   *
+   * @param message message containing ConnectionInfoDto
+   */
   @Override
   public void handleMessage(ConnectionInfoDto message) {
     log.debug("MESSAGE RECEIVED: " + message);

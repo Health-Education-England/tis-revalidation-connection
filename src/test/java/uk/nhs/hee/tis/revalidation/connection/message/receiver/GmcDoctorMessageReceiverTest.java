@@ -83,14 +83,16 @@ public class GmcDoctorMessageReceiverTest {
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(masterDoctorViews);
+    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
+        .thenReturn(masterDoctorViews);
     gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 
   @Test
   void shouldUpdateMasterOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(masterDoctorViews);
+    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
+        .thenReturn(masterDoctorViews);
     gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
     verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
   }

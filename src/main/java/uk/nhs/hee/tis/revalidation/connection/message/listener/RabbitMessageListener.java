@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.message;
+package uk.nhs.hee.tis.revalidation.connection.message.listener;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
+import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
@@ -40,19 +44,11 @@ import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService
 public class RabbitMessageListener {
 
   @Autowired
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
-
+  ConnectionMessageReceiver connectionMessageReceiver;
   @Autowired
-  private ConnectionService connectionService;
-
+  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
   @Autowired
-  private MasterElasticSearchService masterElasticSearchService;
-
-  @Autowired
-  private ConnectionInfoMapper connectionInfoMapper;
-
-  private static final List<String> ES_INDICES = List
-      .of("connectedindex", "disconnectedindex", "exceptionindex");
+  SyncMessageReceiver syncMessageReceiver;
 
   /**
    * handle rabbit message.
@@ -61,26 +57,7 @@ public class RabbitMessageListener {
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
   public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
-    log.debug("MESSAGE RECEIVED: " + connectionInfo);
-
-    // TODO: change to get data from ES 'Master' index instead of mongoDB
-    //  when 'Master' index is implemented
-    // Get Gmc data and aggregate it to connectionInfo
-    if (connectionInfo.getGmcReferenceNumber() != null) {
-      Optional<DoctorsForDB> optionalGmcData = connectionService
-          .getDoctorsForDbByGmcId(connectionInfo.getGmcReferenceNumber());
-      if (optionalGmcData.isPresent()) {
-        final DoctorsForDB gmcData = optionalGmcData.get();
-        connectionInfo.setSubmissionDate(gmcData.getSubmissionDate());
-        connectionInfo.setDesignatedBody(gmcData.getDesignatedBodyCode());
-      }
-    }
-    try {
-      masterElasticSearchService.updateMasterIndex(connectionInfo);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
-    } catch (Exception e) {
-      log.info("Exception in receiveMessageUpdate: {}", e.getMessage());
-    }
+    connectionMessageReceiver.handleMessage(connectionInfo);
   }
 
   /**
@@ -89,17 +66,10 @@ public class RabbitMessageListener {
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}",
       ackMode = "NONE")
   public void receiveMessageGetMaster(final String getMaster) {
-    if (getMaster != null && getMaster.equals("getMaster")) {
+    syncMessageReceiver.handleMessage(getMaster);
+  }
 
-      //Delete and create elastic search index
-      elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
-
-      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
-      log.info("Found {} records from ES Master index. ", masterList.size());
-
-      masterList.forEach(connectionInfo ->
-          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
-      log.info("ES indexes update completed.");
-    }
+  public void receiveMessageGmcDoctor(final GmcDoctor doctor) {
+    gmcDoctorMessageReceiver.handleMessage(doctor);
   }
 }

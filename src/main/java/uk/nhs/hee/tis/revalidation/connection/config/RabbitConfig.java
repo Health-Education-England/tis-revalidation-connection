@@ -26,7 +26,6 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -90,8 +89,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public FanoutExchange exchange() {
-    return new FanoutExchange(exchange);
+  public DirectExchange exchange() {
+    return new DirectExchange(exchange);
   }
 
   @Bean
@@ -115,8 +114,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Binding esGmcBinding(final Queue esGmcQueue, final FanoutExchange exchange) {
-    return BindingBuilder.bind(esGmcQueue).to(exchange);
+  public Binding esGmcBinding(final Queue esGmcQueue, final DirectExchange exchange) {
+    return BindingBuilder.bind(esGmcQueue).to(exchange).with(esGmcRoutingKey);
   }
 
   @Bean

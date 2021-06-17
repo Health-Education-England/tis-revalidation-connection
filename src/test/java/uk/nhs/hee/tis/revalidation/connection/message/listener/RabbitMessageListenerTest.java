@@ -19,18 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.message;
+package uk.nhs.hee.tis.revalidation.connection.message.listener;
 
 import static java.time.LocalDate.now;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,25 +34,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 @ExtendWith(MockitoExtension.class)
 class RabbitMessageListenerTest {
 
-  private final Faker faker = new Faker();
-  @Mock
-  ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
   RabbitMessageListener rabbitMessageListener;
   @Mock
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  ConnectionMessageReceiver connectionMessageReceiver;
   @Mock
-  private ConnectionService connectionService;
+  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
   @Mock
-  private MasterElasticSearchService masterElasticSearchService;
+  SyncMessageReceiver syncMessageReceiver;
+
+  private ConnectionInfoDto connectionInfoDto;
+  private GmcDoctor gmcDoctor;
+  private Faker faker = new Faker();
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -64,15 +61,10 @@ class RabbitMessageListenerTest {
   private String designatedBody1;
   private String programmeName1;
   private String programmeOwner1;
-  ConnectionInfoDto connectionInfoDto;
-  private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
+  private String status;
 
-  /**
-   * Set up data for testing.
-   */
   @BeforeEach
   public void setup() {
-
     gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
@@ -80,8 +72,48 @@ class RabbitMessageListenerTest {
     designatedBody1 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
+    status = faker.lorem().characters(8);
+    connectionInfoDto = buildConnectionInfoDto();
+    gmcDoctor = buildGmcDoctor();
+  }
 
-    connectionInfoDto = ConnectionInfoDto.builder()
+  @Test
+  void shouldReceiveConnectionUpdateMessages() {
+    rabbitMessageListener.receiveMessageUpdate(connectionInfoDto);
+    verify(connectionMessageReceiver).handleMessage(connectionInfoDto);
+  }
+
+  @Test
+  void shouldReceiveSyncMessages() {
+    rabbitMessageListener.receiveMessageGetMaster("getMaster");
+    verify(syncMessageReceiver).handleMessage("getMaster");
+  }
+
+  @Test
+  void shouldReceiveGmcDoctorMessages() {
+    rabbitMessageListener.receiveMessageGmcDoctor(gmcDoctor);
+    verify(gmcDoctorMessageReceiver).handleMessage(gmcDoctor);
+  }
+
+  private GmcDoctor buildGmcDoctor() {
+    return GmcDoctor.builder()
+        .gmcReferenceNumber(gmcRef1)
+        .doctorFirstName(firstName1)
+        .doctorLastName(lastName1)
+        .submissionDate(submissionDate1.toString())
+        .doctorStatus(status)
+        .breach(faker.lorem().characters(20))
+        .dateAdded(faker.date().past(10, TimeUnit.DAYS).toString())
+        .underNotice(faker.lorem().characters(5))
+        .investigation(faker.lorem().characters(20))
+        .preliminaryInvestigation(faker.lorem().characters(20))
+        .sanction(faker.lorem().characters(10))
+        .designatedBodyCode(designatedBody1)
+        .build();
+  }
+
+  private ConnectionInfoDto buildConnectionInfoDto() {
+    return ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -90,36 +122,8 @@ class RabbitMessageListenerTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
+        .connectionStatus(status)
         .build();
-    connectionInfoDtos.add(connectionInfoDto);
   }
 
-  @Test
-  void shouldReceiveMessageGetMaster() {
-    when(masterElasticSearchService.findAllScroll()).thenReturn(connectionInfoDtos);
-    rabbitMessageListener.receiveMessageGetMaster("getMaster");
-    verify(elasticSearchIndexUpdateHelper, times(1))
-        .updateElasticSearchIndex(connectionInfoDtos.get(0));
-  }
-
-  @Test
-  void shouldNotReceiveMessageGetMasterIfNull() {
-    rabbitMessageListener.receiveMessageGetMaster(null);
-    verify(elasticSearchIndexUpdateHelper, never())
-        .updateElasticSearchIndex(connectionInfoDtos.get(0));
-  }
-
-  @Test
-  void shouldNotReceiveMessageGetMasterIfNotMatch() {
-    rabbitMessageListener.receiveMessageGetMaster("randomText");
-    verify(elasticSearchIndexUpdateHelper, never())
-        .updateElasticSearchIndex(connectionInfoDtos.get(0));
-  }
-
-  @Test
-  void shouldUpdateMasterIndexAndOtherIndexes() {
-    rabbitMessageListener.receiveMessageUpdate(connectionInfoDto);
-    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
-    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
-  }
 }

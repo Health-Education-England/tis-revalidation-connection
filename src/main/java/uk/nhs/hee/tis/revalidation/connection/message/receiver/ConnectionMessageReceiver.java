@@ -19,87 +19,70 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.message;
+package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
-import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
-
 @Slf4j
 @Component
-public class RabbitMessageListener {
+public class ConnectionMessageReceiver implements MessageReceiver<ConnectionInfoDto> {
 
-  @Autowired
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
-  @Autowired
-  private ConnectionService connectionService;
-
-  @Autowired
   private MasterElasticSearchService masterElasticSearchService;
 
-  @Autowired
-  private ConnectionInfoMapper connectionInfoMapper;
-
-  private static final List<String> ES_INDICES = List
-      .of("connectedindex", "disconnectedindex", "exceptionindex");
+  private ConnectionService connectionService;
 
   /**
-   * handle rabbit message.
+   * Class to handle connection update messages
    *
-   * @param connectionInfo connection information of the trainee
+   * @param elasticSearchIndexUpdateHelper
+   * @param masterElasticSearchService
+   * @param connectionService
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
-  public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
-    log.debug("MESSAGE RECEIVED: " + connectionInfo);
+  public ConnectionMessageReceiver(
+      ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
+      MasterElasticSearchService masterElasticSearchService,
+      ConnectionService connectionService
+  ) {
+    this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
+    this.masterElasticSearchService = masterElasticSearchService;
+    this.connectionService = connectionService;
+  }
+
+  /**
+   * Handles connection update messages
+   *
+   * @param message message containing ConnectionInfoDto
+   */
+  @Override
+  public void handleMessage(ConnectionInfoDto message) {
+    log.debug("MESSAGE RECEIVED: " + message);
 
     // TODO: change to get data from ES 'Master' index instead of mongoDB
     //  when 'Master' index is implemented
     // Get Gmc data and aggregate it to connectionInfo
-    if (connectionInfo.getGmcReferenceNumber() != null) {
+    if (message.getGmcReferenceNumber() != null) {
       Optional<DoctorsForDB> optionalGmcData = connectionService
-          .getDoctorsForDbByGmcId(connectionInfo.getGmcReferenceNumber());
+          .getDoctorsForDbByGmcId(message.getGmcReferenceNumber());
       if (optionalGmcData.isPresent()) {
         final DoctorsForDB gmcData = optionalGmcData.get();
-        connectionInfo.setSubmissionDate(gmcData.getSubmissionDate());
-        connectionInfo.setDesignatedBody(gmcData.getDesignatedBodyCode());
+        message.setSubmissionDate(gmcData.getSubmissionDate());
+        message.setDesignatedBody(gmcData.getDesignatedBodyCode());
       }
     }
     try {
-      masterElasticSearchService.updateMasterIndex(connectionInfo);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo);
+      masterElasticSearchService.updateMasterIndex(message);
+      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(message);
     } catch (Exception e) {
       log.info("Exception in receiveMessageUpdate: {}", e.getMessage());
-    }
-  }
-
-  /**
-   * get trainee from Master index then update connection indexes.
-   */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.getmaster}",
-      ackMode = "NONE")
-  public void receiveMessageGetMaster(final String getMaster) {
-    if (getMaster != null && getMaster.equals("getMaster")) {
-
-      //Delete and create elastic search index
-      elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
-
-      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
-      log.info("Found {} records from ES Master index. ", masterList.size());
-
-      masterList.forEach(connectionInfo ->
-          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
-      log.info("ES indexes update completed.");
     }
   }
 }

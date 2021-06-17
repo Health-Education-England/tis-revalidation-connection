@@ -38,13 +38,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-  @Value("${app.rabbit.exchange}")
-  private String exchange;
+  @Value("${app.rabbit.reval.exchange.gmcsync}")
+  private String gmcSyncExchange;
 
-  @Value("${app.rabbit.connection.queue}")
+  @Value("${app.rabbit.reval.queue.connection.manualupdate}")
   private String queueName;
 
-  @Value("${app.rabbit.connection.routingKey}")
+  @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
 
   @Value("${app.rabbit.reval.exchange}")
@@ -62,11 +62,11 @@ public class RabbitConfig {
   @Value("${app.rabbit.reval.routingKey.connection.getmaster}")
   private String esGetMasterRoutingKey;
 
-  @Value("${app.rabbit.reval.queue.connection.gmcupdate}")
-  private String esGmcQueueName;
+  @Value("${app.rabbit.reval.queue.gmcsync.connection}")
+  private String gmcSyncQueueName;
 
-  @Value("${app.rabbit.reval.routingKey.gmc.update}")
-  private String esGmcRoutingKey;
+  @Value("${app.rabbit.reval.routingKey.gmcsync}")
+  private String gmcSyncRoutingKey;
 
   @Bean
   public Queue queue() {
@@ -84,13 +84,13 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Queue esGmcQueue() {
-    return new Queue(esGmcQueueName, false);
+  public Queue gmcSyncQueue() {
+    return new Queue(gmcSyncQueueName, false);
   }
 
   @Bean
-  public DirectExchange exchange() {
-    return new DirectExchange(exchange);
+  public DirectExchange gmcSyncExchange() {
+    return new DirectExchange(gmcSyncExchange);
   }
 
   @Bean
@@ -99,8 +99,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Binding binding(final Queue queue, final DirectExchange exchange) {
-    return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+  public Binding binding(final Queue queue, final DirectExchange esExchange) {
+    return BindingBuilder.bind(queue).to(esExchange).with(routingKey);
   }
 
   @Bean
@@ -114,8 +114,8 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Binding esGmcBinding(final Queue esGmcQueue, final DirectExchange exchange) {
-    return BindingBuilder.bind(esGmcQueue).to(exchange).with(esGmcRoutingKey);
+  public Binding esGmcBinding(final Queue gmcSyncQueue, final DirectExchange gmcSyncExchange) {
+    return BindingBuilder.bind(gmcSyncQueue).to(gmcSyncExchange).with(gmcSyncRoutingKey);
   }
 
   @Bean

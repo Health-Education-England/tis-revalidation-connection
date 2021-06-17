@@ -67,7 +67,7 @@ public class RabbitMessageListener {
    *
    * @param doctor gmc doctor information
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.gmcupdate}")
+  @RabbitListener(queues = "${app.rabbit.reval.queue.gmcsync.connection}")
   public void receiveMessageGmcDoctor(final GmcDoctor doctor) {
     gmcDoctorMessageReceiver.handleMessage(doctor);
   }

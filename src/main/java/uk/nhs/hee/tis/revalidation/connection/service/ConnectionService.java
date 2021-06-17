@@ -79,13 +79,13 @@ public class ConnectionService {
   @Autowired
   private RabbitTemplate rabbitTemplate;
 
-  @Value("${app.rabbit.exchange}")
+  @Value("${app.rabbit.reval.exchange.gmcsync}")
   private String exchange;
 
   @Value("${app.rabbit.reval.exchange}")
   private String esExchange;
 
-  @Value("${app.rabbit.connection.routingKey}")
+  @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
 
   @Value("${app.rabbit.reval.queue.connection.update}}")

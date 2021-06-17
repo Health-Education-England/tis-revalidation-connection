@@ -30,16 +30,16 @@ app:
     limit.retries: true
 
   rabbit:
-    exchange: ${EXCHANGE:gmc-connect-exchange}
-    connection.queue: ${CONNECTION_QUEUE:connection-queue}
-    connection.routingKey: ${CONNECTION_ROUTING_KEY:uk.nhs.hee.connection}
+    reval.exchange.gmcsync: ${EXCHANGE:reval.exchange.gmcsync}
+    reval.queue.gmcsync.connection: ${REVAL_RABBIT_GMCSYNC_CONNECTION_QUEUE:reval.queue.gmcsync.connection}
+    reval.routingKey.gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
     reval.exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
     reval.queue.connection.update: ${REVAL_RABBIT_QUEUE:reval.queue.connection.update}
     reval.routingKey.connection.update: ${REVAL_RABBIT_ROUTING_KEY:reval.connection.update}
+    reval.queue.connection.manualupdate: ${CONNECTION_QUEUE:reval.queue.connection.manualupdate.recommendation}
+    reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
     reval.queue.connection.getmaster: ${REVAL_RABBIT_GET_MASTER_QUEUE:reval.queue.connection.getmaster}
     reval.routingKey.connection.getmaster: ${REVAL_RABBIT_GETMASTER_ROUTING_KEY:reval.connection.getmaster}
-    reval.queue.connection.gmcupdate: ${REVAL_RABBIT_GMC_UPDATE_QUEUE:reval.queue.connection.gmcupdate}
-    reval.routingKey.gmc.update: ${REVAL_RABBIT_GMC_ROUTING_KEY:uk.nhs.hee}
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}
     soapActionBase: ${GMC_SOAP_ACTION_BASE:https://webcache.gmc-uk.org/GMCWebServices/}

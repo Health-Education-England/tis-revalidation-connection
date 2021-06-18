@@ -123,7 +123,7 @@ class ConnectionServiceTest {
 
     programmeOwnerDesignatedBodyCode = faker.number().digits(8);
 
-    setField(connectionService, "exchange", "exchange");
+    setField(connectionService, "esExchange", "esExchange");
     setField(connectionService, "routingKey", "routingKey");
   }
 
@@ -142,7 +142,7 @@ class ConnectionServiceTest {
     connectionService.addDoctor(addDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
-    verify(rabbitTemplate, times(2)).convertAndSend("exchange", "routingKey", message);
+    verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
   }
 
@@ -161,7 +161,7 @@ class ConnectionServiceTest {
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
-    verify(rabbitTemplate, times(2)).convertAndSend("exchange", "routingKey", message);
+    verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
   }
 

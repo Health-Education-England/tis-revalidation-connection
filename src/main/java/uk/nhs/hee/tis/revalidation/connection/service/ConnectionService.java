@@ -251,7 +251,7 @@ public class ConnectionService {
           .designatedBodyCode(designatedBodyCode)
           .build();
       log.info("Sending message to rabbit to remove designated body code");
-      rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
+      rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);
     } else {
       exceptionService.createExceptionLog(gmcId, returnCode);
     }

@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
 import static java.time.LocalDate.now;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -35,6 +36,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapperImpl;
+import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
@@ -49,6 +54,9 @@ public class ConnectionMessageReceiverTest {
   private MasterElasticSearchService masterElasticSearchService;
   @Mock
   private ConnectionService connectionService;
+  @Mock
+  private MasterElasticSearchRepository masterElasticSearchRepository;
+
   private Faker faker = new Faker();
   private String gmcRef1;
   private String firstName1;
@@ -58,23 +66,28 @@ public class ConnectionMessageReceiverTest {
   private String programmeName1;
   private String programmeOwner1;
   ConnectionInfoDto connectionInfoDto;
+  MasterDoctorView masterDoctorView;
+  ConnectionInfoMapper connectionInfoMapper;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
+  private  List<MasterDoctorView> gmcData = new ArrayList<>();
 
   /**
    * Set up data for testing.
    */
   @BeforeEach
   public void setup() {
+    connectionInfoMapper = new ConnectionInfoMapperImpl();
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
     designatedBody1 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
+    gmcRef1 = faker.number().digits(8);
 
     connectionInfoDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
-        .gmcReferenceNumber(null) //TODO: replace call to mongo
+        .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
         .doctorLastName(lastName1)
         .submissionDate(submissionDate1)
@@ -83,10 +96,15 @@ public class ConnectionMessageReceiverTest {
         .programmeOwner(programmeOwner1)
         .build();
     connectionInfoDtos.add(connectionInfoDto);
+
+    gmcData.add(connectionInfoMapper.dtoToMaster(connectionInfoDto));
+
+
   }
 
   @Test
   void shouldUpdateMasterIndexAndOtherIndexesOnReceiveConnectionInfo() {
+    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(gmcData);
     connectionMessageReceiver.handleMessage(connectionInfoDto);
     verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);

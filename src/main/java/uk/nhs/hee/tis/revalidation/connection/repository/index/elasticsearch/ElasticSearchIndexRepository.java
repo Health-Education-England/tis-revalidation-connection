@@ -19,17 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.repository.index.elasticsearch;
 
+import java.util.List;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.BaseConnectionView;
 
-@Repository
-public interface DisconnectedElasticSearchRepository
-    extends ElasticsearchRepository<DisconnectedView, String> {
+public interface ElasticSearchIndexRepository<T extends BaseConnectionView>
+    extends ElasticsearchRepository<T, String> {
 
-  void deleteByGmcReferenceNumber(String gmcReferenceNumber);
+  List<T> findViewByGmcReferenceNumberAndTcsPersonId(String gmcReferenceNumber,
+      Long tcsPersonId);
 
-  void deleteByTcsPersonId(Long tcsPersonId);
+  List<T> findViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  List<T> findViewByTcsPersonId(Long tcsPersonId);
+
+  void deleteViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  void deleteViewByTcsPersonId(Long tcsPersonId);
 }

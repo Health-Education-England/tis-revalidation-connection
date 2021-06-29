@@ -30,23 +30,23 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeAll;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.BaseConnectionView;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapperImpl;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.mapper.MasterConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.MasterConnectionInfoMapperImpl;
+import uk.nhs.hee.tis.revalidation.connection.repository.index.MasterIndexRepository;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.hydration.ConnectionInfoHydrationService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @ExtendWith(MockitoExtension.class)
 public class GmcDoctorMessageReceiverTest {
@@ -55,15 +55,12 @@ public class GmcDoctorMessageReceiverTest {
 
   GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
   @Mock
-  ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  IndexUpdateHelper indexUpdateHelper;
   @Mock
-  MasterElasticSearchService masterElasticSearchService;
+  MasterIndexService masterIndexService;
   @Mock
-  MasterElasticSearchRepository masterElasticSearchRepository;
-  ConnectionInfoMapper connectionInfoMapper;
+  private ConnectionInfoHydrationService connectionInfoHydrationService;
 
-  private GmcDoctor gmcDoctor;
-  private ConnectionService connectionService;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -72,19 +69,15 @@ public class GmcDoctorMessageReceiverTest {
   private String programmeName1;
   private String programmeOwner1;
   private String status;
-  ConnectionInfoDto connectionInfoDto;
-  private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
-  private List<MasterDoctorView> masterDoctorViews = new ArrayList<>();
+  private ConnectionInfoDto hydratedDto;
+  private GmcDoctor messageDto;
 
   @BeforeEach
   public void setup() {
-    connectionInfoMapper = new ConnectionInfoMapperImpl();
-
-    gmcDoctorMessageReceiver = new GmcDoctorMessageReceiver(
-        elasticSearchIndexUpdateHelper,
-        masterElasticSearchService,
-        masterElasticSearchRepository,
-        connectionInfoMapper
+    gmcDoctorMessageReceiver = new GmcDoctorMessageReceiver (
+        indexUpdateHelper,
+        masterIndexService,
+        connectionInfoHydrationService
     );
     gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
@@ -95,30 +88,25 @@ public class GmcDoctorMessageReceiverTest {
     programmeOwner1 = faker.lorem().characters(20);
     status = faker.lorem().characters(8);
 
-    connectionInfoDto = buildConnectionInfoDto();
-    connectionInfoDtos.add(connectionInfoDto);
-    masterDoctorViews.add(connectionInfoMapper.dtoToMaster(connectionInfoDto));
-
-    gmcDoctor = buildGmcDoctor();
+    hydratedDto = initializeHydratedDto();
+    messageDto = initializeMessageDto();
   }
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
-        .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
-    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
+    when(connectionInfoHydrationService.hydrate(messageDto)).thenReturn(hydratedDto);
+    gmcDoctorMessageReceiver.handleMessage(messageDto);
+    verify(indexUpdateHelper).updateElasticSearchIndex(hydratedDto);
   }
 
   @Test
   void shouldUpdateMasterOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
-        .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
-    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
+    when(connectionInfoHydrationService.hydrate(messageDto)).thenReturn(hydratedDto);
+    gmcDoctorMessageReceiver.handleMessage(messageDto);
+    verify(masterIndexService).updateMasterIndex(hydratedDto);
   }
 
-  private GmcDoctor buildGmcDoctor() {
+  private GmcDoctor initializeMessageDto() {
     return GmcDoctor.builder()
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -135,7 +123,7 @@ public class GmcDoctorMessageReceiverTest {
         .build();
   }
 
-  private ConnectionInfoDto buildConnectionInfoDto() {
+  private ConnectionInfoDto initializeHydratedDto() {
     return ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)

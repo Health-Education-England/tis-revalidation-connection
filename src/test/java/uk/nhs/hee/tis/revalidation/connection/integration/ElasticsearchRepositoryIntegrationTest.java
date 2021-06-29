@@ -19,25 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.integration;
 
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
+public class ElasticsearchRepositoryIntegrationTest {
 
-@Repository
-public interface MasterElasticSearchRepository
-    extends ElasticsearchRepository<MasterDoctorView, String> {
-
-  Optional<MasterDoctorView> findFirstByGmcReferenceNumberOrderBySubmissionDateDesc(
-      final String gmcId);
-
-  List<MasterDoctorView> findByGmcReferenceNumberAndTcsPersonId(String gmcReferenceNumber,
-                                                                Long tcsPersonId);
-
-  List<MasterDoctorView> findByGmcReferenceNumber(String gmcReferenceNumber);
-
-  List<MasterDoctorView> findByTcsPersonId(Long tcsPersonId);
 }

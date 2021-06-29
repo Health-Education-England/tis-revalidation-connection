@@ -25,34 +25,24 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
-import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
 @Mapper(componentModel = "spring")
-public interface ConnectionInfoMapper {
+public interface MasterConnectionInfoMapper {
 
   @Mapping(target = "programmeMembershipType", source = "membershipType")
   @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
   @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
   @Mapping(target = "dataSource", ignore = true)
-  ConnectionInfoDto exceptionToDto(ExceptionView userType);
+  ConnectionInfoDto masterToDto(MasterDoctorView userType);
 
-  List<ConnectionInfoDto> exceptionToDtos(List<ExceptionView> userTypes);
+  List<ConnectionInfoDto> masterToDtos(List<MasterDoctorView> userTypes);
 
-  @Mapping(target = "programmeMembershipType", source = "membershipType")
-  @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
-  @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
-  @Mapping(target = "dataSource", ignore = true)
-  ConnectionInfoDto connectedToDto(ConnectedView userType);
+  List<ConnectionInfoDto> masterToDtos(Iterable<MasterDoctorView> userTypes);
 
-  List<ConnectionInfoDto> connectedToDtos(List<ConnectedView> userTypes);
-
-  @Mapping(target = "programmeMembershipType", source = "membershipType")
-  @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
-  @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
-  @Mapping(target = "dataSource", ignore = true)
-  ConnectionInfoDto disconnectedToDto(DisconnectedView userType);
-
-  List<ConnectionInfoDto> disconnectedToDtos(List<DisconnectedView> userTypes);
+  @Mapping(target = "membershipType", source = "programmeMembershipType")
+  @Mapping(target = "membershipStartDate", source = "programmeMembershipStartDate")
+  @Mapping(target = "membershipEndDate", source = "programmeMembershipEndDate")
+  @Mapping(target = "id", ignore = true)
+  MasterDoctorView dtoToMaster(ConnectionInfoDto connectionInfoDto);
 }

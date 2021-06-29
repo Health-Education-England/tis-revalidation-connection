@@ -26,29 +26,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.config.ElasticsearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @Slf4j
 @Component
 public class SyncMessageReceiver implements MessageReceiver<String> {
 
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
 
-  private MasterElasticSearchService masterElasticSearchService;
+  private MasterIndexService masterIndexService;
 
   /**
    * Class to handle connection update messages
    *
-   * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchService
+   * @param indexUpdateHelper
+   * @param masterIndexService
    */
   public SyncMessageReceiver(
-      ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService
+      IndexUpdateHelper indexUpdateHelper,
+      MasterIndexService masterIndexService
   ) {
-    this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchService = masterElasticSearchService;
+    this.indexUpdateHelper = indexUpdateHelper;
+    this.masterIndexService = masterIndexService;
   }
 
   /**
@@ -61,13 +61,13 @@ public class SyncMessageReceiver implements MessageReceiver<String> {
     if (message != null && message.equals("getMaster")) {
 
       //Delete and create elastic search index
-      elasticSearchIndexUpdateHelper.clearConnectionIndexes(ElasticsearchConfig.ES_INDICES);
+      indexUpdateHelper.clearConnectionIndexes(ElasticsearchConfig.ES_INDICES);
 
-      final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
+      final List<ConnectionInfoDto> masterList = masterIndexService.findAllScroll();
       log.info("Found {} records from ES Master index. ", masterList.size());
 
       masterList.forEach(connectionInfo ->
-          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
+          indexUpdateHelper.updateElasticSearchIndex(connectionInfo));
       log.info("ES indexes update completed.");
     }
   }

@@ -19,11 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.service;
+package uk.nhs.hee.tis.revalidation.connection.service.index;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -34,40 +34,37 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.mapper.MasterConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.index.MasterIndexRepository;
 
-@Service
+
+/*
+Developer note: This class does not implement IndexService as MasterDoctorView
+is likely to diverge from other connections views in future
+ */
 @Slf4j
-public class MasterElasticSearchService {
+@Service
+public class MasterIndexService {
 
-  private MasterElasticSearchRepository masterElasticSearchRepository;
+  private MasterIndexRepository masterIndexRepository;
 
-  private ConnectionInfoMapper connectionInfoMapper;
+  private MasterConnectionInfoMapper connectionInfoMapper;
 
   private ElasticsearchRestTemplate elasticsearchTemplate;
 
   /**
    * constructor.
    */
-  public MasterElasticSearchService(
-      MasterElasticSearchRepository masterElasticSearchRepository,
-      ConnectionInfoMapper connectionInfoMapper,
+  public MasterIndexService(
+      MasterIndexRepository masterIndexRepository,
+      MasterConnectionInfoMapper connectionInfoMapper,
       ElasticsearchRestTemplate elasticsearchTemplate) {
-    this.masterElasticSearchRepository = masterElasticSearchRepository;
+    this.masterIndexRepository = masterIndexRepository;
     this.connectionInfoMapper = connectionInfoMapper;
     this.elasticsearchTemplate = elasticsearchTemplate;
   }
 
   private static final int SCROLL_TIMEOUT_MS = 30000;
-
-  /**
-   * find all trainee from ES Master Index.
-   */
-  public List<ConnectionInfoDto> findAllMasterToDto() {
-    Iterable<MasterDoctorView> masterList = masterElasticSearchRepository.findAll();
-    return connectionInfoMapper.masterToDtos(masterList);
-  }
 
   /**
    * find all trainee from ES Master Index.
@@ -84,16 +81,16 @@ public class MasterElasticSearchService {
     var searchQuery = new NativeSearchQueryBuilder().build();
     SearchScrollHits<MasterDoctorView> scroll = elasticsearchTemplate
         .searchScrollStart(
-          SCROLL_TIMEOUT_MS,
-          searchQuery,
-          MasterDoctorView.class,
-          index
+            SCROLL_TIMEOUT_MS,
+            searchQuery,
+            MasterDoctorView.class,
+            index
         );
 
     // while it is not the end of data
     while (scroll.hasSearchHits()) {
       // convert and store data to list
-      for (SearchHit hit : scroll.getSearchHits()) {
+      for (SearchHit<MasterDoctorView> hit : scroll.getSearchHits()) {
         var masterDoctorView = mapper.convertValue(hit.getContent(), MasterDoctorView.class);
         masterViews.add(masterDoctorView);
       }
@@ -102,10 +99,10 @@ public class MasterElasticSearchService {
       String scrollId = scroll.getScrollId();
       scroll = elasticsearchTemplate
           .searchScrollContinue(
-            scrollId,
-            SCROLL_TIMEOUT_MS,
-            MasterDoctorView.class,
-            index
+              scrollId,
+              SCROLL_TIMEOUT_MS,
+              MasterDoctorView.class,
+              index
           );
       scrollIds.add(scrollId);
     }
@@ -118,13 +115,14 @@ public class MasterElasticSearchService {
     MasterDoctorView masterDoctorToSave = connectionInfoMapper
         .dtoToMaster(connectionInfoDto);
     try {
-      Iterable<MasterDoctorView> existingRecords = findMasterDoctorRecordByGmcNumberPersonId(masterDoctorToSave);
-      if(Iterables.size(existingRecords) > 0) {
+      Iterable<MasterDoctorView> existingRecords
+          = findMasterDoctorRecordByGmcNumberPersonId(masterDoctorToSave);
+      if (Iterables.size(existingRecords) > 0) {
         updateRecords(existingRecords, masterDoctorToSave);
       } else {
-        masterElasticSearchRepository.save(masterDoctorToSave);
+        masterIndexRepository.save(masterDoctorToSave);
       }
-     } catch (Exception e) {
+    } catch (Exception e) {
       log.info("Exception in `upsertMasterIndex`"
               + "(GmcId: {}; PersonId: {}): {}",
           masterDoctorToSave.getGmcReferenceNumber(),
@@ -139,7 +137,7 @@ public class MasterElasticSearchService {
 
     if (dataToSave.getGmcReferenceNumber() != null && dataToSave.getTcsPersonId() != null) {
       try {
-        result = masterElasticSearchRepository.findByGmcReferenceNumberAndTcsPersonId(
+        result = masterIndexRepository.findViewByGmcReferenceNumberAndTcsPersonId(
             dataToSave.getGmcReferenceNumber(),
             dataToSave.getTcsPersonId());
       }
@@ -153,7 +151,7 @@ public class MasterElasticSearchService {
     else if (dataToSave.getGmcReferenceNumber() != null
         && dataToSave.getTcsPersonId() == null) {
       try {
-        result = masterElasticSearchRepository.findByGmcReferenceNumber(
+        result = masterIndexRepository.findViewByGmcReferenceNumber(
             dataToSave.getGmcReferenceNumber());
       }
       catch (Exception ex) {
@@ -165,7 +163,7 @@ public class MasterElasticSearchService {
     else if (dataToSave.getGmcReferenceNumber() == null
         && dataToSave.getTcsPersonId() != null) {
       try {
-        result = masterElasticSearchRepository.findByTcsPersonId(
+        result = masterIndexRepository.findViewByTcsPersonId(
             dataToSave.getTcsPersonId());
       }
       catch (Exception ex) {
@@ -177,10 +175,14 @@ public class MasterElasticSearchService {
     return result;
   }
 
-  private void updateRecords(Iterable<MasterDoctorView> existingRecords, MasterDoctorView dataToSave) {
+  private void updateRecords(
+      Iterable<MasterDoctorView> existingRecords,
+      MasterDoctorView dataToSave
+  ) {
     existingRecords.forEach(currentDoctorView -> {
       dataToSave.setId(currentDoctorView.getId());
-      masterElasticSearchRepository.save(dataToSave);
+      masterIndexRepository.save(dataToSave);
     });
   }
+
 }

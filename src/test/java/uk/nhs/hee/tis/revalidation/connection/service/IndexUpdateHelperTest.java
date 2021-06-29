@@ -38,9 +38,11 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.index.IndexServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
-class ElasticSearchIndexUpdateHelperTest {
+class IndexUpdateHelperTest {
 
   private static final String VISITOR = "Visitor";
   private static final String SUBSTANTIVE = "Substantive";
@@ -49,15 +51,15 @@ class ElasticSearchIndexUpdateHelperTest {
   private static final List<String> ES_INDICES = List
       .of("connectedindex", "disconnectedindex", "exceptionindex");
   @Mock
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  IndexServiceImpl<ExceptionView> exceptionElasticSearchService;
   @Mock
-  private ConnectedElasticSearchService connectedElasticSearchService;
+  IndexServiceImpl<ConnectedView> connectedElasticSearchService;
   @Mock
-  private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  IndexServiceImpl<DisconnectedView> disconnectedElasticSearchService;
   @Mock
   private ElasticsearchOperations elasticSearchOperations;
   @InjectMocks
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
   private ConnectionInfoDto visitorExceptionDto = ConnectionInfoDto.builder()
       .tcsPersonId((long) 111)
       .gmcReferenceNumber("123")
@@ -109,14 +111,14 @@ class ElasticSearchIndexUpdateHelperTest {
 
   @Test
   void shouldAddExceptionIfVisitor() {
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorExceptionDto);
-    verify(exceptionElasticSearchService).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorExceptionDto));
-    verify(connectedElasticSearchService).saveConnectedViews(
-        elasticSearchIndexUpdateHelper.getConnectedViews(visitorExceptionDto));
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+    indexUpdateHelper.updateElasticSearchIndex(visitorExceptionDto);
+    verify(exceptionElasticSearchService).saveView(
+        indexUpdateHelper.getExceptionViews(visitorExceptionDto));
+    verify(connectedElasticSearchService).saveView(
+        indexUpdateHelper.getConnectedViews(visitorExceptionDto));
+    verify(disconnectedElasticSearchService).removeViewByGmcReferenceNumber(
         visitorExceptionDto.getGmcReferenceNumber());
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+    verify(disconnectedElasticSearchService).removeViewByTcsPersonId(
         visitorExceptionDto.getTcsPersonId());
   }
 
@@ -125,14 +127,14 @@ class ElasticSearchIndexUpdateHelperTest {
     ConnectionInfoDto pmExpiredExceptionDto = noExceptionDto;
     pmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
     pmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(pmExpiredExceptionDto);
-    verify(exceptionElasticSearchService).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(pmExpiredExceptionDto));
-    verify(connectedElasticSearchService).saveConnectedViews(
-        elasticSearchIndexUpdateHelper.getConnectedViews(pmExpiredExceptionDto));
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+    indexUpdateHelper.updateElasticSearchIndex(pmExpiredExceptionDto);
+    verify(exceptionElasticSearchService).saveView(
+        indexUpdateHelper.getExceptionViews(pmExpiredExceptionDto));
+    verify(connectedElasticSearchService).saveView(
+        indexUpdateHelper.getConnectedViews(pmExpiredExceptionDto));
+    verify(disconnectedElasticSearchService).removeViewByGmcReferenceNumber(
         pmExpiredExceptionDto.getGmcReferenceNumber());
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+    verify(disconnectedElasticSearchService).removeViewByTcsPersonId(
         pmExpiredExceptionDto.getTcsPersonId());
   }
 
@@ -142,14 +144,14 @@ class ElasticSearchIndexUpdateHelperTest {
     visitorPmExpiredExceptionDto.setProgrammeMembershipType(VISITOR);
     visitorPmExpiredExceptionDto.setProgrammeMembershipStartDate(LocalDate.now().minusDays(200));
     visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
-    verify(exceptionElasticSearchService).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
-    verify(connectedElasticSearchService).saveConnectedViews(
-        elasticSearchIndexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+    indexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(exceptionElasticSearchService).saveView(
+        indexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    verify(connectedElasticSearchService).saveView(
+        indexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
+    verify(disconnectedElasticSearchService).removeViewByGmcReferenceNumber(
         visitorPmExpiredExceptionDto.getGmcReferenceNumber());
-    verify(disconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+    verify(disconnectedElasticSearchService).removeViewByTcsPersonId(
         visitorPmExpiredExceptionDto.getTcsPersonId());
   }
 
@@ -160,16 +162,16 @@ class ElasticSearchIndexUpdateHelperTest {
     visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(LocalDate.now().minusDays(100));
     visitorPmExpiredExceptionDto.setDesignatedBody(null);
     visitorPmExpiredExceptionDto.setConnectionStatus("No");
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
-    verify(exceptionElasticSearchService, never()).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
-    verify(connectedElasticSearchService, never()).saveConnectedViews(
-        elasticSearchIndexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
-    verify(exceptionElasticSearchService).removeExceptionViewByGmcNumber(
+    indexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(exceptionElasticSearchService, never()).saveView(
+        indexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    verify(connectedElasticSearchService, never()).saveView(
+        indexUpdateHelper.getConnectedViews(visitorPmExpiredExceptionDto));
+    verify(exceptionElasticSearchService).removeViewByGmcReferenceNumber(
         visitorPmExpiredExceptionDto.getGmcReferenceNumber());
-    verify(exceptionElasticSearchService).removeExceptionViewByTcsPersonId(
+    verify(exceptionElasticSearchService).removeViewByTcsPersonId(
         visitorPmExpiredExceptionDto.getTcsPersonId());
-    verify(disconnectedElasticSearchService, never()).removeDisconnectedViewByTcsPersonId(
+    verify(disconnectedElasticSearchService, never()).removeViewByTcsPersonId(
         visitorPmExpiredExceptionDto.getTcsPersonId());
   }
 
@@ -177,34 +179,34 @@ class ElasticSearchIndexUpdateHelperTest {
   void shouldNotThrowErrorIfProgrammeMembershipTypeNull() {
     ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
     visitorPmExpiredExceptionDto.setProgrammeMembershipType(null);
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
-    verify(exceptionElasticSearchService, never()).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    indexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(exceptionElasticSearchService, never()).saveView(
+        indexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
   }
 
   @Test
   void shouldNotThrowErrorIfProgrammeMembershipEndDateNull() {
     ConnectionInfoDto visitorPmExpiredExceptionDto = noExceptionDto;
     visitorPmExpiredExceptionDto.setProgrammeMembershipEndDate(null);
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
-    verify(exceptionElasticSearchService, never()).saveExceptionViews(
-        elasticSearchIndexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
+    indexUpdateHelper.updateElasticSearchIndex(visitorPmExpiredExceptionDto);
+    verify(exceptionElasticSearchService, never()).saveView(
+        indexUpdateHelper.getExceptionViews(visitorPmExpiredExceptionDto));
   }
 
   @Test
   void shouldRemoveExceptionIfNotVisitor() {
-    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
-    verify(exceptionElasticSearchService).removeExceptionViewByGmcNumber(
+    indexUpdateHelper.updateElasticSearchIndex(noExceptionDto);
+    verify(exceptionElasticSearchService).removeViewByGmcReferenceNumber(
         noExceptionDto.getGmcReferenceNumber()
     );
-    verify(exceptionElasticSearchService).removeExceptionViewByTcsPersonId(
+    verify(exceptionElasticSearchService).removeViewByTcsPersonId(
         noExceptionDto.getTcsPersonId()
     );
   }
 
   @Test
   void shouldGetExceptionViews() {
-    final ExceptionView returnedView = elasticSearchIndexUpdateHelper
+    final ExceptionView returnedView = indexUpdateHelper
         .getExceptionViews(visitorExceptionDto);
 
     assert (returnedView.getGmcReferenceNumber())
@@ -227,7 +229,7 @@ class ElasticSearchIndexUpdateHelperTest {
 
   @Test
   void shouldGetConnectedViews() {
-    final ConnectedView returnedView = elasticSearchIndexUpdateHelper
+    final ConnectedView returnedView = indexUpdateHelper
         .getConnectedViews(visitorExceptionDto);
 
     assert (returnedView.getGmcReferenceNumber())
@@ -250,7 +252,7 @@ class ElasticSearchIndexUpdateHelperTest {
 
   @Test
   void shouldGetDisconnectedViews() {
-    final DisconnectedView returnedView = elasticSearchIndexUpdateHelper
+    final DisconnectedView returnedView = indexUpdateHelper
         .getDisconnectedViews(visitorExceptionDto);
 
     assert (returnedView.getGmcReferenceNumber())
@@ -273,7 +275,7 @@ class ElasticSearchIndexUpdateHelperTest {
 
   @Test
   void shouldClearConnectionIndex() {
-    elasticSearchIndexUpdateHelper.clearConnectionIndexes(ES_INDICES);
+    indexUpdateHelper.clearConnectionIndexes(ES_INDICES);
     verify(elasticSearchOperations).deleteIndex("connectedindex");
     verify(elasticSearchOperations).deleteIndex("disconnectedindex");
     verify(elasticSearchOperations).deleteIndex("exceptionindex");
@@ -284,7 +286,7 @@ class ElasticSearchIndexUpdateHelperTest {
 
   @Test
   void shouldNotClearConnectionIndexIfNotMatch() {
-    elasticSearchIndexUpdateHelper.clearConnectionIndexes(List.of("randomText"));
+    indexUpdateHelper.clearConnectionIndexes(List.of("randomText"));
     verify(elasticSearchOperations, never()).putMapping(ConnectedView.class);
     verify(elasticSearchOperations, never()).putMapping(DisconnectedView.class);
     verify(elasticSearchOperations, never()).putMapping(ExceptionView.class);

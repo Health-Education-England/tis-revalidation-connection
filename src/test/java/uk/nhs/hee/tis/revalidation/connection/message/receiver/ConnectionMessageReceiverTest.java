@@ -27,8 +27,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,26 +34,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapperImpl;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.hydration.ConnectionInfoHydrationService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @ExtendWith(MockitoExtension.class)
 public class ConnectionMessageReceiverTest {
   @InjectMocks
   private ConnectionMessageReceiver connectionMessageReceiver;
   @Mock
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
   @Mock
-  private MasterElasticSearchService masterElasticSearchService;
+  private MasterIndexService masterIndexService;
   @Mock
-  private ConnectionService connectionService;
-  @Mock
-  private MasterElasticSearchRepository masterElasticSearchRepository;
+  private ConnectionInfoHydrationService connectionInfoHydrationService;
 
   private Faker faker = new Faker();
   private String gmcRef1;
@@ -65,27 +57,52 @@ public class ConnectionMessageReceiverTest {
   private String designatedBody1;
   private String programmeName1;
   private String programmeOwner1;
-  ConnectionInfoDto connectionInfoDto;
-  MasterDoctorView masterDoctorView;
-  ConnectionInfoMapper connectionInfoMapper;
-  private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
-  private  List<MasterDoctorView> gmcData = new ArrayList<>();
+  ConnectionInfoDto messageDto;
+  ConnectionInfoDto hydratedDto;
 
   /**
    * Set up data for testing.
    */
   @BeforeEach
   public void setup() {
-    connectionInfoMapper = new ConnectionInfoMapperImpl();
+    initializeFields();
+    initializeMessageDto();
+    initializeHydratedDto();
+  }
+
+  @Test
+  void shouldUpdateMasterIndexAndOtherIndexesOnReceiveConnectionInfo() {
+    when(connectionInfoHydrationService.hydrate(messageDto)).thenReturn(hydratedDto);
+    connectionMessageReceiver.handleMessage(messageDto);
+    verify(masterIndexService).updateMasterIndex(hydratedDto);
+    verify(indexUpdateHelper).updateElasticSearchIndex(hydratedDto);
+  }
+
+  private void initializeFields() {
+    gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
     designatedBody1 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
-    gmcRef1 = faker.number().digits(8);
+  }
 
-    connectionInfoDto = ConnectionInfoDto.builder()
+  private void initializeMessageDto() {
+    messageDto = ConnectionInfoDto.builder()
+        .tcsPersonId((long) 111)
+        .gmcReferenceNumber(gmcRef1)
+        .doctorFirstName(firstName1)
+        .doctorLastName(lastName1)
+        .submissionDate(null)
+        .programmeName(programmeName1)
+        .designatedBody(null)
+        .programmeOwner(programmeOwner1)
+        .build();
+  }
+
+  private void initializeHydratedDto () {
+    hydratedDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -95,18 +112,6 @@ public class ConnectionMessageReceiverTest {
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
         .build();
-    connectionInfoDtos.add(connectionInfoDto);
-
-    gmcData.add(connectionInfoMapper.dtoToMaster(connectionInfoDto));
-
-
   }
 
-  @Test
-  void shouldUpdateMasterIndexAndOtherIndexesOnReceiveConnectionInfo() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(gmcData);
-    connectionMessageReceiver.handleMessage(connectionInfoDto);
-    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
-    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
-  }
 }

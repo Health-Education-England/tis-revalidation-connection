@@ -19,17 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.repository.index;
 
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
+import java.util.List;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import uk.nhs.hee.tis.revalidation.connection.entity.BaseConnectionView;
 
-@Repository
-public interface ConnectedElasticSearchRepository
-    extends ElasticsearchRepository<ConnectedView, String> {
+public interface IndexRepository<T extends BaseConnectionView> {
 
-  void deleteByGmcReferenceNumber(String gmcReferenceNumber);
+  Iterable<T> executeQuery(BoolQueryBuilder fullQuery);
 
-  void deleteByTcsPersonId(Long tcsPersonId);
+  Page<T> executePagedQuery(BoolQueryBuilder fullQuery, Pageable pageable);
+
+  List<T> findViewByGmcReferenceNumberAndTcsPersonId(String gmcReferenceNumber,
+      Long tcsPersonId);
+
+  List<T> findViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  List<T> findViewByTcsPersonId(Long tcsPersonId);
+
+  void save(T viewToSave);
+
+  void deleteViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  void deleteViewByTcsPersonId(Long tcsPersonId);
 }

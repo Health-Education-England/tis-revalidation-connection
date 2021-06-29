@@ -38,17 +38,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @ExtendWith(MockitoExtension.class)
 public class SyncMessageReceiverTest {
   @InjectMocks
   private SyncMessageReceiver syncMessageReceiver;
   @Mock
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
   @Mock
-  private MasterElasticSearchService masterElasticSearchService;
+  private MasterIndexService masterIndexService;
   private Faker faker = new Faker();
   private String gmcRef1;
   private String firstName1;
@@ -88,23 +88,23 @@ public class SyncMessageReceiverTest {
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessageGetMaster() {
-    when(masterElasticSearchService.findAllScroll()).thenReturn(connectionInfoDtos);
+    when(masterIndexService.findAllScroll()).thenReturn(connectionInfoDtos);
     syncMessageReceiver.handleMessage("getMaster");
-    verify(elasticSearchIndexUpdateHelper, times(1))
+    verify(indexUpdateHelper, times(1))
         .updateElasticSearchIndex(connectionInfoDtos.get(0));
   }
 
   @Test
   void shouldNotUpdateConnectionsOnReceiveMessageGetMasterIfNull() {
     syncMessageReceiver.handleMessage(null);
-    verify(elasticSearchIndexUpdateHelper, never())
+    verify(indexUpdateHelper, never())
         .updateElasticSearchIndex(connectionInfoDtos.get(0));
   }
 
   @Test
   void shouldNotUpdateConnectionsOnReceiveMessageGetMasterIfNotMatch() {
     syncMessageReceiver.handleMessage("randomString");
-    verify(elasticSearchIndexUpdateHelper, never())
+    verify(indexUpdateHelper, never())
         .updateElasticSearchIndex(connectionInfoDtos.get(0));
   }
 

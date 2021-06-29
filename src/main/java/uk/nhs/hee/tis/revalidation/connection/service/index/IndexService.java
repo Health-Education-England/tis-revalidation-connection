@@ -19,15 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.entity;
+package uk.nhs.hee.tis.revalidation.connection.service.index;
 
-import lombok.AllArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import lombok.extern.jackson.Jacksonized;
-import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.domain.Pageable;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.BaseConnectionView;
 
-@SuperBuilder
-@Jacksonized
-@Document(indexName = "exceptionindex")
-@AllArgsConstructor
-public class ExceptionView extends BaseConnectionView{ }
+public interface IndexService<T extends BaseConnectionView> {
+  ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable);
+
+  void saveView(T dataToSave);
+
+  void removeViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  void removeViewByTcsPersonId(Long tcsPersonId);
+}

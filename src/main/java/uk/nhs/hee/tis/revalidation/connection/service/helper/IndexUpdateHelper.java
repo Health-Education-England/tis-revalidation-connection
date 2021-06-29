@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.service;
+package uk.nhs.hee.tis.revalidation.connection.service.helper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,22 +32,23 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.service.index.IndexServiceImpl;
 
 
 @Slf4j
 @Component
-public class ElasticSearchIndexUpdateHelper {
+public class IndexUpdateHelper {
 
   private static final String VISITOR = "Visitor";
 
   @Autowired
-  ExceptionElasticSearchService exceptionElasticSearchService;
+  IndexServiceImpl<ExceptionView> exceptionElasticSearchService;
 
   @Autowired
-  ConnectedElasticSearchService connectedElasticSearchService;
+  IndexServiceImpl<ConnectedView> connectedElasticSearchService;
 
   @Autowired
-  DisconnectedElasticSearchService disconnectedElasticSearchService;
+  IndexServiceImpl<DisconnectedView> disconnectedElasticSearchService;
 
   @Autowired
   private ElasticsearchOperations elasticSearchOperations;
@@ -69,35 +70,35 @@ public class ElasticSearchIndexUpdateHelper {
 
   private void checkException(final ConnectionInfoDto connectionInfo) {
     if (isException(connectionInfo)) {
-      exceptionElasticSearchService.saveExceptionViews(getExceptionViews(connectionInfo));
+      exceptionElasticSearchService.saveView(getExceptionViews(connectionInfo));
     } else {
       exceptionElasticSearchService
-          .removeExceptionViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcReferenceNumber(connectionInfo.getGmcReferenceNumber());
       exceptionElasticSearchService
-          .removeExceptionViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 
   private void checkTraineeConnection(final ConnectionInfoDto connectionInfo) {
     if (isConnected(connectionInfo)) {
-      // Save connected trainee to Connected ES index
-      connectedElasticSearchService.saveConnectedViews(getConnectedViews(connectionInfo));
+      // Save connected trainee to Connected index
+      connectedElasticSearchService.saveView(getConnectedViews(connectionInfo));
 
-      // Delete connected trainee from Disconnected ES index
+      // Delete connected trainee from Disconnected index
       disconnectedElasticSearchService
-          .removeDisconnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcReferenceNumber(connectionInfo.getGmcReferenceNumber());
       disconnectedElasticSearchService
-          .removeDisconnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     } else {
-      // Save disconnected trainee to Disconnected ES index
+      // Save disconnected trainee to Disconnected index
       disconnectedElasticSearchService
-          .saveDisconnectedViews(getDisconnectedViews(connectionInfo));
+          .saveView(getDisconnectedViews(connectionInfo));
 
-      // Delete disconnected trainee from Connected ES index
+      // Delete disconnected trainee from Connected index
       connectedElasticSearchService
-          .removeConnectedViewByGmcNumber(connectionInfo.getGmcReferenceNumber());
+          .removeViewByGmcReferenceNumber(connectionInfo.getGmcReferenceNumber());
       connectedElasticSearchService
-          .removeConnectedViewByTcsPersonId(connectionInfo.getTcsPersonId());
+          .removeViewByTcsPersonId(connectionInfo.getTcsPersonId());
     }
   }
 

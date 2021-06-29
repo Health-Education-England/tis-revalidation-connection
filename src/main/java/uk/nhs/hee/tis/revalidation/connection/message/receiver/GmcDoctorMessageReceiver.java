@@ -21,46 +21,37 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.hydration.ConnectionInfoHydrationService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @Component
 public class GmcDoctorMessageReceiver implements MessageReceiver<GmcDoctor> {
 
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
 
-  private MasterElasticSearchService masterElasticSearchService;
+  private MasterIndexService masterIndexService;
 
-  private MasterElasticSearchRepository masterElasticSearchRepository;
-
-  private ConnectionInfoMapper connectionInfoMapper;
+  private ConnectionInfoHydrationService connectionInfoHydrationService;
 
   /**
    * Class to handle gmc doctor update messages
    *
-   * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchService
-   * @param masterElasticSearchRepository
-   * @param connectionInfoMapper
+   * @param indexUpdateHelper class to sort views into correct index
+   * @param masterIndexService class to update master index
+   * @param connectionInfoHydrationService class to fill in missing fields
    */
   public GmcDoctorMessageReceiver(
-      ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService,
-      MasterElasticSearchRepository masterElasticSearchRepository,
-      ConnectionInfoMapper connectionInfoMapper
+      IndexUpdateHelper indexUpdateHelper,
+      MasterIndexService masterIndexService,
+      ConnectionInfoHydrationService connectionInfoHydrationService
   ) {
-    this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchService = masterElasticSearchService;
-    this.masterElasticSearchRepository = masterElasticSearchRepository;
-    this.connectionInfoMapper = connectionInfoMapper;
+    this.indexUpdateHelper = indexUpdateHelper;
+    this.masterIndexService = masterIndexService;
+    this.connectionInfoHydrationService = connectionInfoHydrationService;
   }
 
   /**
@@ -70,26 +61,9 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<GmcDoctor> {
    */
   @Override
   public void handleMessage(GmcDoctor message) {
-    List<MasterDoctorView> existingViews = masterElasticSearchRepository
-        .findByGmcReferenceNumber(message.getGmcReferenceNumber());
-    List<ConnectionInfoDto> updatedConnections = updateExistingViews(existingViews, message);
-    updatedConnections.forEach(connection -> {
-      masterElasticSearchService.updateMasterIndex(connection);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connection);
-    });
+    ConnectionInfoDto connection = connectionInfoHydrationService.hydrate(message);
+    masterIndexService.updateMasterIndex(connection);
+    indexUpdateHelper.updateElasticSearchIndex(connection);
   }
 
-  private List<ConnectionInfoDto> updateExistingViews(
-      List<MasterDoctorView> existingViews,
-      GmcDoctor doctor
-  ) {
-    List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
-    existingViews.forEach(existingView -> {
-      existingView.setDoctorFirstName(doctor.getDoctorFirstName());
-      existingView.setDoctorLastName(doctor.getDoctorLastName());
-      existingView.setDesignatedBody(doctor.getDesignatedBodyCode());
-      connectionInfoDtos.add(connectionInfoMapper.masterToDto(existingView));
-    });
-    return connectionInfoDtos;
-  }
 }

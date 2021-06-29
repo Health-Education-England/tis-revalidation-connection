@@ -21,45 +21,41 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.helper.IndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.hydration.ConnectionInfoHydrationService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.MasterIndexService;
 
 @Slf4j
 @Component
 public class ConnectionMessageReceiver implements MessageReceiver<ConnectionInfoDto> {
 
-  private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
+  private IndexUpdateHelper indexUpdateHelper;
 
-  private MasterElasticSearchService masterElasticSearchService;
+  private MasterIndexService masterIndexService;
 
-  private MasterElasticSearchRepository masterElasticSearchRepository;
+  private ConnectionInfoHydrationService connectionInfoHydrationService;
 
   private ConnectionService connectionService;
 
   /**
    * Class to handle connection update messages
    *
-   * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchService
-   * @param connectionService
+   * @param indexUpdateHelper class to sort views into correct index
+   * @param masterIndexService class to update master index
+   * @param connectionInfoHydrationService class to fill in missing fields
    */
   public ConnectionMessageReceiver(
-      ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService,
-      ConnectionService connectionService,
-      MasterElasticSearchRepository masterElasticSearchRepository
+      IndexUpdateHelper indexUpdateHelper,
+      MasterIndexService masterIndexService,
+      ConnectionInfoHydrationService connectionInfoHydrationService
   ) {
-    this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchService = masterElasticSearchService;
-    this.connectionService = connectionService;
-    this.masterElasticSearchRepository = masterElasticSearchRepository;
+    this.indexUpdateHelper = indexUpdateHelper;
+    this.masterIndexService = masterIndexService;
+    this.connectionInfoHydrationService = connectionInfoHydrationService;
   }
 
   /**
@@ -70,20 +66,10 @@ public class ConnectionMessageReceiver implements MessageReceiver<ConnectionInfo
   @Override
   public void handleMessage(ConnectionInfoDto message) {
     log.debug("MESSAGE RECEIVED: " + message);
-
-    // Get Gmc data from master index and aggregate it to connectionInfo
     try {
-      if (message.getGmcReferenceNumber() != null) {
-        List<MasterDoctorView> gmcData = masterElasticSearchRepository
-            .findByGmcReferenceNumber(message.getGmcReferenceNumber());
-        if (gmcData.size() > 0) {
-          MasterDoctorView gmcDataMasterDoctor = gmcData.get(0);
-          message.setSubmissionDate(gmcDataMasterDoctor.getSubmissionDate());
-          message.setDesignatedBody(gmcDataMasterDoctor.getDesignatedBody());
-        }
-      }
-      masterElasticSearchService.updateMasterIndex(message);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(message);
+      ConnectionInfoDto connectionInfo = connectionInfoHydrationService.hydrate(message);
+      masterIndexService.updateMasterIndex(connectionInfo);
+      indexUpdateHelper.updateElasticSearchIndex(connectionInfo);
     } catch (Exception e) {
       log.info("Exception in receiveMessageUpdate: {}", e.getMessage());
     }

@@ -19,40 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.service;
-
-import static java.time.LocalDate.now;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+package uk.nhs.hee.tis.revalidation.connection.service.index;
 
 import com.github.javafaker.Faker;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.mapper.MasterConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.index.MasterIndexRepository;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.time.LocalDate.now;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MasterElasticSearchServiceTest {
-
+public class MasterIndexServiceTest {
   private final Faker faker = new Faker();
   @Mock
-  MasterElasticSearchRepository masterElasticSearchRepository;
+  MasterIndexRepository masterIndexRepository;
   @Mock
-  ConnectionInfoMapper connectionInfoMapper;
+  ElasticsearchRestTemplate elasticsearchRestTemplate;
+  @Mock
+  MasterConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
-  MasterElasticSearchService masterElasticSearchService;
+  MasterIndexService masterIndexService;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -72,7 +71,6 @@ class MasterElasticSearchServiceTest {
    */
   @BeforeEach
   public void setup() {
-
     gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
@@ -112,17 +110,9 @@ class MasterElasticSearchServiceTest {
   }
 
   @Test
-  void shouldFindAllMasterToDto() {
-    when(masterElasticSearchRepository.findAll()).thenReturn(masterDoctorViews);
-    when(connectionInfoMapper.masterToDtos(masterDoctorViews)).thenReturn(connectionInfoDtos);
-    List<ConnectionInfoDto> resultList = masterElasticSearchService.findAllMasterToDto();
-    assertThat(resultList, is(connectionInfoDtos));
-  }
-
-  @Test
   void shouldUpdateMasterIndex() {
     when(connectionInfoMapper.dtoToMaster(connectionInfoDto)).thenReturn(currentDoctorView);
-    masterElasticSearchService.updateMasterIndex(connectionInfoDto);
-    verify(masterElasticSearchRepository).save(currentDoctorView);
+    masterIndexService.updateMasterIndex(connectionInfoDto);
+    verify(masterIndexRepository).save(currentDoctorView);
   }
 }

@@ -47,10 +47,11 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.IndexService;
 
 @Slf4j
 @RestController
@@ -71,13 +72,13 @@ public class ConnectionController {
   private ConnectionService connectionService;
 
   @Autowired
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private IndexService<ExceptionView> exceptionElasticSearchService;
 
   @Autowired
-  private ConnectedElasticSearchService connectedElasticSearchService;
+  private IndexService<ConnectedView> connectedElasticSearchService;
 
   @Autowired
-  private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  private IndexService<DisconnectedView> disconnectedElasticSearchService;
 
   /**
    * POST  /connections/add : Add a new connection.

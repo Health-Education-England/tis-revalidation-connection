@@ -57,11 +57,12 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.index.IndexServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(ConnectionController.class)
@@ -83,11 +84,11 @@ class ConnectionControllerTest {
   @MockBean
   private ConnectionService connectionService;
   @MockBean
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private IndexServiceImpl<ExceptionView> exceptionElasticSearchService;
   @MockBean
-  private ConnectedElasticSearchService connectedElasticSearchService;
+  private IndexServiceImpl<ConnectedView> connectedElasticSearchService;
   @MockBean
-  private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  private IndexServiceImpl<DisconnectedView> disconnectedElasticSearchService;
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;

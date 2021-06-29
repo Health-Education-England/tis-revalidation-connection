@@ -19,17 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.repository.index.elasticsearch;
 
+import java.util.List;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.BaseConnectionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
-@Repository
-public interface ExceptionElasticSearchRepository extends
-    ElasticsearchRepository<ExceptionView, String> {
+/*
+Developer note: This interface duplicates ElasticSearchIndexRepository as MasterDoctorView
+is likely to diverge from other connections views in future
+ */
+public interface ElasticSearchMasterIndexRepository
+    extends ElasticsearchRepository<MasterDoctorView, String> {
 
-  void deleteByGmcReferenceNumber(String gmcReferenceNumber);
+  List<MasterDoctorView> findViewByGmcReferenceNumberAndTcsPersonId(String gmcReferenceNumber,
+      Long tcsPersonId);
 
-  void deleteByTcsPersonId(Long tcsPersonId);
+  List<MasterDoctorView> findViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  List<MasterDoctorView> findViewByTcsPersonId(Long tcsPersonId);
+
+  void deleteViewByGmcReferenceNumber(String gmcReferenceNumber);
+
+  void deleteViewByTcsPersonId(Long tcsPersonId);
 }

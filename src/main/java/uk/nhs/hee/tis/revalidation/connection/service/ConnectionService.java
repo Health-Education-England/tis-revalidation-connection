@@ -53,6 +53,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.UpdateConnectionReceiver;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.DoctorsForDBRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -90,6 +91,11 @@ public class ConnectionService {
 
   @Value("${app.rabbit.reval.queue.connection.update}}")
   private String esTisRoutingKey;
+
+  @Autowired
+  private UpdateConnectionReceiver updateConnectionReceiver;
+
+  private UpdateConnectionDto updateConnectionDto;
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -171,7 +177,7 @@ public class ConnectionService {
   private UpdateConnectionResponseDto processConnectionRequest(
       final UpdateConnectionDto addDoctorDto,
       final ConnectionRequestType connectionRequestType) {
-
+    updateConnectionDto = addDoctorDto;
     final var changeReason = addDoctorDto.getChangeReason();
     final var designatedBodyCode = addDoctorDto.getDesignatedBodyCode();
     final var addRemoveResponse = addDoctorDto.getDoctors().stream().map(doctor -> {
@@ -233,7 +239,11 @@ public class ConnectionService {
         .requestTime(now())
         .build();
 
+    //save connection info to mongodb
     repository.save(connectionRequestLog);
+
+    //update elastic search index goes here
+    updateConnectionReceiver.handleMessage(updateConnectionDto);
 
     sendToRabbitOrExceptionLogs(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
     final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());

@@ -22,7 +22,8 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +31,6 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

@@ -74,7 +74,7 @@ public class SyncMessageReceiver implements MessageReceiver<String> {
 
       final Map<String, String> exceptionsMap = exceptionService.getExceptionsMap();
 
-      for(ConnectionInfoDto connectionInfoDto: masterList) {
+      for (ConnectionInfoDto connectionInfoDto: masterList) {
         connectionInfoDto.setExceptionReason(
             exceptionsMap.get(connectionInfoDto.getGmcReferenceNumber())
         );

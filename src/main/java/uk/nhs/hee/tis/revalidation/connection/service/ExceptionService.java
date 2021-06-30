@@ -31,7 +31,6 @@ import static org.springframework.data.domain.Sort.by;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,7 +98,7 @@ public class ExceptionService {
   public Map<String, String> getExceptionsMap() {
     Map<String,String> exceptionsMap = new HashMap<>();
     List<ExceptionLog> exceptionLogList = repository.findAll();
-    for(ExceptionLog exceptionLog: exceptionLogList) {
+    for (ExceptionLog exceptionLog: exceptionLogList) {
       exceptionsMap.put(exceptionLog.getGmcId(), exceptionLog.getErrorMessage());
     }
     return exceptionsMap;

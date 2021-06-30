@@ -117,6 +117,8 @@ class ConnectionControllerTest {
   private String programmeName2;
   private String programmeOwner1;
   private String programmeOwner2;
+  private String exceptionReason1;
+  private String exceptionReason2;
 
   @BeforeEach
   public void setup() {
@@ -151,6 +153,8 @@ class ConnectionControllerTest {
     programmeName2 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     programmeOwner2 = faker.lorem().characters(20);
+    exceptionReason1 = faker.lorem().characters(20);
+    exceptionReason2 = faker.lorem().characters(20);
   }
 
   @Test
@@ -284,7 +288,9 @@ class ConnectionControllerTest {
         .andExpect(
             jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
         .andExpect(
-            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)))
+        .andExpect(
+            jsonPath("$.connections.[*].exceptionReason").value(hasItem(exceptionReason2)));
   }
 
   @Test
@@ -449,6 +455,7 @@ class ConnectionControllerTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
+        .exceptionReason(exceptionReason1)
         .build();
 
     final var doctor2 = ConnectionInfoDto.builder()
@@ -460,6 +467,7 @@ class ConnectionControllerTest {
         .programmeName(programmeName2)
         .designatedBody(designatedBody2)
         .programmeOwner(programmeOwner2)
+        .exceptionReason(exceptionReason2)
         .build();
     return of(doctor1, doctor2);
   }

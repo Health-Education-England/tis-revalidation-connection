@@ -62,6 +62,7 @@ class RabbitMessageListenerTest {
   private String programmeName1;
   private String programmeOwner1;
   private String status;
+  private String exceptionReason;
 
   @BeforeEach
   public void setup() {
@@ -75,6 +76,7 @@ class RabbitMessageListenerTest {
     status = faker.lorem().characters(8);
     connectionInfoDto = buildConnectionInfoDto();
     gmcDoctor = buildGmcDoctor();
+    exceptionReason = faker.lorem().characters(20);
   }
 
   @Test
@@ -123,6 +125,7 @@ class RabbitMessageListenerTest {
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
         .connectionStatus(status)
+        .exceptionReason(exceptionReason)
         .build();
   }
 

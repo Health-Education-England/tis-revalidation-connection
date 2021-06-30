@@ -57,6 +57,7 @@ public class SyncMessageReceiverTest {
   private String designatedBody1;
   private String programmeName1;
   private String programmeOwner1;
+  private String exceptionReason1;
   ConnectionInfoDto connectionInfoDto;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
 
@@ -72,6 +73,7 @@ public class SyncMessageReceiverTest {
     designatedBody1 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
+    exceptionReason1 = faker.lorem().characters(20);
 
     connectionInfoDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
@@ -82,6 +84,7 @@ public class SyncMessageReceiverTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
+        .exceptionReason(exceptionReason1)
         .build();
     connectionInfoDtos.add(connectionInfoDto);
   }

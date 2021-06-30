@@ -76,6 +76,7 @@ class ExceptionUpdateExceptionElasticSearchServiceTest {
         .tcsDesignatedBody("tcsbody")
         .programmeOwner("owner")
         .connectionStatus("Yes")
+        .exceptionReason("exception reason")
         .build();
     exceptionViews.add(exceptionView);
     searchResult = new PageImpl<>(exceptionViews);

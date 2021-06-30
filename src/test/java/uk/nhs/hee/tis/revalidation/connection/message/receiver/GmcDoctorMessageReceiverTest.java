@@ -72,6 +72,7 @@ public class GmcDoctorMessageReceiverTest {
   private String programmeName1;
   private String programmeOwner1;
   private String status;
+  private String exceptionReason1;
   ConnectionInfoDto connectionInfoDto;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
   private List<MasterDoctorView> masterDoctorViews = new ArrayList<>();
@@ -94,6 +95,7 @@ public class GmcDoctorMessageReceiverTest {
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     status = faker.lorem().characters(8);
+    exceptionReason1 = faker.lorem().characters(20);
 
     connectionInfoDto = buildConnectionInfoDto();
     connectionInfoDtos.add(connectionInfoDto);
@@ -146,6 +148,7 @@ public class GmcDoctorMessageReceiverTest {
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
         .connectionStatus(status)
+        .exceptionReason(exceptionReason1)
         .build();
   }
 

@@ -62,6 +62,7 @@ class MasterElasticSearchServiceTest {
   private String programmeName1;
   private String programmeOwner1;
   private String membershipType1;
+  private String exceptionReason1;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
   private Iterable<MasterDoctorView> masterDoctorViews = new ArrayList<>();
   private ConnectionInfoDto connectionInfoDto;
@@ -82,6 +83,7 @@ class MasterElasticSearchServiceTest {
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     membershipType1 = faker.lorem().characters(10);
+    exceptionReason1 = faker.lorem().characters(10);
 
     connectionInfoDto = ConnectionInfoDto.builder()
         .tcsPersonId((long) 111)
@@ -92,6 +94,7 @@ class MasterElasticSearchServiceTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
+        .exceptionReason(exceptionReason1)
         .build();
     connectionInfoDtos.add(connectionInfoDto);
 
@@ -108,6 +111,7 @@ class MasterElasticSearchServiceTest {
         .tcsDesignatedBody(designatedBody2)
         .programmeOwner(programmeOwner1)
         .connectionStatus("Yes")
+        .exceptionReason(exceptionReason1)
         .build();
   }
 

@@ -28,6 +28,7 @@ import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
@@ -183,7 +184,7 @@ public class ElasticSearchIndexUpdateHelper {
       isExpired = (connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
           && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes"));
     }
-    var isGmcFail = (connectionInfo.getExceptionReason() != null);
+    var isGmcFail = (StringUtils.hasText(connectionInfo.getExceptionReason()));
 
     return (isVisitor || isExpired || isGmcFail);
   }

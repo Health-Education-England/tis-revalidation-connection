@@ -28,7 +28,10 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,6 +91,18 @@ public class ExceptionService {
         .totalResults(exceptionLogPage.getTotalElements())
         .exceptionRecord(buildExceptionRecords(exceptionLogs))
         .build();
+  }
+
+  /**
+   * Get exception log hashmap.
+   */
+  public Map<String, String> getExceptionsMap() {
+    Map<String,String> exceptionsMap = new HashMap<>();
+    List<ExceptionLog> exceptionLogList = repository.findAll();
+    for(ExceptionLog exceptionLog: exceptionLogList) {
+      exceptionsMap.put(exceptionLog.getGmcId(), exceptionLog.getErrorMessage());
+    }
+    return exceptionsMap;
   }
 
   private List<ExceptionRecordDto> buildExceptionRecords(final List<ExceptionLog> exceptionLogs) {

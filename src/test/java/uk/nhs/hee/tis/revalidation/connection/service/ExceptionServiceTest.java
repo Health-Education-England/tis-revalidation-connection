@@ -22,7 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +30,10 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,11 +66,15 @@ class ExceptionServiceTest {
 
   private String gmcId;
   private String responseCode;
+  private LocalDateTime localDateTime;
+  private List<ExceptionLog> exceptionLogList;
 
   @BeforeEach
   public void setup() {
     gmcId = faker.number().digits(8);
     responseCode = "0";
+    localDateTime = LocalDateTime.now();
+    initializeExceptionLogList();
   }
 
   @Test
@@ -90,5 +98,22 @@ class ExceptionServiceTest {
   void shouldSendToExceptionQueue() {
     exceptionService.sendToExceptionQueue(gmcId, "Test error message");
     verify(repository).save(any(ExceptionLog.class));
+  }
+
+  @Test
+  void shouldReturnLogsMap() {
+    when(repository.findAll()).thenReturn(exceptionLogList);
+    final var result = exceptionService.getExceptionsMap();
+    assertThat(result.get(gmcId), is(responseCode));
+  }
+
+  private void initializeExceptionLogList() {
+    ExceptionLog exceptionLog = ExceptionLog.builder()
+        .gmcId(gmcId)
+        .errorMessage(responseCode)
+        .timestamp(localDateTime)
+        .build();
+    exceptionLogList = new ArrayList<>();
+    exceptionLogList.add(exceptionLog);
   }
 }

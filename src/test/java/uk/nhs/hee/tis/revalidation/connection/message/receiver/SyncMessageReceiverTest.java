@@ -30,7 +30,9 @@ import static org.mockito.Mockito.when;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +52,9 @@ public class SyncMessageReceiverTest {
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
   @Mock
   private MasterElasticSearchService masterElasticSearchService;
+  @Mock
+  private ExceptionService exceptionService;
+
   private Faker faker = new Faker();
   private String gmcRef1;
   private String firstName1;
@@ -60,6 +66,7 @@ public class SyncMessageReceiverTest {
   private String exceptionReason1;
   ConnectionInfoDto connectionInfoDto;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
+  private Map<String, String> exceptionsMap;
 
   /**
    * Set up data for testing.
@@ -87,11 +94,15 @@ public class SyncMessageReceiverTest {
         .exceptionReason(exceptionReason1)
         .build();
     connectionInfoDtos.add(connectionInfoDto);
+
+    exceptionsMap = new HashMap<>();
+    exceptionsMap.put(gmcRef1, "exception message");
   }
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessageGetMaster() {
     when(masterElasticSearchService.findAllScroll()).thenReturn(connectionInfoDtos);
+    when(exceptionService.getExceptionsMap()).thenReturn(exceptionsMap);
     syncMessageReceiver.handleMessage("getMaster");
     verify(elasticSearchIndexUpdateHelper, times(1))
         .updateElasticSearchIndex(connectionInfoDtos.get(0));

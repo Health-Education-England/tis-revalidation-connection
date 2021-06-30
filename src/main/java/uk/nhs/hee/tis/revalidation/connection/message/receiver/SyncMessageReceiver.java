@@ -22,11 +22,13 @@
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.config.ElasticsearchConfig;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Slf4j
@@ -37,6 +39,8 @@ public class SyncMessageReceiver implements MessageReceiver<String> {
 
   private MasterElasticSearchService masterElasticSearchService;
 
+  private ExceptionService exceptionService;
+
   /**
    * Class to handle connection update messages
    *
@@ -45,10 +49,12 @@ public class SyncMessageReceiver implements MessageReceiver<String> {
    */
   public SyncMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService
+      MasterElasticSearchService masterElasticSearchService,
+      ExceptionService exceptionService
   ) {
     this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
     this.masterElasticSearchService = masterElasticSearchService;
+    this.exceptionService = exceptionService;
   }
 
   /**
@@ -66,8 +72,14 @@ public class SyncMessageReceiver implements MessageReceiver<String> {
       final List<ConnectionInfoDto> masterList = masterElasticSearchService.findAllScroll();
       log.info("Found {} records from ES Master index. ", masterList.size());
 
-      masterList.forEach(connectionInfo ->
-          elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfo));
+      final Map<String, String> exceptionsMap = exceptionService.getExceptionsMap();
+
+      for (ConnectionInfoDto connectionInfoDto: masterList) {
+        connectionInfoDto.setExceptionReason(
+            exceptionsMap.get(connectionInfoDto.getGmcReferenceNumber())
+        );
+        elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connectionInfoDto);
+      }
       log.info("ES indexes update completed.");
     }
   }

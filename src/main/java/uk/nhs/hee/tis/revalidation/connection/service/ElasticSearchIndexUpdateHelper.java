@@ -121,6 +121,7 @@ public class ElasticSearchIndexUpdateHelper {
         .connectionStatus(connectionInfo.getConnectionStatus())
         .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
         .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
+        .exceptionReason(connectionInfo.getExceptionReason())
         .build();
   }
 
@@ -144,6 +145,7 @@ public class ElasticSearchIndexUpdateHelper {
         .connectionStatus(connectionInfo.getConnectionStatus())
         .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
         .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
+        .exceptionReason(connectionInfo.getExceptionReason())
         .build();
   }
 
@@ -167,6 +169,7 @@ public class ElasticSearchIndexUpdateHelper {
         .connectionStatus(connectionInfo.getConnectionStatus())
         .membershipStartDate(connectionInfo.getProgrammeMembershipStartDate())
         .membershipEndDate(connectionInfo.getProgrammeMembershipEndDate())
+        .exceptionReason(connectionInfo.getExceptionReason())
         .build();
   }
 
@@ -180,7 +183,9 @@ public class ElasticSearchIndexUpdateHelper {
       isExpired = (connectionInfo.getProgrammeMembershipEndDate().isBefore(LocalDate.now())
           && connectionInfo.getConnectionStatus().equalsIgnoreCase("Yes"));
     }
-    return (isVisitor || isExpired);
+    var isGmcFail = (connectionInfo.getExceptionReason() != null);
+
+    return (isVisitor || isExpired || isGmcFail);
   }
 
   private boolean isConnected(final ConnectionInfoDto connectionInfo) {

@@ -66,4 +66,5 @@ public class ConnectedView {
   @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipEndDate;
+  private String exceptionReason;
 }

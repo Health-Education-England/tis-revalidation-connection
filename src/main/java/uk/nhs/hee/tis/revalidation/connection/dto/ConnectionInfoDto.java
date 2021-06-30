@@ -49,4 +49,5 @@ public class ConnectionInfoDto {
   String dataSource;
   LocalDate programmeMembershipStartDate;
   LocalDate programmeMembershipEndDate;
+  String exceptionReason;
 }

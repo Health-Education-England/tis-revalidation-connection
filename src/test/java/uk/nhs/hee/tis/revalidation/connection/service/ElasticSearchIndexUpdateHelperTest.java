@@ -72,6 +72,7 @@ class ElasticSearchIndexUpdateHelperTest {
       .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
+      .exceptionReason(null)
       .dataSource("source")
       .build();
   private ConnectionInfoDto noConnectionExceptionDto = ConnectionInfoDto.builder()
@@ -88,6 +89,7 @@ class ElasticSearchIndexUpdateHelperTest {
       .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
+      .exceptionReason(null)
       .dataSource("source")
       .build();
   private ConnectionInfoDto noExceptionDto = ConnectionInfoDto.builder()
@@ -104,6 +106,7 @@ class ElasticSearchIndexUpdateHelperTest {
       .connectionStatus("Yes")
       .programmeMembershipStartDate(LocalDate.now().minusDays(100))
       .programmeMembershipEndDate(LocalDate.now().plusDays(100))
+      .exceptionReason(null)
       .dataSource("source")
       .build();
 
@@ -171,6 +174,21 @@ class ElasticSearchIndexUpdateHelperTest {
         visitorPmExpiredExceptionDto.getTcsPersonId());
     verify(disconnectedElasticSearchService, never()).removeDisconnectedViewByTcsPersonId(
         visitorPmExpiredExceptionDto.getTcsPersonId());
+  }
+
+  @Test
+  void shouldAddExceptionIfGmcFail() {
+    ConnectionInfoDto gmcFailExceptionDto = noExceptionDto;
+    gmcFailExceptionDto.setExceptionReason("Missing / Invalid Change Code (Reason)");
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(gmcFailExceptionDto);
+    verify(exceptionElasticSearchService).saveExceptionViews(
+        elasticSearchIndexUpdateHelper.getExceptionViews(gmcFailExceptionDto));
+    verify(connectedElasticSearchService).saveConnectedViews(
+        elasticSearchIndexUpdateHelper.getConnectedViews(gmcFailExceptionDto));
+    verify(disconnectedElasticSearchService).removeDisconnectedViewByGmcNumber(
+        gmcFailExceptionDto.getGmcReferenceNumber());
+    verify(disconnectedElasticSearchService).removeDisconnectedViewByTcsPersonId(
+        gmcFailExceptionDto.getTcsPersonId());
   }
 
   @Test

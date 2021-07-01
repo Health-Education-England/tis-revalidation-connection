@@ -91,6 +91,8 @@ public class UpdateConnectionReceiver implements MessageReceiver<UpdateConnectio
     List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
     existingViews.forEach(existingView -> {
       existingView.setDesignatedBody(doctor.getDesignatedBodyCode());
+      String connectionStatus = doctor.getDesignatedBodyCode() == null ? "No" : "Yes";
+      existingView.setConnectionStatus(connectionStatus);
       connectionInfoDtos.add(connectionInfoMapper.masterToDto(existingView));
     });
     return connectionInfoDtos;

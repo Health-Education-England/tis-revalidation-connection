@@ -95,12 +95,6 @@ class ExceptionServiceTest {
   }
 
   @Test
-  void shouldSendToExceptionQueue() {
-    exceptionService.sendToExceptionQueue(gmcId, "Test error message");
-    verify(repository).save(any(ExceptionLog.class));
-  }
-
-  @Test
   void shouldReturnLogsMap() {
     when(repository.findAll()).thenReturn(exceptionLogList);
     final var result = exceptionService.getExceptionsMap();

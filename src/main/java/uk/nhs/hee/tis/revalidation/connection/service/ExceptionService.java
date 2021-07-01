@@ -54,10 +54,9 @@ public class ExceptionService {
    * Create exception log.
    *
    * @param gmcId        gmcId of trainees where there are some issue when updating connection
-   * @param responseCode response code that response from gmc
+   * @param exceptionMessage response code that response from gmc
    */
-  public void createExceptionLog(final String gmcId, final String responseCode) {
-    final String exceptionMessage = GmcResponseCode.fromCode(responseCode).getMessage();
+  public void createExceptionLog(final String gmcId, final String exceptionMessage) {
     final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(exceptionMessage)
         .timestamp(now()).build();
 
@@ -111,17 +110,5 @@ public class ExceptionService {
           .exceptionMessage(exception.getErrorMessage())
           .build();
     }).collect(toList());
-  }
-
-  /**
-   * Send to exception queue.
-   *
-   * @param gmcId        gmcId of trainees that we want to send to exception queue
-   * @param errorMessage the message that will be saved into repository
-   */
-  public void sendToExceptionQueue(final String gmcId, final String errorMessage) {
-    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId)
-        .errorMessage(errorMessage).timestamp(now()).build();
-    repository.save(exceptionLog);
   }
 }

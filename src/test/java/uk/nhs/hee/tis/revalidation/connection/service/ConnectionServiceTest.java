@@ -45,8 +45,10 @@ import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.UpdateConnectionReceiver;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
@@ -75,6 +77,9 @@ class ConnectionServiceTest {
 
   @Mock
   private ExceptionService exceptionService;
+
+  @Mock
+  UpdateConnectionReceiver updateConnectionReceiver;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -193,6 +198,7 @@ class ConnectionServiceTest {
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
         .build();
+    final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
         .thenReturn(gmcConnectionResponseDto);
@@ -201,7 +207,7 @@ class ConnectionServiceTest {
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
-    verify(exceptionService, times(2)).createExceptionLog(gmcId, returnCode);
+    verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage);
   }
 
   @Test
@@ -265,7 +271,7 @@ class ConnectionServiceTest {
     connectionService.addDoctor(updateConnectionDto);
     String errorMessage = "Doctor's current designated body "
         + "does not match with current programme owner";
-    verify(exceptionService).sendToExceptionQueue(gmcId, errorMessage);
+    verify(exceptionService).createExceptionLog(gmcId, errorMessage);
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

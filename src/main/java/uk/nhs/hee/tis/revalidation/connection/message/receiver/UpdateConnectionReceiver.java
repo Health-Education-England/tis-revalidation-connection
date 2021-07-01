@@ -21,12 +21,13 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
@@ -34,7 +35,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHe
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Component
-public class UpdateConnectionReceiver implements MessageReceiver<UpdateConnectionDto> {
+public class UpdateConnectionReceiver implements MessageReceiver<ConnectionInfoDto> {
 
   private final ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -65,32 +66,36 @@ public class UpdateConnectionReceiver implements MessageReceiver<UpdateConnectio
   }
 
   /**
-   * Handles add remove connections
+   * Handles manual add / remove connections
    *
-   * @param message message containing UpdateConnectionDto
+   * @param doctor new connection info of a trainee
    */
   @Override
-  public void handleMessage(UpdateConnectionDto message) {
-
-    List<DoctorInfoDto> doctorInfoDtos = message.getDoctors();
-    doctorInfoDtos.forEach(doctorInfoDto -> {
-      List<MasterDoctorView> existingViews = masterElasticSearchRepository
-          .findByGmcReferenceNumber(doctorInfoDto.getGmcId());
-      List<ConnectionInfoDto> updatedConnections = updateExistingViews(existingViews, message);
-      updatedConnections.forEach(connection -> {
-        masterElasticSearchService.updateMasterIndex(connection);
-        elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connection);
-      });
+  public void handleMessage(ConnectionInfoDto doctor) {
+    List<MasterDoctorView> existingViews = masterElasticSearchRepository
+        .findByGmcReferenceNumber(doctor.getGmcReferenceNumber());
+    List<ConnectionInfoDto> updatedConnections = updateExistingViews(
+        existingViews, doctor.getDesignatedBody(), doctor.getExceptionReason());
+    updatedConnections.forEach(connection -> {
+      masterElasticSearchService.updateMasterIndex(connection);
+      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connection);
     });
   }
 
   private List<ConnectionInfoDto> updateExistingViews(
       List<MasterDoctorView> existingViews,
-      UpdateConnectionDto doctor
+      String designatedBodyCode,
+      String exceptionMessage
   ) {
     List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
     existingViews.forEach(existingView -> {
-      existingView.setDesignatedBody(doctor.getDesignatedBodyCode());
+      if (exceptionMessage.equals(SUCCESS.getMessage())) {
+        existingView.setDesignatedBody(designatedBodyCode);
+        existingView.setConnectionStatus(StringUtils.hasText(designatedBodyCode) ? "Yes" :"No");
+      }
+      else {
+        existingView.setExceptionReason(exceptionMessage);
+      }
       connectionInfoDtos.add(connectionInfoMapper.masterToDto(existingView));
     });
     return connectionInfoDtos;

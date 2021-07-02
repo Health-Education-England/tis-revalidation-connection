@@ -24,8 +24,8 @@ package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 import static java.time.LocalDate.now;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.INVALID_CREDENTIALS;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -46,7 +46,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHe
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateConnectionReceiverTest {
+class UpdateConnectionReceiverTest {
 
   Faker faker = new Faker();
 
@@ -78,6 +78,9 @@ public class UpdateConnectionReceiverTest {
   ConnectionInfoDto connectionInfoDtoExceptionResult;
   private List<MasterDoctorView> masterDoctorViews = new ArrayList<>();
 
+  /**
+   * Set up for testing.
+   */
   @BeforeEach
   public void setup() {
     connectionInfoMapper = new ConnectionInfoMapperImpl();
@@ -136,7 +139,8 @@ public class UpdateConnectionReceiverTest {
     when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef))
         .thenReturn(masterDoctorViews);
     updateConnectionReceiver.handleMessage(connectionInfoDtoException);
-    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDtoExceptionResult);
+    verify(elasticSearchIndexUpdateHelper).
+        updateElasticSearchIndex(connectionInfoDtoExceptionResult);
     verify(masterElasticSearchService).updateMasterIndex(connectionInfoDtoExceptionResult);
   }
 

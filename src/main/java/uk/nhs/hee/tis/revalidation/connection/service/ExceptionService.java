@@ -39,7 +39,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRequestDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
-import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @Slf4j

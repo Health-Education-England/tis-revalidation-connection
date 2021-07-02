@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
@@ -53,6 +54,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.UpdateConnectionReceiver;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.DoctorsForDBRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -78,6 +80,9 @@ public class ConnectionService {
 
   @Autowired
   private RabbitTemplate rabbitTemplate;
+
+  @Autowired
+  UpdateConnectionReceiver updateConnectionReceiver;
 
   @Value("${app.rabbit.reval.exchange.gmcsync}")
   private String exchange;
@@ -171,7 +176,6 @@ public class ConnectionService {
   private UpdateConnectionResponseDto processConnectionRequest(
       final UpdateConnectionDto addDoctorDto,
       final ConnectionRequestType connectionRequestType) {
-
     final var changeReason = addDoctorDto.getChangeReason();
     final var designatedBodyCode = addDoctorDto.getDesignatedBodyCode();
     final var addRemoveResponse = addDoctorDto.getDoctors().stream().map(doctor -> {
@@ -184,7 +188,7 @@ public class ConnectionService {
       } else {
         String errorMessage = "Doctor's current designated body "
             + "does not match with current programme owner";
-        exceptionService.sendToExceptionQueue(doctor.getGmcId(), errorMessage);
+        exceptionService.createExceptionLog(doctor.getGmcId(), errorMessage);
         return UpdateConnectionResponseDto.builder().message(errorMessage).build();
       }
     }).collect(Collectors.toList());
@@ -233,6 +237,7 @@ public class ConnectionService {
         .requestTime(now())
         .build();
 
+    //save connection info to mongodb
     repository.save(connectionRequestLog);
 
     sendToRabbitOrExceptionLogs(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
@@ -245,6 +250,8 @@ public class ConnectionService {
   // logs.
   private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
       final String returnCode) {
+    final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
+
     if (SUCCESS.getCode().equals(returnCode)) {
       final var connectionMessage = ConnectionMessage.builder()
           .gmcId(gmcId)
@@ -253,8 +260,16 @@ public class ConnectionService {
       log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);
     } else {
-      exceptionService.createExceptionLog(gmcId, returnCode);
+      exceptionService.createExceptionLog(gmcId, exceptionMessage);
     }
+
+    //update elastic search index
+    final var connectionInfoDto = ConnectionInfoDto.builder()
+        .gmcReferenceNumber(gmcId)
+        .designatedBody(designatedBodyCode)
+        .exceptionReason(exceptionMessage)
+        .build();
+    updateConnectionReceiver.handleMessage(connectionInfoDto);
   }
 
   //if bulk request then return generic failure message else gmc error message

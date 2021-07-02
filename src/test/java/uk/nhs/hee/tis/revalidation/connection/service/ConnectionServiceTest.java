@@ -257,23 +257,6 @@ class ConnectionServiceTest {
     assertThat(hiddenGmcIds.size(), is(0));
   }
 
-  @Test
-  void shouldAddToExceptionQueueIfTraineeCurrentDbcAndProgrammeOwnerDbcDoesNotMatch()
-      throws Exception {
-    final var updateConnectionDto = UpdateConnectionDto.builder()
-        .changeReason(changeReason)
-        .designatedBodyCode(designatedBodyCode)
-        .doctors(Arrays.asList(DoctorInfoDto.builder().gmcId(gmcId)
-            .currentDesignatedBodyCode(designatedBodyCode)
-            .programmeOwnerDesignatedBodyCode(programmeOwnerDesignatedBodyCode)
-            .build()))
-        .build();
-    connectionService.addDoctor(updateConnectionDto);
-    String errorMessage = "Doctor's current designated body "
-        + "does not match with current programme owner";
-    verify(exceptionService).createExceptionLog(gmcId, errorMessage);
-  }
-
   private ConnectionRequestLog prepareConnectionAdd() {
     return ConnectionRequestLog.builder()
         .id(connectionId)

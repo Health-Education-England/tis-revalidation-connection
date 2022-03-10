@@ -56,10 +56,10 @@ public class RabbitConfig {
   @Value("${app.rabbit.reval.routingKey.connection.update}")
   private String esTisRoutingKey;
 
-  @Value("${app.rabbit.reval.queue.connection.getmaster}")
+  @Value("${app.rabbit.reval.queue.indexrebuildgetmastercommand.requested}")
   private String esGetMasterQueueName;
 
-  @Value("${app.rabbit.reval.routingKey.connection.getmaster}")
+  @Value("${app.rabbit.reval.routingKey.indexrebuildgetmastercommand.requested}")
   private String esGetMasterRoutingKey;
 
   @Value("${app.rabbit.reval.queue.gmcsync.connection}")

@@ -33,7 +33,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHe
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Component
-public class GmcDoctorMessageReceiver implements MessageReceiver<GmcDoctor> {
+public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -66,30 +66,16 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<GmcDoctor> {
   /**
    * Handles gmc doctor update messages
    *
-   * @param message message containing GmcDoctor
+   * @param message gmc number of updated doctor
    */
   @Override
-  public void handleMessage(GmcDoctor message) {
+  public void handleMessage(String message) {
     List<MasterDoctorView> existingViews = masterElasticSearchRepository
-        .findByGmcReferenceNumber(message.getGmcReferenceNumber());
-    List<ConnectionInfoDto> updatedConnections = updateExistingViews(existingViews, message);
-    updatedConnections.forEach(connection -> {
-      masterElasticSearchService.updateMasterIndex(connection);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(connection);
+        .findByGmcReferenceNumber(message);
+    existingViews.forEach(connection -> {
+      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(
+          connectionInfoMapper.masterToDto(connection)
+        );
     });
-  }
-
-  private List<ConnectionInfoDto> updateExistingViews(
-      List<MasterDoctorView> existingViews,
-      GmcDoctor doctor
-  ) {
-    List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
-    existingViews.forEach(existingView -> {
-      existingView.setDoctorFirstName(doctor.getDoctorFirstName());
-      existingView.setDoctorLastName(doctor.getDoctorLastName());
-      existingView.setDesignatedBody(doctor.getDesignatedBodyCode());
-      connectionInfoDtos.add(connectionInfoMapper.masterToDto(existingView));
-    });
-    return connectionInfoDtos;
   }
 }

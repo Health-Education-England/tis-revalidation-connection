@@ -65,10 +65,12 @@ public class RabbitMessageListener {
   /**
    * handle message from gmc client.
    *
-   * @param doctor gmc doctor information
+   * @param gmcNumber gmc number of updated doctor
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.gmcsync.connection}")
-  public void receiveMessageGmcDoctor(final GmcDoctor doctor) {
-    gmcDoctorMessageReceiver.handleMessage(doctor);
+  @RabbitListener(
+      queues = "${app.rabbit.reval.queue.changeevent.populateindex.requested.connection}"
+  )
+  public void receiveMessageGmcDoctor(final String gmcNumber) {
+    gmcDoctorMessageReceiver.handleMessage(gmcNumber);
   }
 }

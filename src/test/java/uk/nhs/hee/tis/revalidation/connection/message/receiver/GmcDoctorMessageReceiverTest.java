@@ -108,7 +108,7 @@ public class GmcDoctorMessageReceiverTest {
   void shouldUpdateConnectionsOnReceiveMessage() {
     when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
         .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
+    gmcDoctorMessageReceiver.handleMessage(gmcRef1);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 
@@ -116,7 +116,7 @@ public class GmcDoctorMessageReceiverTest {
   void shouldUpdateMasterOnReceiveMessage() {
     when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
         .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcDoctor);
+    gmcDoctorMessageReceiver.handleMessage(gmcRef1);
     verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
   }
 

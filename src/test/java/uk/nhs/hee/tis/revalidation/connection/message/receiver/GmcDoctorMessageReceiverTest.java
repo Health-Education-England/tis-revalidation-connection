@@ -112,14 +112,6 @@ public class GmcDoctorMessageReceiverTest {
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 
-  @Test
-  void shouldUpdateMasterOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
-        .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcRef1);
-    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
-  }
-
   private GmcDoctor buildGmcDoctor() {
     return GmcDoctor.builder()
         .gmcReferenceNumber(gmcRef1)

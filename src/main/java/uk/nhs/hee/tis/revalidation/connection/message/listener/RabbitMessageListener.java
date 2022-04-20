@@ -26,7 +26,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;

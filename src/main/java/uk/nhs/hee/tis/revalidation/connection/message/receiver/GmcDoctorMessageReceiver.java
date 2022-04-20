@@ -21,23 +21,17 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @Component
 public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
-
-  private MasterElasticSearchService masterElasticSearchService;
 
   private MasterElasticSearchRepository masterElasticSearchRepository;
 
@@ -47,18 +41,15 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
    * Class to handle gmc doctor update messages
    *
    * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchService
    * @param masterElasticSearchRepository
    * @param connectionInfoMapper
    */
   public GmcDoctorMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService,
       MasterElasticSearchRepository masterElasticSearchRepository,
       ConnectionInfoMapper connectionInfoMapper
   ) {
     this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchService = masterElasticSearchService;
     this.masterElasticSearchRepository = masterElasticSearchRepository;
     this.connectionInfoMapper = connectionInfoMapper;
   }
@@ -72,10 +63,10 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
   public void handleMessage(String message) {
     List<MasterDoctorView> existingViews = masterElasticSearchRepository
         .findByGmcReferenceNumber(message);
-    existingViews.forEach(connection -> {
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(
-          connectionInfoMapper.masterToDto(connection)
-        );
-    });
+    existingViews.forEach(connection ->
+        elasticSearchIndexUpdateHelper.updateElasticSearchIndex(
+            connectionInfoMapper.masterToDto(connection)
+        )
+    );
   }
 }

@@ -30,14 +30,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
@@ -83,7 +80,6 @@ public class GmcDoctorMessageReceiverTest {
 
     gmcDoctorMessageReceiver = new GmcDoctorMessageReceiver(
         elasticSearchIndexUpdateHelper,
-        masterElasticSearchService,
         masterElasticSearchRepository,
         connectionInfoMapper
     );

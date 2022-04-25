@@ -29,7 +29,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepo
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 
 @Component
-public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
+public class GmcDoctorMessageReceiver implements MessageReceiver<MasterDoctorView> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -57,16 +57,12 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<String> {
   /**
    * Handles gmc doctor update messages
    *
-   * @param message gmc number of updated doctor
+   * @param masterDoctorView MasterDoctorView of updated doctor
    */
   @Override
-  public void handleMessage(String message) {
-    List<MasterDoctorView> existingViews = masterElasticSearchRepository
-        .findByGmcReferenceNumber(message);
-    existingViews.forEach(connection ->
-        elasticSearchIndexUpdateHelper.updateElasticSearchIndex(
-            connectionInfoMapper.masterToDto(connection)
-        )
+  public void handleMessage(MasterDoctorView masterDoctorView) {
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(
+        connectionInfoMapper.masterToDto(masterDoctorView)
     );
   }
 }

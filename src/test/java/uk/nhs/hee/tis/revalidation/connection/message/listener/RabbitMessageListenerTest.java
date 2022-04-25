@@ -93,8 +93,8 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldReceiveGmcDoctorMessages() {
-    rabbitMessageListener.receiveMessageGmcDoctor(gmcDoctor);
-    verify(gmcDoctorMessageReceiver).handleMessage(gmcDoctor);
+    rabbitMessageListener.receiveMessageGmcDoctor(gmcRef1);
+    verify(gmcDoctorMessageReceiver).handleMessage(gmcRef1);
   }
 
   private GmcDoctor buildGmcDoctor() {

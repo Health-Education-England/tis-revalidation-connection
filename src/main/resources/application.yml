@@ -37,6 +37,7 @@ app:
     reval.queue.connection.update: ${REVAL_RABBIT_QUEUE:reval.queue.connection.update}
     reval.routingKey.connection.update: ${REVAL_RABBIT_ROUTING_KEY:reval.connection.update}
     reval.queue.connection.manualupdate: ${CONNECTION_QUEUE:reval.queue.connection.manualupdate.recommendation}
+    reval.queue.changeevent.populateindex.requested.connection: ${REVAL_RABBIT_INDEX_CHANGE_QUEUE:reval.queue.changeevent.populateindex.requested.connection}
     reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
     reval.queue.indexrebuildgetmastercommand.requested: ${REVAL_RABBIT_INDEX_REBUILD_GETMASTER_QUEUE:reval.queue.indexrebuildgetmastercommand.requested.connection}
     reval.routingKey.indexrebuildgetmastercommand.requested: ${REVAL_RABBIT_INDEX_REBUILD_GETMASTER_ROUTING_KEY:reval.indexrebuildgetmastercommand.requested}

@@ -35,6 +35,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
@@ -53,6 +54,7 @@ class RabbitMessageListenerTest {
 
   private ConnectionInfoDto connectionInfoDto;
   private GmcDoctor gmcDoctor;
+  private MasterDoctorView masterDoctorView;
   private Faker faker = new Faker();
   private String gmcRef1;
   private String firstName1;
@@ -76,6 +78,7 @@ class RabbitMessageListenerTest {
     status = faker.lorem().characters(8);
     connectionInfoDto = buildConnectionInfoDto();
     gmcDoctor = buildGmcDoctor();
+    masterDoctorView = buildMasterDoctorView();
     exceptionReason = faker.lorem().characters(20);
   }
 
@@ -93,8 +96,8 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldReceiveGmcDoctorMessages() {
-    rabbitMessageListener.receiveMessageGmcDoctor(gmcRef1);
-    verify(gmcDoctorMessageReceiver).handleMessage(gmcRef1);
+    rabbitMessageListener.receiveMessageGmcDoctor(masterDoctorView);
+    verify(gmcDoctorMessageReceiver).handleMessage(masterDoctorView);
   }
 
   private GmcDoctor buildGmcDoctor() {
@@ -129,4 +132,18 @@ class RabbitMessageListenerTest {
         .build();
   }
 
+  private MasterDoctorView buildMasterDoctorView() {
+    return MasterDoctorView.builder()
+        .tcsPersonId((long) 111)
+        .gmcReferenceNumber(gmcRef1)
+        .doctorFirstName(firstName1)
+        .doctorLastName(lastName1)
+        .submissionDate(submissionDate1)
+        .programmeName(programmeName1)
+        .designatedBody(designatedBody1)
+        .programmeOwner(programmeOwner1)
+        .connectionStatus(status)
+        .exceptionReason(exceptionReason)
+        .build();
+  }
 }

@@ -23,7 +23,6 @@ package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
 import static java.time.LocalDate.now;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -71,6 +70,7 @@ public class GmcDoctorMessageReceiverTest {
   private String status;
   private String exceptionReason1;
   ConnectionInfoDto connectionInfoDto;
+  MasterDoctorView masterDoctorView;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
   private List<MasterDoctorView> masterDoctorViews = new ArrayList<>();
 
@@ -98,13 +98,12 @@ public class GmcDoctorMessageReceiverTest {
     masterDoctorViews.add(connectionInfoMapper.dtoToMaster(connectionInfoDto));
 
     gmcDoctor = buildGmcDoctor();
+    masterDoctorView = buildMasterDoctorView();
   }
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessage() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1))
-        .thenReturn(masterDoctorViews);
-    gmcDoctorMessageReceiver.handleMessage(gmcRef1);
+    gmcDoctorMessageReceiver.handleMessage(masterDoctorView);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 
@@ -127,6 +126,21 @@ public class GmcDoctorMessageReceiverTest {
 
   private ConnectionInfoDto buildConnectionInfoDto() {
     return ConnectionInfoDto.builder()
+        .tcsPersonId((long) 111)
+        .gmcReferenceNumber(gmcRef1)
+        .doctorFirstName(firstName1)
+        .doctorLastName(lastName1)
+        .submissionDate(submissionDate1)
+        .programmeName(programmeName1)
+        .designatedBody(designatedBody1)
+        .programmeOwner(programmeOwner1)
+        .connectionStatus(status)
+        .exceptionReason(exceptionReason1)
+        .build();
+  }
+
+  private MasterDoctorView buildMasterDoctorView() {
+    return MasterDoctorView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)

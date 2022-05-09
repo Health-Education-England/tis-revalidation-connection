@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-java@v2.5.0
         with:
           cache: gradle
-          distribution: adopt
+          distribution: temurin
           java-version: 11
 
       - name: Configure AWS credentials
@@ -53,7 +53,7 @@ jobs:
         uses: actions/setup-java@v2.5.0
         with:
           cache: gradle
-          distribution: adopt
+          distribution: temurin
           java-version: 11
 
       - name: Configure AWS credentials
@@ -87,7 +87,7 @@ jobs:
         uses: actions/setup-java@v2.5.0
         with:
           cache: gradle
-          distribution: adopt
+          distribution: temurin
           java-version: 11
 
       - name: Configure AWS credentials
@@ -128,7 +128,7 @@ jobs:
         uses: actions/setup-java@v2.5.0
         with:
           cache: gradle
-          distribution: adopt
+          distribution: temurin
           java-version: 11
 
       - name: Configure AWS credentials

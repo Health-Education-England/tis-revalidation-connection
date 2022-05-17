@@ -48,8 +48,9 @@ public class RabbitMessageListener {
    *
    * @param connectionInfo connection information of the trainee
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
-  public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
+  @RabbitListener(queues = "${app.rabbit.reval.queue.masterdoctorview.updated.connection}",
+      ackMode = "NONE")
+  public void receiveMessageUpdate(final MasterDoctorView connectionInfo) {
     connectionMessageReceiver.handleMessage(connectionInfo);
   }
 

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
@@ -33,59 +34,43 @@ import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService
 
 @Slf4j
 @Component
-public class ConnectionMessageReceiver implements MessageReceiver<ConnectionInfoDto> {
+public class ConnectionMessageReceiver implements MessageReceiver<MasterDoctorView> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
-  private MasterElasticSearchService masterElasticSearchService;
-
-  private MasterElasticSearchRepository masterElasticSearchRepository;
 
   private ConnectionService connectionService;
+
+  private ConnectionInfoMapper connectionInfoMapper;
 
   /**
    * Class to handle connection update messages
    *
    * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchService
    * @param connectionService
+   * @param connectionInfoMapper
    */
   public ConnectionMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchService masterElasticSearchService,
       ConnectionService connectionService,
-      MasterElasticSearchRepository masterElasticSearchRepository
+      ConnectionInfoMapper connectionInfoMapper
   ) {
     this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchService = masterElasticSearchService;
     this.connectionService = connectionService;
-    this.masterElasticSearchRepository = masterElasticSearchRepository;
+    this.connectionInfoMapper = connectionInfoMapper;
   }
 
   /**
    * Handles connection update messages
    *
-   * @param message message containing ConnectionInfoDto
+   * @param message message containing updated MasterDoctorView
    */
   @Override
-  public void handleMessage(ConnectionInfoDto message) {
+  public void handleMessage(MasterDoctorView message) {
     log.debug("MESSAGE RECEIVED: " + message);
 
     // Get Gmc data from master index and aggregate it to connectionInfo
-    try {
-      if (message.getGmcReferenceNumber() != null) {
-        List<MasterDoctorView> gmcData = masterElasticSearchRepository
-            .findByGmcReferenceNumber(message.getGmcReferenceNumber());
-        if (gmcData.size() > 0) {
-          MasterDoctorView gmcDataMasterDoctor = gmcData.get(0);
-          message.setSubmissionDate(gmcDataMasterDoctor.getSubmissionDate());
-          message.setDesignatedBody(gmcDataMasterDoctor.getDesignatedBody());
-        }
-      }
-      masterElasticSearchService.updateMasterIndex(message);
-      elasticSearchIndexUpdateHelper.updateElasticSearchIndex(message);
-    } catch (Exception e) {
-      log.info("Exception in receiveMessageUpdate: {}", e.getMessage());
-    }
+    final var update = connectionInfoMapper.masterToDto(message);
+    elasticSearchIndexUpdateHelper.updateElasticSearchIndex(update);
   }
 }

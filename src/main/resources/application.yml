@@ -41,7 +41,6 @@ app:
     reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
     reval.queue.indexrebuildgetmastercommand.requested: ${REVAL_RABBIT_INDEX_REBUILD_GETMASTER_QUEUE:reval.queue.indexrebuildgetmastercommand.requested.connection}
     reval.routingKey.indexrebuildgetmastercommand.requested: ${REVAL_RABBIT_INDEX_REBUILD_GETMASTER_ROUTING_KEY:reval.indexrebuildgetmastercommand.requested}
-    reval.queue.masterdoctorview.updated.connection: ${REVAL_RABBIT_UPDATE_CONNECTION_INDEX_VIEW:reval.queue.masterdoctorview.updated.connection}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

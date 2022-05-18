@@ -21,7 +21,6 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 
-import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
@@ -29,7 +28,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepo
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 
 @Component
-public class GmcDoctorMessageReceiver implements MessageReceiver<MasterDoctorView> {
+public class DoctorMessageReceiver implements MessageReceiver<MasterDoctorView> {
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
@@ -44,7 +43,7 @@ public class GmcDoctorMessageReceiver implements MessageReceiver<MasterDoctorVie
    * @param masterElasticSearchRepository
    * @param connectionInfoMapper
    */
-  public GmcDoctorMessageReceiver(
+  public DoctorMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
       MasterElasticSearchRepository masterElasticSearchRepository,
       ConnectionInfoMapper connectionInfoMapper

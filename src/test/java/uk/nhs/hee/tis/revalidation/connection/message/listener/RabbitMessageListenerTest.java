@@ -36,8 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,9 +45,7 @@ class RabbitMessageListenerTest {
   @InjectMocks
   RabbitMessageListener rabbitMessageListener;
   @Mock
-  ConnectionMessageReceiver connectionMessageReceiver;
-  @Mock
-  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
+  DoctorMessageReceiver doctorMessageReceiver;
   @Mock
   SyncMessageReceiver syncMessageReceiver;
 
@@ -82,21 +79,15 @@ class RabbitMessageListenerTest {
   }
 
   @Test
-  void shouldReceiveConnectionUpdateMessages() {
-    rabbitMessageListener.receiveMessageUpdate(masterDoctorView);
-    verify(connectionMessageReceiver).handleMessage(masterDoctorView);
-  }
-
-  @Test
   void shouldReceiveSyncMessages() {
     rabbitMessageListener.receiveMessageGetMaster("getMaster");
     verify(syncMessageReceiver).handleMessage("getMaster");
   }
 
   @Test
-  void shouldReceiveGmcDoctorMessages() {
-    rabbitMessageListener.receiveMessageGmcDoctor(masterDoctorView);
-    verify(gmcDoctorMessageReceiver).handleMessage(masterDoctorView);
+  void shouldReceiveDoctorMessages() {
+    rabbitMessageListener.receiveDoctorMessage(masterDoctorView);
+    verify(doctorMessageReceiver).handleMessage(masterDoctorView);
   }
 
   private GmcDoctor buildGmcDoctor() {

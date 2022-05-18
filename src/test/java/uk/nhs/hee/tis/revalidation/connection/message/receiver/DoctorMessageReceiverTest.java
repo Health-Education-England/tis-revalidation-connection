@@ -45,11 +45,11 @@ import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHe
 import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @ExtendWith(MockitoExtension.class)
-public class GmcDoctorMessageReceiverTest {
+public class DoctorMessageReceiverTest {
 
   Faker faker = new Faker();
 
-  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
+  DoctorMessageReceiver doctorMessageReceiver;
   @Mock
   ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
   @Mock
@@ -78,7 +78,7 @@ public class GmcDoctorMessageReceiverTest {
   public void setup() {
     connectionInfoMapper = new ConnectionInfoMapperImpl();
 
-    gmcDoctorMessageReceiver = new GmcDoctorMessageReceiver(
+    doctorMessageReceiver = new DoctorMessageReceiver(
         elasticSearchIndexUpdateHelper,
         masterElasticSearchRepository,
         connectionInfoMapper
@@ -103,7 +103,7 @@ public class GmcDoctorMessageReceiverTest {
 
   @Test
   void shouldUpdateConnectionsOnReceiveMessage() {
-    gmcDoctorMessageReceiver.handleMessage(masterDoctorView);
+    doctorMessageReceiver.handleMessage(masterDoctorView);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 

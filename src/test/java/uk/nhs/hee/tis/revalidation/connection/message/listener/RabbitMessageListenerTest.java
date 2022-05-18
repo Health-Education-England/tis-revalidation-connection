@@ -76,7 +76,6 @@ class RabbitMessageListenerTest {
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     status = faker.lorem().characters(8);
-    connectionInfoDto = buildConnectionInfoDto();
     gmcDoctor = buildGmcDoctor();
     masterDoctorView = buildMasterDoctorView();
     exceptionReason = faker.lorem().characters(20);
@@ -84,8 +83,8 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldReceiveConnectionUpdateMessages() {
-    rabbitMessageListener.receiveMessageUpdate(connectionInfoDto);
-    verify(connectionMessageReceiver).handleMessage(connectionInfoDto);
+    rabbitMessageListener.receiveMessageUpdate(masterDoctorView);
+    verify(connectionMessageReceiver).handleMessage(masterDoctorView);
   }
 
   @Test
@@ -114,21 +113,6 @@ class RabbitMessageListenerTest {
         .preliminaryInvestigation(faker.lorem().characters(20))
         .sanction(faker.lorem().characters(10))
         .designatedBodyCode(designatedBody1)
-        .build();
-  }
-
-  private ConnectionInfoDto buildConnectionInfoDto() {
-    return ConnectionInfoDto.builder()
-        .tcsPersonId((long) 111)
-        .gmcReferenceNumber(gmcRef1)
-        .doctorFirstName(firstName1)
-        .doctorLastName(lastName1)
-        .submissionDate(submissionDate1)
-        .programmeName(programmeName1)
-        .designatedBody(designatedBody1)
-        .programmeOwner(programmeOwner1)
-        .connectionStatus(status)
-        .exceptionReason(exceptionReason)
         .build();
   }
 

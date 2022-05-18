@@ -103,10 +103,9 @@ public class ConnectionMessageReceiverTest {
   }
 
   @Test
-  void shouldUpdateMasterIndexAndOtherIndexesOnReceiveConnectionInfo() {
+  void shouldUpdateIndexesOnReceiveConnectionInfo() {
     when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(gmcData);
-    connectionMessageReceiver.handleMessage(connectionInfoDto);
-    verify(masterElasticSearchService).updateMasterIndex(connectionInfoDto);
+    connectionMessageReceiver.handleMessage(masterDoctorView);
     verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
   }
 }

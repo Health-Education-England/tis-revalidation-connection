@@ -24,7 +24,6 @@ package uk.nhs.hee.tis.revalidation.connection.message.receiver;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
 
 @Component
@@ -32,29 +31,25 @@ public class DoctorMessageReceiver implements MessageReceiver<MasterDoctorView> 
 
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
 
-  private MasterElasticSearchRepository masterElasticSearchRepository;
 
   private ConnectionInfoMapper connectionInfoMapper;
 
   /**
-   * Class to handle gmc doctor update messages
+   * Class to handle gmc doctor update messages.
    *
-   * @param elasticSearchIndexUpdateHelper
-   * @param masterElasticSearchRepository
-   * @param connectionInfoMapper
+   * @param elasticSearchIndexUpdateHelper helper class to update correct index
+   * @param connectionInfoMapper mapper for mapping MasterDoctorView
    */
   public DoctorMessageReceiver(
       ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper,
-      MasterElasticSearchRepository masterElasticSearchRepository,
       ConnectionInfoMapper connectionInfoMapper
   ) {
     this.elasticSearchIndexUpdateHelper = elasticSearchIndexUpdateHelper;
-    this.masterElasticSearchRepository = masterElasticSearchRepository;
     this.connectionInfoMapper = connectionInfoMapper;
   }
 
   /**
-   * Handles gmc doctor update messages
+   * Handles gmc doctor update messages.
    *
    * @param masterDoctorView MasterDoctorView of updated doctor
    */

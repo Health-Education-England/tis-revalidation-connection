@@ -39,27 +39,20 @@ import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapperImpl;
-import uk.nhs.hee.tis.revalidation.connection.repository.MasterElasticSearchRepository;
-import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticSearchIndexUpdateHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.MasterElasticSearchService;
 
 @ExtendWith(MockitoExtension.class)
-public class DoctorMessageReceiverTest {
+class DoctorMessageReceiverTest {
 
   Faker faker = new Faker();
 
   DoctorMessageReceiver doctorMessageReceiver;
   @Mock
   ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
-  @Mock
-  MasterElasticSearchService masterElasticSearchService;
-  @Mock
-  MasterElasticSearchRepository masterElasticSearchRepository;
+
   ConnectionInfoMapper connectionInfoMapper;
 
   private GmcDoctor gmcDoctor;
-  private ConnectionService connectionService;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -75,12 +68,14 @@ public class DoctorMessageReceiverTest {
   private List<MasterDoctorView> masterDoctorViews = new ArrayList<>();
 
   @BeforeEach
+  /**
+   * Set up test data.
+   */
   public void setup() {
     connectionInfoMapper = new ConnectionInfoMapperImpl();
 
     doctorMessageReceiver = new DoctorMessageReceiver(
         elasticSearchIndexUpdateHelper,
-        masterElasticSearchRepository,
         connectionInfoMapper
     );
     gmcRef1 = faker.number().digits(8);

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
@@ -50,12 +51,8 @@ public class ConnectionMessageReceiverTest {
   private ConnectionMessageReceiver connectionMessageReceiver;
   @Mock
   private ElasticSearchIndexUpdateHelper elasticSearchIndexUpdateHelper;
-  @Mock
-  private MasterElasticSearchService masterElasticSearchService;
-  @Mock
-  private ConnectionService connectionService;
-  @Mock
-  private MasterElasticSearchRepository masterElasticSearchRepository;
+  @Spy
+  private ConnectionInfoMapper connectionInfoMapper;
 
   private Faker faker = new Faker();
   private String gmcRef1;
@@ -67,7 +64,6 @@ public class ConnectionMessageReceiverTest {
   private String programmeOwner1;
   ConnectionInfoDto connectionInfoDto;
   MasterDoctorView masterDoctorView;
-  ConnectionInfoMapper connectionInfoMapper;
   private List<ConnectionInfoDto> connectionInfoDtos = new ArrayList<>();
   private  List<MasterDoctorView> gmcData = new ArrayList<>();
 
@@ -76,7 +72,6 @@ public class ConnectionMessageReceiverTest {
    */
   @BeforeEach
   public void setup() {
-    connectionInfoMapper = new ConnectionInfoMapperImpl();
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
@@ -98,14 +93,13 @@ public class ConnectionMessageReceiverTest {
     connectionInfoDtos.add(connectionInfoDto);
 
     gmcData.add(connectionInfoMapper.dtoToMaster(connectionInfoDto));
-
-
   }
 
   @Test
   void shouldUpdateIndexesOnReceiveConnectionInfo() {
-    when(masterElasticSearchRepository.findByGmcReferenceNumber(gmcRef1)).thenReturn(gmcData);
     connectionMessageReceiver.handleMessage(masterDoctorView);
-    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(connectionInfoDto);
+    verify(elasticSearchIndexUpdateHelper).updateElasticSearchIndex(
+        connectionInfoMapper.masterToDto(masterDoctorView)
+    );
   }
 }

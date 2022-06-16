@@ -36,8 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,9 +45,7 @@ class RabbitMessageListenerTest {
   @InjectMocks
   RabbitMessageListener rabbitMessageListener;
   @Mock
-  ConnectionMessageReceiver connectionMessageReceiver;
-  @Mock
-  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
+  DoctorMessageReceiver doctorMessageReceiver;
   @Mock
   SyncMessageReceiver syncMessageReceiver;
 
@@ -76,16 +73,9 @@ class RabbitMessageListenerTest {
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     status = faker.lorem().characters(8);
-    connectionInfoDto = buildConnectionInfoDto();
     gmcDoctor = buildGmcDoctor();
     masterDoctorView = buildMasterDoctorView();
     exceptionReason = faker.lorem().characters(20);
-  }
-
-  @Test
-  void shouldReceiveConnectionUpdateMessages() {
-    rabbitMessageListener.receiveMessageUpdate(connectionInfoDto);
-    verify(connectionMessageReceiver).handleMessage(connectionInfoDto);
   }
 
   @Test
@@ -95,9 +85,9 @@ class RabbitMessageListenerTest {
   }
 
   @Test
-  void shouldReceiveGmcDoctorMessages() {
-    rabbitMessageListener.receiveMessageGmcDoctor(masterDoctorView);
-    verify(gmcDoctorMessageReceiver).handleMessage(masterDoctorView);
+  void shouldReceiveDoctorMessages() {
+    rabbitMessageListener.receiveDoctorMessage(masterDoctorView);
+    verify(doctorMessageReceiver).handleMessage(masterDoctorView);
   }
 
   private GmcDoctor buildGmcDoctor() {
@@ -114,21 +104,6 @@ class RabbitMessageListenerTest {
         .preliminaryInvestigation(faker.lorem().characters(20))
         .sanction(faker.lorem().characters(10))
         .designatedBodyCode(designatedBody1)
-        .build();
-  }
-
-  private ConnectionInfoDto buildConnectionInfoDto() {
-    return ConnectionInfoDto.builder()
-        .tcsPersonId((long) 111)
-        .gmcReferenceNumber(gmcRef1)
-        .doctorFirstName(firstName1)
-        .doctorLastName(lastName1)
-        .submissionDate(submissionDate1)
-        .programmeName(programmeName1)
-        .designatedBody(designatedBody1)
-        .programmeOwner(programmeOwner1)
-        .connectionStatus(status)
-        .exceptionReason(exceptionReason)
         .build();
   }
 

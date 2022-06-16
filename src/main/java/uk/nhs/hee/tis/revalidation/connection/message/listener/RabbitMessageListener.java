@@ -25,10 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.ConnectionMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.GmcDoctorMessageReceiver;
+import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 
@@ -37,21 +35,9 @@ import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiv
 public class RabbitMessageListener {
 
   @Autowired
-  ConnectionMessageReceiver connectionMessageReceiver;
-  @Autowired
-  GmcDoctorMessageReceiver gmcDoctorMessageReceiver;
+  DoctorMessageReceiver doctorMessageReceiver;
   @Autowired
   SyncMessageReceiver syncMessageReceiver;
-
-  /**
-   * handle rabbit message.
-   *
-   * @param connectionInfo connection information of the trainee
-   */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.update}")
-  public void receiveMessageUpdate(final ConnectionInfoDto connectionInfo) {
-    connectionMessageReceiver.handleMessage(connectionInfo);
-  }
 
   /**
    * get trainee from Master index then update connection indexes.
@@ -63,14 +49,14 @@ public class RabbitMessageListener {
   }
 
   /**
-   * handle message from gmc client.
+   * handle elasticsearch update message from integration.
    *
-   * @param gmcNumber gmc number of updated doctor
+   * @param masterDoctorView updated doctor
    */
   @RabbitListener(
       queues = "${app.rabbit.reval.queue.masterdoctorview.updated.connection}"
   )
-  public void receiveMessageGmcDoctor(final MasterDoctorView masterDoctorView) {
-    gmcDoctorMessageReceiver.handleMessage(masterDoctorView);
+  public void receiveDoctorMessage(final MasterDoctorView masterDoctorView) {
+    doctorMessageReceiver.handleMessage(masterDoctorView);
   }
 }

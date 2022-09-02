@@ -7,12 +7,12 @@ updates:
     schedule:
       interval: weekly
     reviewers:
-      - Health-Education-England/full-stack
+      - Health-Education-England/internal-admin-backend
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     reviewers:
-      - Health-Education-England/full-stack
-      - Health-Education-England/operations
+      - Health-Education-England/internal-admin-backend
+      - Health-Education-England/internal-admin-devops

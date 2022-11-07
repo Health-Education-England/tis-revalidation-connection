@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
@@ -205,7 +206,7 @@ public class ElasticSearchIndexUpdateHelper {
   private void deleteConnectionIndex(String esIndex) {
     log.info("Deleting elastic search index: {}", esIndex);
     try {
-      elasticSearchOperations.deleteIndex(esIndex);
+      elasticSearchOperations.indexOps(IndexCoordinates.of(esIndex)).delete();
     } catch (IndexNotFoundException e) {
       log.info("Could not delete an index that does not exist: {}, continuing", esIndex);
     }
@@ -213,16 +214,16 @@ public class ElasticSearchIndexUpdateHelper {
 
   private void createConnectionIndex(String esIndex) {
     log.info("Creating elastic search index: {}", esIndex);
-    elasticSearchOperations.createIndex(esIndex);
+    elasticSearchOperations.indexOps(IndexCoordinates.of(esIndex)).create();
     switch (esIndex) {
       case "connectedindex":
-        elasticSearchOperations.putMapping(ConnectedView.class);
+        elasticSearchOperations.indexOps(IndexCoordinates.of(esIndex)).putMapping(ConnectedView.class);
         break;
       case "disconnectedindex":
-        elasticSearchOperations.putMapping(DisconnectedView.class);
+        elasticSearchOperations.indexOps(IndexCoordinates.of(esIndex)).putMapping(DisconnectedView.class);
         break;
       case "exceptionindex":
-        elasticSearchOperations.putMapping(ExceptionView.class);
+        elasticSearchOperations.indexOps(IndexCoordinates.of(esIndex)).putMapping(ExceptionView.class);
         break;
     }
   }

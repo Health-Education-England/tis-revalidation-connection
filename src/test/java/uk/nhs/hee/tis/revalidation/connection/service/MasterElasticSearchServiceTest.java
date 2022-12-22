@@ -116,14 +116,6 @@ class MasterElasticSearchServiceTest {
   }
 
   @Test
-  void shouldFindAllMasterToDto() {
-    when(masterElasticSearchRepository.findAll()).thenReturn(masterDoctorViews);
-    when(connectionInfoMapper.masterToDtos(masterDoctorViews)).thenReturn(connectionInfoDtos);
-    List<ConnectionInfoDto> resultList = masterElasticSearchService.findAllMasterToDto();
-    assertThat(resultList, is(connectionInfoDtos));
-  }
-
-  @Test
   void shouldUpdateMasterIndex() {
     when(connectionInfoMapper.dtoToMaster(connectionInfoDto)).thenReturn(currentDoctorView);
     masterElasticSearchService.updateMasterIndex(connectionInfoDto);

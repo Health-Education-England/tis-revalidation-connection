@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 
 @Slf4j
@@ -36,17 +35,6 @@ public class RabbitMessageListener {
 
   @Autowired
   DoctorMessageReceiver doctorMessageReceiver;
-  @Autowired
-  SyncMessageReceiver syncMessageReceiver;
-
-  /**
-   * get trainee from Master index then update connection indexes.
-   */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.indexrebuildgetmastercommand.requested}",
-      ackMode = "NONE")
-  public void receiveMessageGetMaster(final String getMaster) {
-    syncMessageReceiver.handleMessage(getMaster);
-  }
 
   /**
    * handle elasticsearch update message from integration.

@@ -61,59 +61,6 @@ public class MasterElasticSearchService {
 
   private static final int SCROLL_TIMEOUT_MS = 30000;
 
-  /**
-   * find all trainee from ES Master Index.
-   */
-  public List<ConnectionInfoDto> findAllMasterToDto() {
-    Iterable<MasterDoctorView> masterList = masterElasticSearchRepository.findAll();
-    return connectionInfoMapper.masterToDtos(masterList);
-  }
-
-  /**
-   * find all trainee from ES Master Index.
-   * (by `scroll` to avoid ES index max_result_window excess error)
-   */
-  public List<ConnectionInfoDto> findAllScroll() {
-    var mapper = new ObjectMapper();
-    List<MasterDoctorView> masterViews = new ArrayList<>();
-    List<String> scrollIds = new ArrayList<>();
-
-    var index = IndexCoordinates.of("masterdoctorindex");
-
-    // initial search
-    var searchQuery = new NativeSearchQueryBuilder().build();
-    SearchScrollHits<MasterDoctorView> scroll = elasticsearchTemplate
-        .searchScrollStart(
-          SCROLL_TIMEOUT_MS,
-          searchQuery,
-          MasterDoctorView.class,
-          index
-        );
-
-    // while it is not the end of data
-    while (scroll.hasSearchHits()) {
-      // convert and store data to list
-      for (SearchHit hit : scroll.getSearchHits()) {
-        var masterDoctorView = mapper.convertValue(hit.getContent(), MasterDoctorView.class);
-        masterViews.add(masterDoctorView);
-      }
-
-      // do search scroll with last scrollId
-      String scrollId = scroll.getScrollId();
-      scroll = elasticsearchTemplate
-          .searchScrollContinue(
-            scrollId,
-            SCROLL_TIMEOUT_MS,
-            MasterDoctorView.class,
-            index
-          );
-      scrollIds.add(scrollId);
-    }
-    elasticsearchTemplate.searchScrollClear(scrollIds);
-
-    return connectionInfoMapper.masterToDtos(masterViews);
-  }
-
   public void updateMasterIndex(ConnectionInfoDto connectionInfoDto) {
     MasterDoctorView masterDoctorToSave = connectionInfoMapper
         .dtoToMaster(connectionInfoDto);

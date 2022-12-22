@@ -45,6 +45,7 @@ class RabbitMessageListenerTest {
   @Mock
   DoctorMessageReceiver doctorMessageReceiver;
 
+  private GmcDoctor gmcDoctor;
   private MasterDoctorView masterDoctorView;
   private Faker faker = new Faker();
   private String gmcRef1;

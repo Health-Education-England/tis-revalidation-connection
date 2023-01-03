@@ -45,21 +45,15 @@ public class MasterElasticSearchService {
 
   private ConnectionInfoMapper connectionInfoMapper;
 
-  private ElasticsearchRestTemplate elasticsearchTemplate;
-
   /**
    * constructor.
    */
   public MasterElasticSearchService(
       MasterElasticSearchRepository masterElasticSearchRepository,
-      ConnectionInfoMapper connectionInfoMapper,
-      ElasticsearchRestTemplate elasticsearchTemplate) {
+      ConnectionInfoMapper connectionInfoMapper) {
     this.masterElasticSearchRepository = masterElasticSearchRepository;
     this.connectionInfoMapper = connectionInfoMapper;
-    this.elasticsearchTemplate = elasticsearchTemplate;
   }
-
-  private static final int SCROLL_TIMEOUT_MS = 30000;
 
   public void updateMasterIndex(ConnectionInfoDto connectionInfoDto) {
     MasterDoctorView masterDoctorToSave = connectionInfoMapper

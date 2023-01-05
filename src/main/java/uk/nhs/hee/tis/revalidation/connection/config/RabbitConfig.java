@@ -56,12 +56,6 @@ public class RabbitConfig {
   @Value("${app.rabbit.reval.routingKey.connection.update}")
   private String esTisRoutingKey;
 
-  @Value("${app.rabbit.reval.queue.indexrebuildgetmastercommand.requested}")
-  private String esGetMasterQueueName;
-
-  @Value("${app.rabbit.reval.routingKey.indexrebuildgetmastercommand.requested}")
-  private String esGetMasterRoutingKey;
-
   @Value("${app.rabbit.reval.queue.gmcsync.connection}")
   private String gmcSyncQueueName;
 
@@ -76,11 +70,6 @@ public class RabbitConfig {
   @Bean
   public Queue esTisQueue() {
     return new Queue(esTisQueueName, false);
-  }
-
-  @Bean
-  public Queue esGetMasterQueue() {
-    return new Queue(esGetMasterQueueName, false);
   }
 
   @Bean
@@ -106,11 +95,6 @@ public class RabbitConfig {
   @Bean
   public Binding esTisBinding(final Queue esTisQueue, final DirectExchange esExchange) {
     return BindingBuilder.bind(esTisQueue).to(esExchange).with(esTisRoutingKey);
-  }
-
-  @Bean
-  public Binding esGetMasterBinding(final Queue esGetMasterQueue, final DirectExchange esExchange) {
-    return BindingBuilder.bind(esGetMasterQueue).to(esExchange).with(esGetMasterRoutingKey);
   }
 
   @Bean

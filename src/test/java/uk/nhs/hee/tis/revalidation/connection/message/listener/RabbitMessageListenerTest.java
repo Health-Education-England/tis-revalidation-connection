@@ -33,11 +33,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.SyncMessageReceiver;
 
 @ExtendWith(MockitoExtension.class)
 class RabbitMessageListenerTest {
@@ -46,10 +44,7 @@ class RabbitMessageListenerTest {
   RabbitMessageListener rabbitMessageListener;
   @Mock
   DoctorMessageReceiver doctorMessageReceiver;
-  @Mock
-  SyncMessageReceiver syncMessageReceiver;
 
-  private ConnectionInfoDto connectionInfoDto;
   private GmcDoctor gmcDoctor;
   private MasterDoctorView masterDoctorView;
   private Faker faker = new Faker();
@@ -76,12 +71,6 @@ class RabbitMessageListenerTest {
     gmcDoctor = buildGmcDoctor();
     masterDoctorView = buildMasterDoctorView();
     exceptionReason = faker.lorem().characters(20);
-  }
-
-  @Test
-  void shouldReceiveSyncMessages() {
-    rabbitMessageListener.receiveMessageGetMaster("getMaster");
-    verify(syncMessageReceiver).handleMessage("getMaster");
   }
 
   @Test

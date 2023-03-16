@@ -52,7 +52,6 @@ class DoctorMessageReceiverTest {
 
   ConnectionInfoMapper connectionInfoMapper;
 
-  private GmcDoctor gmcDoctor;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -144,7 +143,6 @@ class DoctorMessageReceiverTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
-        .connectionStatus(status)
         .exceptionReason(exceptionReason1)
         .build();
   }

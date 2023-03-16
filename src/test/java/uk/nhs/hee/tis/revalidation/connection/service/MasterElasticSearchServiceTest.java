@@ -110,7 +110,6 @@ class MasterElasticSearchServiceTest {
         .designatedBody(designatedBody1)
         .tcsDesignatedBody(designatedBody2)
         .programmeOwner(programmeOwner1)
-        .connectionStatus("Yes")
         .exceptionReason(exceptionReason1)
         .build();
   }

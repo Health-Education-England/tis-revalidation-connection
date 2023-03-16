@@ -154,7 +154,6 @@ class UpdateConnectionReceiverTest {
         .programmeName(programmeName)
         .designatedBody(designatedBody)
         .programmeOwner(programmeOwner)
-        .connectionStatus(status)
         .exceptionReason(null)
         .build();
   }
@@ -177,7 +176,6 @@ class UpdateConnectionReceiverTest {
         .programmeName(programmeName)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner)
-        .connectionStatus("Yes")
         .exceptionReason(null)
         .build();
   }
@@ -200,7 +198,6 @@ class UpdateConnectionReceiverTest {
         .programmeName(programmeName)
         .designatedBody(null)
         .programmeOwner(programmeOwner)
-        .connectionStatus("No")
         .exceptionReason(null)
         .build();
   }
@@ -223,7 +220,6 @@ class UpdateConnectionReceiverTest {
         .programmeName(programmeName)
         .designatedBody(designatedBody)
         .programmeOwner(programmeOwner)
-        .connectionStatus(status)
         .exceptionReason(INVALID_CREDENTIALS.getMessage())
         .build();
   }

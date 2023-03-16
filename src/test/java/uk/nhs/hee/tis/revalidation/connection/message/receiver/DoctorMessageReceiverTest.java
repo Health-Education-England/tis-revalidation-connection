@@ -129,7 +129,6 @@ class DoctorMessageReceiverTest {
         .programmeName(programmeName1)
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner1)
-        .connectionStatus(status)
         .exceptionReason(exceptionReason1)
         .build();
   }

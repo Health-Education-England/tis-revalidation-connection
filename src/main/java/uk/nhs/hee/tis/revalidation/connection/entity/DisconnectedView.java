@@ -59,7 +59,6 @@ public class DisconnectedView {
   private String designatedBody;
   private String tcsDesignatedBody;
   private String programmeOwner;
-  private String connectionStatus;
   @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "uuuu-MM-dd")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private LocalDate membershipStartDate;

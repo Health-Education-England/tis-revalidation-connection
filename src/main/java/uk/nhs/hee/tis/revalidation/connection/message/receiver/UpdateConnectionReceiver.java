@@ -93,7 +93,6 @@ public class UpdateConnectionReceiver implements MessageReceiver<ConnectionInfoD
     existingViews.forEach(existingView -> {
       if (exceptionMessage.equals(SUCCESS.getMessage())) {
         existingView.setDesignatedBody(designatedBodyCode);
-        existingView.setConnectionStatus(StringUtils.hasText(designatedBodyCode) ? "Yes" : "No");
       }
       else {
         existingView.setExceptionReason(exceptionMessage);

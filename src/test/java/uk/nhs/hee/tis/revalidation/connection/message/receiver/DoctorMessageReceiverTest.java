@@ -52,6 +52,7 @@ class DoctorMessageReceiverTest {
 
   ConnectionInfoMapper connectionInfoMapper;
 
+  private GmcDoctor gmcDoctor;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;

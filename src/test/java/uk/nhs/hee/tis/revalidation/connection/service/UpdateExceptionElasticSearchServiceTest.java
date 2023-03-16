@@ -70,7 +70,6 @@ class UpdateExceptionElasticSearchServiceTest {
         .designatedBody("body")
         .tcsDesignatedBody("tcsbody")
         .programmeOwner("owner")
-        .connectionStatus("Yes")
         .exceptionReason("exception reason")
         .build();
   }

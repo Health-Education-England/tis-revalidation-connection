@@ -240,7 +240,6 @@ class ElasticSearchIndexUpdateHelperTest {
         .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
     assert (returnedView.getMembershipEndDate())
         .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
-    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
   }
 
   @Test
@@ -263,7 +262,6 @@ class ElasticSearchIndexUpdateHelperTest {
         .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
     assert (returnedView.getMembershipEndDate())
         .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
-    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
   }
 
   @Test
@@ -286,7 +284,6 @@ class ElasticSearchIndexUpdateHelperTest {
         .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
     assert (returnedView.getMembershipEndDate())
         .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
-    assertThat(returnedView.getConnectionStatus(), is(CONNECTED));
   }
 
   @Test

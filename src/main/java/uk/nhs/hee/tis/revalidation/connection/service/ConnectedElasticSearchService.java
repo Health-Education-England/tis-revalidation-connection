@@ -77,13 +77,15 @@ public class ConnectedElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository.search(fullQuery, pageable);
+      Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
+          .search(fullQuery, pageable);
 
       final var connectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(connectedTrainees))
+          .connections(connectionInfoMapper
+              .currentConnectionsToConnectionInfoDtos(connectedTrainees))
           .build();
 
     } catch (RuntimeException re) {

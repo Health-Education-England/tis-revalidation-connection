@@ -24,13 +24,12 @@ package uk.nhs.hee.tis.revalidation.connection.mapper;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
+import java.time.LocalDate;
+import java.util.List;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
-
-import java.time.LocalDate;
-import java.util.List;
 
 class ConnectionInfoMapperTest {
 

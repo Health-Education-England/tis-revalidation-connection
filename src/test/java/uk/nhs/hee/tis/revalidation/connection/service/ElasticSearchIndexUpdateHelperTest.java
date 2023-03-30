@@ -225,21 +225,21 @@ class ElasticSearchIndexUpdateHelperTest {
     final ExceptionView returnedView = elasticSearchIndexUpdateHelper
         .getExceptionViews(visitorExceptionDto);
 
-    assert (returnedView.getGmcReferenceNumber())
-        .equals(visitorExceptionDto.getGmcReferenceNumber());
-    assert (returnedView.getDoctorFirstName()).equals(visitorExceptionDto.getDoctorFirstName());
-    assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
-    assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
-    assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
-    assert (returnedView.getMembershipType())
-        .equals(visitorExceptionDto.getProgrammeMembershipType());
-    assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
-    assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
-    assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
-    assert (returnedView.getMembershipStartDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
-    assert (returnedView.getMembershipEndDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
+    assertThat(returnedView.getGmcReferenceNumber()
+        , is(visitorExceptionDto.getGmcReferenceNumber()));
+    assertThat(returnedView.getDoctorFirstName(), is(visitorExceptionDto.getDoctorFirstName()));
+    assertThat(returnedView.getDoctorLastName(), is(visitorExceptionDto.getDoctorLastName()));
+    assertThat(returnedView.getSubmissionDate(), is(visitorExceptionDto.getSubmissionDate()));
+    assertThat(returnedView.getProgrammeName(), is(visitorExceptionDto.getProgrammeName()));
+    assertThat(returnedView.getMembershipType()
+        , is(visitorExceptionDto.getProgrammeMembershipType()));
+    assertThat(returnedView.getDesignatedBody(), is(visitorExceptionDto.getDesignatedBody()));
+    assertThat(returnedView.getTcsDesignatedBody(), is(visitorExceptionDto.getTcsDesignatedBody()));
+    assertThat(returnedView.getProgrammeOwner(), is(visitorExceptionDto.getProgrammeOwner()));
+    assertThat(returnedView.getMembershipStartDate()
+        , is(visitorExceptionDto.getProgrammeMembershipStartDate()));
+    assertThat(returnedView.getMembershipEndDate()
+        , is(visitorExceptionDto.getProgrammeMembershipEndDate()));
   }
 
   @Test
@@ -247,21 +247,21 @@ class ElasticSearchIndexUpdateHelperTest {
     final ConnectedView returnedView = elasticSearchIndexUpdateHelper
         .getConnectedViews(visitorExceptionDto);
 
-    assert (returnedView.getGmcReferenceNumber())
-        .equals(visitorExceptionDto.getGmcReferenceNumber());
-    assert (returnedView.getDoctorFirstName()).equals(visitorExceptionDto.getDoctorFirstName());
-    assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
-    assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
-    assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
-    assert (returnedView.getMembershipType())
-        .equals(visitorExceptionDto.getProgrammeMembershipType());
-    assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
-    assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
-    assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
-    assert (returnedView.getMembershipStartDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
-    assert (returnedView.getMembershipEndDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
+    assertThat(returnedView.getGmcReferenceNumber()
+        , is(visitorExceptionDto.getGmcReferenceNumber()));
+    assertThat(returnedView.getDoctorFirstName(), is(visitorExceptionDto.getDoctorFirstName()));
+    assertThat(returnedView.getDoctorLastName(), is(visitorExceptionDto.getDoctorLastName()));
+    assertThat(returnedView.getSubmissionDate(), is(visitorExceptionDto.getSubmissionDate()));
+    assertThat(returnedView.getProgrammeName(), is(visitorExceptionDto.getProgrammeName()));
+    assertThat(returnedView.getMembershipType()
+        , is(visitorExceptionDto.getProgrammeMembershipType()));
+    assertThat(returnedView.getDesignatedBody(), is(visitorExceptionDto.getDesignatedBody()));
+    assertThat(returnedView.getTcsDesignatedBody(), is(visitorExceptionDto.getTcsDesignatedBody()));
+    assertThat(returnedView.getProgrammeOwner(), is(visitorExceptionDto.getProgrammeOwner()));
+    assertThat(returnedView.getMembershipStartDate()
+        , is(visitorExceptionDto.getProgrammeMembershipStartDate()));
+    assertThat(returnedView.getMembershipEndDate()
+        , is(visitorExceptionDto.getProgrammeMembershipEndDate()));
   }
 
   @Test
@@ -269,21 +269,21 @@ class ElasticSearchIndexUpdateHelperTest {
     final DisconnectedView returnedView = elasticSearchIndexUpdateHelper
         .getDisconnectedViews(visitorExceptionDto);
 
-    assert (returnedView.getGmcReferenceNumber())
-        .equals(visitorExceptionDto.getGmcReferenceNumber());
-    assert (returnedView.getDoctorFirstName()).equals(visitorExceptionDto.getDoctorFirstName());
-    assert (returnedView.getDoctorLastName()).equals(visitorExceptionDto.getDoctorLastName());
-    assert (returnedView.getSubmissionDate()).equals(visitorExceptionDto.getSubmissionDate());
-    assert (returnedView.getProgrammeName()).equals(visitorExceptionDto.getProgrammeName());
-    assert (returnedView.getMembershipType())
-        .equals(visitorExceptionDto.getProgrammeMembershipType());
-    assert (returnedView.getDesignatedBody()).equals(visitorExceptionDto.getDesignatedBody());
-    assert (returnedView.getTcsDesignatedBody()).equals(visitorExceptionDto.getTcsDesignatedBody());
-    assert (returnedView.getProgrammeOwner()).equals(visitorExceptionDto.getProgrammeOwner());
-    assert (returnedView.getMembershipStartDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipStartDate());
-    assert (returnedView.getMembershipEndDate())
-        .equals(visitorExceptionDto.getProgrammeMembershipEndDate());
+    assertThat(returnedView.getGmcReferenceNumber(),
+        is(visitorExceptionDto.getGmcReferenceNumber()));
+    assertThat(returnedView.getDoctorFirstName(), is(visitorExceptionDto.getDoctorFirstName()));
+    assertThat(returnedView.getDoctorLastName(), is(visitorExceptionDto.getDoctorLastName()));
+    assertThat(returnedView.getSubmissionDate(), is(visitorExceptionDto.getSubmissionDate()));
+    assertThat(returnedView.getProgrammeName(), is(visitorExceptionDto.getProgrammeName()));
+    assertThat(returnedView.getMembershipType(),
+        is(visitorExceptionDto.getProgrammeMembershipType()));
+    assertThat(returnedView.getDesignatedBody(), is(visitorExceptionDto.getDesignatedBody()));
+    assertThat(returnedView.getTcsDesignatedBody(), is(visitorExceptionDto.getTcsDesignatedBody()));
+    assertThat(returnedView.getProgrammeOwner(), is(visitorExceptionDto.getProgrammeOwner()));
+    assertThat(returnedView.getMembershipStartDate(),
+        is(visitorExceptionDto.getProgrammeMembershipStartDate()));
+    assertThat(returnedView.getMembershipEndDate(),
+        is(visitorExceptionDto.getProgrammeMembershipEndDate()));
   }
 
   @Test

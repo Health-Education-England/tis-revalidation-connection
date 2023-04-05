@@ -44,8 +44,6 @@ class ElasticSearchIndexUpdateHelperTest {
 
   private static final String VISITOR = "Visitor";
   private static final String SUBSTANTIVE = "Substantive";
-  private static final String CONNECTED = "Yes";
-  private static final String DISCONNECTED = "No";
   private static final List<String> ES_INDICES = List
       .of("connectedindex", "disconnectedindex", "exceptionindex");
   @Mock

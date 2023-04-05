@@ -61,6 +61,7 @@ public interface ConnectionInfoMapper {
   @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
   @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
   @Mapping(target = "dataSource", ignore = true)
+  @Mapping(target = "connectionStatus", ignore = true)
   ConnectionInfoDto masterToDto(MasterDoctorView userType);
 
   List<ConnectionInfoDto> masterToDtos(List<MasterDoctorView> userTypes);

@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.WildcardQueryBuilder;
@@ -48,8 +49,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ConnectedElasticSearchServiceTest {
@@ -59,6 +62,8 @@ class ConnectedElasticSearchServiceTest {
   private final Faker faker = new Faker();
   @Mock
   ConnectedElasticSearchRepository connectedElasticSearchRepository;
+  @Mock
+  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
@@ -71,7 +76,7 @@ class ConnectedElasticSearchServiceTest {
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason1;
-  private Page<ConnectedView> searchResult;
+  private Page<CurrentConnectionsView> currentConnectionsSearchResult;
   private List<ConnectedView> connectedViews = new ArrayList<>();
 
   /**
@@ -89,7 +94,7 @@ class ConnectedElasticSearchServiceTest {
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
 
-    ConnectedView connectedView = ConnectedView.builder()
+    CurrentConnectionsView currentConnectionsView = CurrentConnectionsView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -100,8 +105,7 @@ class ConnectedElasticSearchServiceTest {
         .programmeOwner(programmeOwner1)
         .exceptionReason(exceptionReason1)
         .build();
-    connectedViews.add(connectedView);
-    searchResult = new PageImpl<>(connectedViews);
+    currentConnectionsSearchResult = new PageImpl<>(Lists.list(currentConnectionsView));
   }
 
   @Test
@@ -112,14 +116,14 @@ class ConnectedElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(connectedElasticSearchRepository.search(fullQuery, pageableAndSortable))
-        .thenReturn(searchResult);
+    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+        .thenReturn(currentConnectionsSearchResult);
 
-    final var records = searchResult.get().collect(toList());
+    final var records = currentConnectionsSearchResult.get().collect(toList());
     var connectionSummary = ConnectionSummaryDto.builder()
-        .totalPages(searchResult.getTotalPages())
-        .totalResults(searchResult.getTotalElements())
-        .connections(connectionInfoMapper.connectedToDtos(records))
+        .totalPages(currentConnectionsSearchResult.getTotalPages())
+        .totalResults(currentConnectionsSearchResult.getTotalElements())
+        .connections(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(records))
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
@@ -142,14 +146,14 @@ class ConnectedElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(connectedElasticSearchRepository.search(fullQuery, pageableAndSortable))
-        .thenReturn(searchResult);
+    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+        .thenReturn(currentConnectionsSearchResult);
 
-    final var records = searchResult.get().collect(toList());
+    final var records = currentConnectionsSearchResult.get().collect(toList());
     var connectionSummary = ConnectionSummaryDto.builder()
-        .totalPages(searchResult.getTotalPages())
-        .totalResults(searchResult.getTotalElements())
-        .connections(connectionInfoMapper.connectedToDtos(records))
+        .totalPages(currentConnectionsSearchResult.getTotalPages())
+        .totalResults(currentConnectionsSearchResult.getTotalElements())
+        .connections(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(records))
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService

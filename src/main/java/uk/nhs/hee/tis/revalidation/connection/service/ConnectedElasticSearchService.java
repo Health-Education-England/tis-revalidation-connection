@@ -37,8 +37,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
+import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @Service
 public class ConnectedElasticSearchService {
@@ -47,6 +49,9 @@ public class ConnectedElasticSearchService {
 
   @Autowired
   ConnectedElasticSearchRepository connectedElasticSearchRepository;
+
+  @Autowired
+  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -72,13 +77,15 @@ public class ConnectedElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<ConnectedView> result = connectedElasticSearchRepository.search(fullQuery, pageable);
+      Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
+          .search(fullQuery, pageable);
 
       final var connectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.connectedToDtos(connectedTrainees))
+          .connections(connectionInfoMapper
+              .currentConnectionsToConnectionInfoDtos(connectedTrainees))
           .build();
 
     } catch (RuntimeException re) {

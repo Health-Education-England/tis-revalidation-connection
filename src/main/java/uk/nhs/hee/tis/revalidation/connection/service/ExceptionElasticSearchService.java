@@ -76,7 +76,8 @@ public class ExceptionElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository.search(fullQuery, pageable);
+      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
+          .search(fullQuery, pageable);
 
       final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()

@@ -88,6 +88,7 @@ class ExceptionUpdateExceptionElasticSearchServiceTest {
     doReturn(searchResult).when(discrepanciesElasticSearchRepository)
         .search(any(QueryBuilder.class), any(Pageable.class));
     exceptionElasticSearchService.searchForPage(TEST_QUERY, Pageable.unpaged());
-    verify(discrepanciesElasticSearchRepository).search(any(QueryBuilder.class), any(Pageable.class));
+    verify(discrepanciesElasticSearchRepository)
+        .search(any(QueryBuilder.class), any(Pageable.class));
   }
 }

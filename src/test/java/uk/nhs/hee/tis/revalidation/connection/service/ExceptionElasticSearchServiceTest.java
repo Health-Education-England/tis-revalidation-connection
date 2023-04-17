@@ -44,9 +44,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ExceptionElasticSearchServiceTest {
@@ -54,7 +54,7 @@ class ExceptionElasticSearchServiceTest {
   private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
   @Mock
-  ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
@@ -67,8 +67,8 @@ class ExceptionElasticSearchServiceTest {
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason;
-  private Page<ExceptionView> searchResult;
-  private List<ExceptionView> exceptionViews = new ArrayList<>();
+  private Page<DiscrepanciesView> searchResult;
+  private List<DiscrepanciesView> exceptionViews = new ArrayList<>();
 
   /**
    * Set up data for testing.
@@ -85,7 +85,7 @@ class ExceptionElasticSearchServiceTest {
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason = faker.lorem().characters(20);
 
-    ExceptionView exceptionView = ExceptionView.builder()
+    DiscrepanciesView discrepanciesView = DiscrepanciesView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -96,7 +96,7 @@ class ExceptionElasticSearchServiceTest {
         .programmeOwner(programmeOwner1)
         .exceptionReason(exceptionReason)
         .build();
-    exceptionViews.add(exceptionView);
+    exceptionViews.add(discrepanciesView);
     searchResult = new PageImpl<>(exceptionViews);
   }
 
@@ -108,14 +108,14 @@ class ExceptionElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(exceptionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(discrepanciesElasticSearchRepository.search(fullQuery, pageableAndSortable))
         .thenReturn(searchResult);
 
     final var records = searchResult.get().collect(toList());
     var connectionSummary = ConnectionSummaryDto.builder()
         .totalPages(searchResult.getTotalPages())
         .totalResults(searchResult.getTotalElements())
-        .connections(connectionInfoMapper.exceptionToDtos(records))
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
         .build();
 
     ConnectionSummaryDto result = exceptionElasticSearchService

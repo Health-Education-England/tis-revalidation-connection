@@ -47,7 +47,7 @@ public interface ConnectionInfoMapper {
   @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
   @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
   @Mapping(target = "dataSource", ignore = true)
-  ConnectionInfoDto discrepancyToConnectionInfoDto(ExceptionView userType);
+  ConnectionInfoDto discrepancyToConnectionInfoDto(DiscrepanciesView userType);
   List<ConnectionInfoDto> discrepancyToConnectionInfoDtos(List<DiscrepanciesView> userTypes);
 
   @Mapping(target = "programmeMembershipType", source = "membershipType")

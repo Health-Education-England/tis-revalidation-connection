@@ -30,6 +30,7 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 
 class ConnectionInfoMapperTest {
 
@@ -64,6 +65,39 @@ class ConnectionInfoMapperTest {
 
     List<ConnectionInfoDto> connectionInfoDtos =
         testObj.currentConnectionsToConnectionInfoDtos(Lists.list(currentConnectionsView));
+
+    assertThat(connectionInfoDtos.size(), is(1));
+    ConnectionInfoDto dto = connectionInfoDtos.get(0);
+    assertThat(dto.getGmcReferenceNumber(), is(GMC_NUMBER));
+    assertThat(dto.getDoctorFirstName(), is(DOCTOR_FIRST_NAME));
+    assertThat(dto.getDoctorLastName(), is(DOCTOR_LAST_NAME));
+    assertThat(dto.getDesignatedBody(), is(DESIGNATED_BODY));
+    assertThat(dto.getTcsDesignatedBody(), is(TCS_DESIGNATED_BODY));
+    assertThat(dto.getTcsPersonId(), is(TCS_PERSON_ID));
+    assertThat(dto.getProgrammeMembershipType(), is(PROGRAMME_MEMBERSHIP_TYPE));
+    assertThat(dto.getProgrammeMembershipStartDate(), is(PROGRAMME_MEMBERSHIP_START_DATE));
+    assertThat(dto.getProgrammeMembershipEndDate(), is(PROGRAMME_MEMBERSHIP_END_DATE));
+    assertThat(dto.getExceptionReason(), is(EXCEPTION_REASON));
+  }
+
+  @Test
+  void shouldMapDiscrepanciesViewListToConnectionInfoDtoList() {
+
+    DiscrepanciesView discrepanciesView = DiscrepanciesView.builder()
+        .gmcReferenceNumber(GMC_NUMBER)
+        .doctorFirstName(DOCTOR_FIRST_NAME)
+        .doctorLastName(DOCTOR_LAST_NAME)
+        .designatedBody(DESIGNATED_BODY)
+        .tcsDesignatedBody(TCS_DESIGNATED_BODY)
+        .tcsPersonId(TCS_PERSON_ID)
+        .membershipType(PROGRAMME_MEMBERSHIP_TYPE)
+        .membershipStartDate(PROGRAMME_MEMBERSHIP_START_DATE)
+        .membershipEndDate(PROGRAMME_MEMBERSHIP_END_DATE)
+        .exceptionReason(EXCEPTION_REASON)
+        .build();
+
+    List<ConnectionInfoDto> connectionInfoDtos =
+        testObj.discrepancyToConnectionInfoDtos(Lists.list(discrepanciesView));
 
     assertThat(connectionInfoDtos.size(), is(1));
     ConnectionInfoDto dto = connectionInfoDtos.get(0);

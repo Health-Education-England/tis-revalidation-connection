@@ -36,8 +36,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
 @Service
@@ -49,8 +51,10 @@ public class ExceptionElasticSearchService {
   ExceptionElasticSearchRepository exceptionElasticSearchRepository;
 
   @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
+  @Autowired
+  ConnectionInfoMapper connectionInfoMapper;
 
   /**
    * Get exceptions from exception elasticsearch index.
@@ -72,13 +76,14 @@ public class ExceptionElasticSearchService {
 
       LOG.debug("Query {}", fullQuery);
 
-      Page<ExceptionView> result = exceptionElasticSearchRepository.search(fullQuery, pageable);
+      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
+          .search(fullQuery, pageable);
 
       final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.exceptionToDtos(exceptions))
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(exceptions))
           .build();
 
     } catch (RuntimeException re) {

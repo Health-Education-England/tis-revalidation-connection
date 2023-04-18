@@ -40,6 +40,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +52,7 @@ class ExceptionUpdateExceptionElasticSearchServiceTest {
       "sortColumn=gmcReferenceNumber&sortOrder=asc&pageNumber=0&filter=exceptionsQueue"
           + "&dbcs=1-AIIDWA,1-AIIDVS,1-AIIDWI,1-AIIDR8,1-AIIDMY,1-AIIDSA,1-AIIDWT";
   @Mock
-  ExceptionElasticSearchRepository exceptionElasticSearchRepository;
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
@@ -84,9 +85,10 @@ class ExceptionUpdateExceptionElasticSearchServiceTest {
 
   @Test
   void shouldUseElasticSearchRepository() {
-    doReturn(searchResult).when(exceptionElasticSearchRepository)
+    doReturn(searchResult).when(discrepanciesElasticSearchRepository)
         .search(any(QueryBuilder.class), any(Pageable.class));
     exceptionElasticSearchService.searchForPage(TEST_QUERY, Pageable.unpaged());
-    verify(exceptionElasticSearchRepository).search(any(QueryBuilder.class), any(Pageable.class));
+    verify(discrepanciesElasticSearchRepository)
+        .search(any(QueryBuilder.class), any(Pageable.class));
   }
 }

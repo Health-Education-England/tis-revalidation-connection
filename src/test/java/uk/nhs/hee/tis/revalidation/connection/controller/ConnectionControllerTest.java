@@ -147,8 +147,8 @@ class ConnectionControllerTest {
     lastName2 = faker.name().lastName();
     submissionDate1 = now();
     submissionDate2 = now();
-    designatedBody1 = faker.lorem().characters(8);
-    designatedBody2 = faker.lorem().characters(8);
+    designatedBody1 = "1-1RSSPZ7";
+    designatedBody2 = "1-1RSSQ1B";
     programmeName1 = faker.lorem().characters(20);
     programmeName2 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
@@ -165,9 +165,9 @@ class ConnectionControllerTest {
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
     when(connectionService.addDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/add")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(addDoctorDto)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(addDoctorDto)))
         .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }
@@ -180,9 +180,9 @@ class ConnectionControllerTest {
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
     when(connectionService.removeDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/remove")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(removeDoctorDto)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(removeDoctorDto)))
         .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }
@@ -194,9 +194,9 @@ class ConnectionControllerTest {
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
     when(connectionService.hideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/hide")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(hideDoctorDto)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(hideDoctorDto)))
         .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }
@@ -208,9 +208,9 @@ class ConnectionControllerTest {
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
     when(connectionService.unhideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/unhide")
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsBytes(unhideDoctorDto)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(unhideDoctorDto)))
         .andExpect(content().json(objectMapper.writeValueAsString(response)))
         .andExpect(status().isOk());
   }
@@ -269,11 +269,11 @@ class ConnectionControllerTest {
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
-        .param(SORT_ORDER, "asc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
@@ -302,11 +302,11 @@ class ConnectionControllerTest {
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
-        .param(SORT_ORDER, "desc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
@@ -317,15 +317,20 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+    final String dbc1 = "1-AIIDHJ";
+    final String dbc2 = "AIIDMQ";
+    final String dbcformatted = "aiidhj aiidmq";
+    List<String> dbcs = List.of(dbc1, dbc2);
+
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, dbcs, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/connected")
-        .param(SORT_ORDER, "asc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
@@ -348,15 +353,16 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber.keyword"));
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
-        .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, List.of(dbcString),
+        pageableAndSortable))
+        .thenReturn(connectionSummary);
     this.mockMvc.perform(get("/api/connections/connected")
-        .param(SORT_ORDER, "desc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
@@ -371,11 +377,11 @@ class ConnectionControllerTest {
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/disconnected")
-        .param(SORT_ORDER, "asc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
@@ -402,11 +408,11 @@ class ConnectionControllerTest {
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/disconnected")
-        .param(SORT_ORDER, "desc")
-        .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-        .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-        .param(SEARCH_QUERY, EMPTY_STRING)
-        .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));

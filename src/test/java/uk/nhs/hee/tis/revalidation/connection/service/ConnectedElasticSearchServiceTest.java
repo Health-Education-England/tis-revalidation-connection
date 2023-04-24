@@ -73,6 +73,7 @@ class ConnectedElasticSearchServiceTest {
   private String lastName1;
   private LocalDate submissionDate1;
   private String designatedBody1;
+  private String designatedBody2;
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason1;
@@ -89,7 +90,8 @@ class ConnectedElasticSearchServiceTest {
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
-    designatedBody1 = faker.lorem().characters(8);
+    designatedBody1 = "1-1RSSPZ7";
+    designatedBody2 = "1-1RSSQ1B";
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
@@ -110,13 +112,12 @@ class ConnectedElasticSearchServiceTest {
 
   @Test
   void shouldSearchForPage() {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
 
-    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(currentConnectionElasticSearchRepository.findAll("", formattedDbcs, pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -127,26 +128,20 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage("", pageableAndSortable);
+        .searchForPage("", dbcs, pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
   @Test
   void shouldSearchForPageWithQuery() {
     String searchQuery = gmcRef1;
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    searchQuery = StringUtils.remove(searchQuery.toLowerCase(), '"');
-    shouldQuery
-        .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-        .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-        .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
 
-    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+        pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -157,7 +152,7 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage(searchQuery, pageableAndSortable);
+        .searchForPage(searchQuery, dbcs, pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 }

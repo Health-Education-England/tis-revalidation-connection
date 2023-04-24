@@ -65,19 +65,9 @@ public class ExceptionElasticSearchService {
   public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
 
     try {
-      // for each column filter set, place a must between them
-      var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-
-      //apply free text search on the searchable columns
-      BoolQueryBuilder shouldQuery = applyTextBasedSearchQuery(searchQuery.toLowerCase());
-
-      // add the free text query with a must to the column filters query
-      BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-
-      LOG.debug("Query {}", fullQuery);
 
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
-          .search(fullQuery, pageable);
+          .findAll(searchQuery, pageable);
 
       final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
@@ -209,19 +199,5 @@ public class ExceptionElasticSearchService {
             dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
       }
     });
-  }
-
-  private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
-    // place a should between all of the searchable fields
-    var shouldQuery = new BoolQueryBuilder();
-    if (StringUtils.isNotEmpty(searchQuery)) {
-      searchQuery = StringUtils
-          .remove(searchQuery, '"'); //remove any quotations that were added from the FE
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-          .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-          .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-    }
-    return shouldQuery;
   }
 }

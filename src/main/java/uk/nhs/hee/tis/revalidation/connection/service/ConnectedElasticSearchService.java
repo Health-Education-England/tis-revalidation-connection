@@ -24,6 +24,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -63,22 +64,13 @@ public class ConnectedElasticSearchService {
    * @param searchQuery query to run
    * @param pageable    pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
+  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
+      Pageable pageable) {
 
     try {
-      // for each column filter set, place a must between them
-      var mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-
-      //apply free text search on the searchable columns
-      BoolQueryBuilder shouldQuery = applyTextBasedSearchQuery(searchQuery.toLowerCase());
-
-      // add the free text query with a must to the column filters query
-      BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
-
-      LOG.debug("Query {}", fullQuery);
-
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .search(fullQuery, pageable);
+          .findAll(searchQuery, formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              pageable);
 
       final var connectedTrainees = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
@@ -122,10 +114,9 @@ public class ConnectedElasticSearchService {
     if (gmcReferenceNumber != null) {
       try {
         connectedElasticSearchRepository.deleteByGmcReferenceNumber(gmcReferenceNumber);
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
         LOG.info("Exception in `removeConnectedViewByGmcNumber` (GmcId: {}): {}",
-            gmcReferenceNumber,  ex);
+            gmcReferenceNumber, ex);
       }
     }
   }
@@ -139,10 +130,9 @@ public class ConnectedElasticSearchService {
     if (tcsPersonId != null) {
       try {
         connectedElasticSearchRepository.deleteByTcsPersonId(tcsPersonId);
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
         LOG.info("Exception in `removeConnectedViewByTcsPersonId` (PersonId: {}): {}",
-            tcsPersonId,  ex);
+            tcsPersonId, ex);
       }
     }
   }
@@ -169,10 +159,9 @@ public class ConnectedElasticSearchService {
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     try {
       result = connectedElasticSearchRepository.search(fullQuery);
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       LOG.info("Exception in `findConnectedViewsByGmcNumberPersonId` (GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+          dataToSave.getGmcReferenceNumber(), dataToSave.getTcsPersonId(), ex);
     }
 
     return result;
@@ -186,10 +175,9 @@ public class ConnectedElasticSearchService {
   private void addConnectedViews(ConnectedView dataToSave) {
     try {
       connectedElasticSearchRepository.save(dataToSave);
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       LOG.info("Exception in `addConnectedViews` (GmcId: {}; PersonId: {}): {}",
-          dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+          dataToSave.getGmcReferenceNumber(), dataToSave.getTcsPersonId(), ex);
     }
   }
 
@@ -205,25 +193,19 @@ public class ConnectedElasticSearchService {
       dataToSave.setId(connectedView.getId());
       try {
         connectedElasticSearchRepository.save(dataToSave);
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
         LOG.info("Exception in `updateConnectedViews` (GmcId: {}; PersonId: {}): {}",
-            dataToSave.getGmcReferenceNumber(),dataToSave.getTcsPersonId(),  ex);
+            dataToSave.getGmcReferenceNumber(), dataToSave.getTcsPersonId(), ex);
       }
     });
   }
 
-  private BoolQueryBuilder applyTextBasedSearchQuery(String searchQuery) {
-    // place a should between all of the searchable fields
-    var shouldQuery = new BoolQueryBuilder();
-    if (StringUtils.isNotEmpty(searchQuery)) {
-      searchQuery = StringUtils
-          .remove(searchQuery, '"'); //remove any quotations that were added from the FE
-      shouldQuery
-          .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-          .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-          .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-    }
-    return shouldQuery;
+  private String formatDesignatedBodyCodesForElasticsearchQuery(
+      List<String> designatedBodyCodes) {
+    List<String> escapedCodes = new ArrayList<>();
+    designatedBodyCodes.forEach(code -> {
+      escapedCodes.add(code.toLowerCase().replace("1-", ""));
+    });
+    return String.join(" ", escapedCodes);
   }
 }

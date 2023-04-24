@@ -21,11 +21,23 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
+import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 
 @Repository
 public interface CurrentConnectionElasticSearchRepository
     extends ElasticsearchRepository<CurrentConnectionsView, String> {
+
+  @Query("{\"bool\":{\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},"
+      + "{\"bool\":{\"should\":"
+      + "[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
+  Page<CurrentConnectionsView> findAll(final String searchQuery, final String dbcs,
+      final Pageable pageable);
 }

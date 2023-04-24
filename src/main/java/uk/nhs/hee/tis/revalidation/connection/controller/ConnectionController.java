@@ -260,7 +260,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
     var connectionSummaryDto = connectedElasticSearchService
-        .searchForPage(searchQueryES, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

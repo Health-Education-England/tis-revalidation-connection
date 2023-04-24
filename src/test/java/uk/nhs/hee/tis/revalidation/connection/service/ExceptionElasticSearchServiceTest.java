@@ -33,6 +33,7 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,18 +98,15 @@ class ExceptionElasticSearchServiceTest {
         .exceptionReason(exceptionReason)
         .build();
     exceptionViews.add(discrepanciesView);
-    searchResult = new PageImpl<>(exceptionViews);
+    searchResult = new PageImpl<>(Lists.list(discrepanciesView));
   }
 
   @Test
   void shouldSearchForPage() {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(discrepanciesElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(discrepanciesElasticSearchRepository.findAll("", pageableAndSortable))
         .thenReturn(searchResult);
 
     final var records = searchResult.get().collect(toList());

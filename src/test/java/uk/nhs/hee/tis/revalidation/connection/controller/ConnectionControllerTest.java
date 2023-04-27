@@ -147,8 +147,8 @@ class ConnectionControllerTest {
     lastName2 = faker.name().lastName();
     submissionDate1 = now();
     submissionDate2 = now();
-    designatedBody1 = "1-1RSSPZ7";
-    designatedBody2 = "1-1RSSQ1B";
+    designatedBody1 = faker.lorem().characters(8);
+    designatedBody2 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeName2 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
@@ -317,10 +317,7 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
-    final String dbc1 = "1-AIIDHJ";
-    final String dbc2 = "AIIDMQ";
-    final String dbcformatted = "aiidhj aiidmq";
-    List<String> dbcs = List.of(dbc1, dbc2);
+    List<String> dbcs = List.of(designatedBody1, designatedBody2);
 
     when(connectedElasticSearchService.searchForPage(EMPTY_STRING, dbcs, pageableAndSortable))
         .thenReturn(connectionSummary);

@@ -33,8 +33,6 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.assertj.core.util.Lists;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,7 +96,7 @@ class ExceptionElasticSearchServiceTest {
         .exceptionReason(exceptionReason)
         .build();
     exceptionViews.add(discrepanciesView);
-    searchResult = new PageImpl<>(Lists.list(discrepanciesView));
+    searchResult = new PageImpl<>(List.of(discrepanciesView));
   }
 
   @Test

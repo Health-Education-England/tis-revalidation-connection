@@ -18,7 +18,6 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
 import static java.time.LocalDate.now;
@@ -42,8 +41,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -63,7 +60,6 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
 
-@ExtendWith(MockitoExtension.class)
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
 
@@ -97,7 +93,6 @@ class ConnectionControllerTest {
   private String newDesignatedBodyCode;
   private String previousDesignatedBodyCode;
   private String reason;
-  private String reasonMessage;
   private ConnectionRequestType requestType;
   private LocalDateTime requestTime;
   private String responseCode;
@@ -132,7 +127,6 @@ class ConnectionControllerTest {
     newDesignatedBodyCode = faker.number().digits(8);
     previousDesignatedBodyCode = faker.number().digits(8);
     reason = "2";
-    reasonMessage = "Conflict of Interest";
     requestType = ConnectionRequestType.ADD;
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
@@ -317,9 +311,8 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
-    List<String> dbcs = List.of(designatedBody1, designatedBody2);
-
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, dbcs, pageableAndSortable))
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/connected")
@@ -350,16 +343,15 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber.keyword"));
-    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING, List.of(dbcString),
-        pageableAndSortable))
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
     this.mockMvc.perform(get("/api/connections/connected")
             .param(SORT_ORDER, "desc")
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
-            .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(DESIGNATED_BODY_CODES, String.format("%s,%s", designatedBody1, designatedBody2)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));

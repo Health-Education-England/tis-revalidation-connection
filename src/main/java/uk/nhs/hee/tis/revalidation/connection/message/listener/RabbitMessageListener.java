@@ -18,7 +18,6 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package uk.nhs.hee.tis.revalidation.connection.message.listener;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +40,7 @@ public class RabbitMessageListener {
    *
    * @param masterDoctorView updated doctor
    */
-  @RabbitListener(
-      queues = "${app.rabbit.reval.queue.masterdoctorview.updated.connection}"
-  )
+  @RabbitListener(queues = "${app.rabbit.reval.queue.masterdoctorview.updated.connection}")
   public void receiveDoctorMessage(final MasterDoctorView masterDoctorView) {
     doctorMessageReceiver.handleMessage(masterDoctorView);
   }

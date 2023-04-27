@@ -33,9 +33,9 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 public interface CurrentConnectionElasticSearchRepository
     extends ElasticsearchRepository<CurrentConnectionsView, String> {
 
-  @Query("{\"bool\":{\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},"
-      + "{\"bool\":{\"should\":"
-      + "[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+  @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
+      + "\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},{\"bool\":"
+      + "{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
   Page<CurrentConnectionsView> findAll(final String searchQuery, final String dbcs,

@@ -25,6 +25,7 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -117,5 +118,19 @@ class DiscrepanciesElasticSearchServiceTest {
     ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForPage("", pageableAndSortable);
     assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPage() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+
+    when(discrepanciesElasticSearchRepository.findAll(searchQuery,
+        pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(RuntimeException.class, () -> discrepanciesElasticSearchService
+        .searchForPage(searchQuery, pageableAndSortable));
   }
 }

@@ -37,7 +37,8 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DiscrepanciesElasticSearchService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(
+      DiscrepanciesElasticSearchService.class);
 
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;

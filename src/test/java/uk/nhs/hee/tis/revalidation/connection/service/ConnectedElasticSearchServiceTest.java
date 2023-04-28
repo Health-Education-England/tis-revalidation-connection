@@ -46,10 +46,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,8 +56,6 @@ class ConnectedElasticSearchServiceTest {
   private static final String VISITOR = "Visitor";
   private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
-  @Mock
-  ConnectedElasticSearchRepository connectedElasticSearchRepository;
   @Mock
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Mock
@@ -76,7 +72,6 @@ class ConnectedElasticSearchServiceTest {
   private String programmeOwner1;
   private String exceptionReason1;
   private Page<CurrentConnectionsView> currentConnectionsSearchResult;
-  private List<ConnectedView> connectedViews = new ArrayList<>();
 
   /**
    * Set up data for testing.

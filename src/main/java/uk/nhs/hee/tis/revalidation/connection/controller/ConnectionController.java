@@ -50,7 +50,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 
 @Slf4j
 @RestController
@@ -71,7 +71,7 @@ public class ConnectionController {
   private ConnectionService connectionService;
 
   @Autowired
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
 
   @Autowired
   private ConnectedElasticSearchService connectedElasticSearchService;
@@ -207,7 +207,7 @@ public class ConnectionController {
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
   @GetMapping("/exception")
-  public ResponseEntity<ConnectionSummaryDto> getSummaryExceptions(
+  public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
       @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
       final String sortColumn,
       @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
@@ -224,7 +224,7 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    var connectionSummaryDto = exceptionElasticSearchService
+    var connectionSummaryDto = discrepanciesElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);

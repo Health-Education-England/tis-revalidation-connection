@@ -19,35 +19,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.message.listener;
+package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.time.LocalDate.now;
-import static org.mockito.Mockito.verify;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.when;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.nhs.hee.tis.revalidation.connection.entity.GmcDoctor;
-import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.DoctorMessageReceiver;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
-class RabbitMessageListenerTest {
+class DiscrepanciesElasticSearchServiceTest {
 
-  @InjectMocks
-  RabbitMessageListener rabbitMessageListener;
+  private static final String PAGE_NUMBER_VALUE = "0";
+  private final Faker faker = new Faker();
   @Mock
-  DoctorMessageReceiver doctorMessageReceiver;
-
-  private GmcDoctor gmcDoctor;
-  private MasterDoctorView masterDoctorView;
-  private Faker faker = new Faker();
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
+  @Mock
+  ConnectionInfoMapper connectionInfoMapper;
+  @InjectMocks
+  DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -55,11 +65,16 @@ class RabbitMessageListenerTest {
   private String designatedBody1;
   private String programmeName1;
   private String programmeOwner1;
-  private String status;
   private String exceptionReason;
+  private Page<DiscrepanciesView> searchResult;
+  private List<DiscrepanciesView> exceptionViews = new ArrayList<>();
 
+  /**
+   * Set up data for testing.
+   */
   @BeforeEach
   public void setup() {
+
     gmcRef1 = faker.number().digits(8);
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
@@ -67,37 +82,9 @@ class RabbitMessageListenerTest {
     designatedBody1 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
-    status = faker.lorem().characters(8);
-    gmcDoctor = buildGmcDoctor();
-    masterDoctorView = buildMasterDoctorView();
     exceptionReason = faker.lorem().characters(20);
-  }
 
-  @Test
-  void shouldReceiveDoctorMessages() {
-    rabbitMessageListener.receiveDoctorMessage(masterDoctorView);
-    verify(doctorMessageReceiver).handleMessage(masterDoctorView);
-  }
-
-  private GmcDoctor buildGmcDoctor() {
-    return GmcDoctor.builder()
-        .gmcReferenceNumber(gmcRef1)
-        .doctorFirstName(firstName1)
-        .doctorLastName(lastName1)
-        .submissionDate(submissionDate1.toString())
-        .doctorStatus(status)
-        .breach(faker.lorem().characters(20))
-        .dateAdded(faker.date().past(10, TimeUnit.DAYS).toString())
-        .underNotice(faker.lorem().characters(5))
-        .investigation(faker.lorem().characters(20))
-        .preliminaryInvestigation(faker.lorem().characters(20))
-        .sanction(faker.lorem().characters(10))
-        .designatedBodyCode(designatedBody1)
-        .build();
-  }
-
-  private MasterDoctorView buildMasterDoctorView() {
-    return MasterDoctorView.builder()
+    DiscrepanciesView discrepanciesView = DiscrepanciesView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -108,5 +95,27 @@ class RabbitMessageListenerTest {
         .programmeOwner(programmeOwner1)
         .exceptionReason(exceptionReason)
         .build();
+    exceptionViews.add(discrepanciesView);
+    searchResult = new PageImpl<>(List.of(discrepanciesView));
+  }
+
+  @Test
+  void shouldSearchForPage() {
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+
+    when(discrepanciesElasticSearchRepository.findAll("", pageableAndSortable))
+        .thenReturn(searchResult);
+
+    final var records = searchResult.get().collect(toList());
+    var connectionSummary = ConnectionSummaryDto.builder()
+        .totalPages(searchResult.getTotalPages())
+        .totalResults(searchResult.getTotalElements())
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
+        .build();
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPage("", pageableAndSortable);
+    assertThat(result, is(connectionSummary));
   }
 }

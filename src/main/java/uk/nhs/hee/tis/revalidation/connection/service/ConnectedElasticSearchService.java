@@ -202,7 +202,7 @@ public class ConnectedElasticSearchService {
       List<String> designatedBodyCodes) {
     List<String> escapedCodes = new ArrayList<>();
     designatedBodyCodes.forEach(code ->
-        escapedCodes.add(code.toLowerCase().replace("1-", ""));
+        escapedCodes.add(code.toLowerCase().replace("1-", ""))
     );
     return String.join(" ", escapedCodes);
   }

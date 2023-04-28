@@ -31,7 +31,6 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +47,6 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.UpdateConnectionReceiver;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
@@ -77,9 +75,6 @@ class ConnectionServiceTest {
 
   @Mock
   private ExceptionService exceptionService;
-
-  @Mock
-  UpdateConnectionReceiver updateConnectionReceiver;
 
   private String changeReason;
   private String designatedBodyCode;

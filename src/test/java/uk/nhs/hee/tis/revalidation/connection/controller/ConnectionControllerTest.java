@@ -59,7 +59,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
@@ -80,7 +80,7 @@ class ConnectionControllerTest {
   @MockBean
   private ConnectionService connectionService;
   @MockBean
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   @MockBean
   private ConnectedElasticSearchService connectedElasticSearchService;
   @MockBean
@@ -260,7 +260,7 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
-    when(exceptionElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
@@ -293,7 +293,7 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber.keyword"));
-    when(exceptionElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")

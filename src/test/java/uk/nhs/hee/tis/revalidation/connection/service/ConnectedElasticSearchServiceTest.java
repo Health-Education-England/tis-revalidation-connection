@@ -25,6 +25,8 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -33,11 +35,7 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -154,5 +152,21 @@ class ConnectedElasticSearchServiceTest {
     ConnectionSummaryDto result = connectedElasticSearchService
         .searchForPage(searchQuery, dbcs, pageableAndSortable);
     assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPageWithQuery() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
+
+    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+        pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(RuntimeException.class, () -> connectedElasticSearchService
+        .searchForPage(searchQuery, dbcs, pageableAndSortable));
   }
 }

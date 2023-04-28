@@ -27,7 +27,6 @@ import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
-import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionView;
 
 @Repository
 public interface DiscrepanciesElasticSearchRepository

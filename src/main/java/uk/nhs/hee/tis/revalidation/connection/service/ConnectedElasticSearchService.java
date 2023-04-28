@@ -25,11 +25,9 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -203,9 +201,9 @@ public class ConnectedElasticSearchService {
   private String formatDesignatedBodyCodesForElasticsearchQuery(
       List<String> designatedBodyCodes) {
     List<String> escapedCodes = new ArrayList<>();
-    designatedBodyCodes.forEach(code -> {
-      escapedCodes.add(code.toLowerCase().replace("1-", ""));
-    });
+    designatedBodyCodes.forEach(code ->
+        escapedCodes.add(code.toLowerCase().replace("1-", ""));
+    );
     return String.join(" ", escapedCodes);
   }
 }

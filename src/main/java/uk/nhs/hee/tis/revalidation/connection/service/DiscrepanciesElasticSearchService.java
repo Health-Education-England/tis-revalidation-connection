@@ -31,15 +31,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-      DiscrepanciesElasticSearchService.class);
-
+  private final static String target = "discrepancies";
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
@@ -52,10 +51,9 @@ public class DiscrepanciesElasticSearchService {
    * @param searchQuery query to run
    * @param pageable    pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable) {
-
+  public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable)
+      throws ConnectionQueryException {
     try {
-
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
           .findAll(searchQuery, pageable);
 
@@ -67,8 +65,7 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new RuntimeException(
-          "An exception occurred while attempting to do an ES search - discrepancies", re);
+      throw new ConnectionQueryException(target, searchQuery, re);
     }
   }
 }

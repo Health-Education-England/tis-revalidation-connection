@@ -67,8 +67,8 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search - Exception index", re);
-      throw re;
+      throw new RuntimeException(
+          "An exception occurred while attempting to do an ES search - discrepancies", re);
     }
   }
 }

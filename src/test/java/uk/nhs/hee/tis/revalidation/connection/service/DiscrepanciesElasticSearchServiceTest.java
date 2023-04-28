@@ -131,7 +131,7 @@ class DiscrepanciesElasticSearchServiceTest {
         pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
-    assertThrows(RuntimeException.class, () -> discrepanciesElasticSearchService
+    assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForPage(searchQuery, pageableAndSortable));
   }
 }

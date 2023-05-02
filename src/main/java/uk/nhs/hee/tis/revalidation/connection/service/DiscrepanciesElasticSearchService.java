@@ -23,8 +23,6 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +36,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private final static String target = "discrepancies";
+  private static final String TARGET = "discrepancies";
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
@@ -65,7 +63,7 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException(target, searchQuery, re);
+      throw new ConnectionQueryException(TARGET, searchQuery, re);
     }
   }
 }

@@ -183,8 +183,7 @@ public class ConnectionController {
   /**
    * GET  /connections/hidden : get all gmcIds of hidden connections.
    *
-   * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in
-   * body
+   * @return the ResponseEntity with status 200(OK) and list of gmcIds of hidden connections in body
    */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
@@ -209,10 +208,14 @@ public class ConnectionController {
    */
   @GetMapping("/exception")
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -241,10 +244,14 @@ public class ConnectionController {
    */
   @GetMapping("/connected")
   public ResponseEntity<ConnectionSummaryDto> getSummaryConnected(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -272,10 +279,14 @@ public class ConnectionController {
    */
   @GetMapping("/disconnected")
   public ResponseEntity<ConnectionSummaryDto> getSummaryDisconnected(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false) final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;

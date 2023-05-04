@@ -47,10 +47,11 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 
 @Slf4j
 @RestController
@@ -71,7 +72,7 @@ public class ConnectionController {
   private ConnectionService connectionService;
 
   @Autowired
-  private ExceptionElasticSearchService exceptionElasticSearchService;
+  private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
 
   @Autowired
   private ConnectedElasticSearchService connectedElasticSearchService;
@@ -182,8 +183,7 @@ public class ConnectionController {
   /**
    * GET  /connections/hidden : get all gmcIds of hidden connections.
    *
-   * @return the ResponseEntity with status 200 (OK) and list of gmcIds of hidden connections in
-   *     body
+   * @return the ResponseEntity with status 200(OK) and list of gmcIds of hidden connections in body
    */
   @ApiOperation(value = "Get detailed connections of a trainee", notes =
       "It will return trainee's connections details", response = List.class)
@@ -207,16 +207,17 @@ public class ConnectionController {
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
   @GetMapping("/exception")
-  public ResponseEntity<ConnectionSummaryDto> getSummaryExceptions(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
-      final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
-      final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
-      final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+  public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery) {
+      String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));
@@ -224,7 +225,7 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
-    var connectionSummaryDto = exceptionElasticSearchService
+    var connectionSummaryDto = discrepanciesElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
@@ -243,15 +244,16 @@ public class ConnectionController {
    */
   @GetMapping("/connected")
   public ResponseEntity<ConnectionSummaryDto> getSummaryConnected(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
-      final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
-      final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
-      final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery) {
+      String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));
@@ -260,7 +262,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString();
     var connectionSummaryDto = connectedElasticSearchService
-        .searchForPage(searchQueryES, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
   }
@@ -277,15 +279,16 @@ public class ConnectionController {
    */
   @GetMapping("/disconnected")
   public ResponseEntity<ConnectionSummaryDto> getSummaryDisconnected(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER, required = false)
-      final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc", required = false)
-      final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE, required = false)
-      final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES, required = false) final List<String> dbcs,
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-          String searchQuery) {
+      String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn.concat(KEYWORD)));

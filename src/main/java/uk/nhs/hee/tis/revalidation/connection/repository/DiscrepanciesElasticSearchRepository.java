@@ -21,6 +21,9 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
@@ -28,4 +31,12 @@ import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 @Repository
 public interface DiscrepanciesElasticSearchRepository
     extends ElasticsearchRepository<DiscrepanciesView, String> {
+
+  @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
+      + "\"filter\":[{\"bool\":{\"should\":"
+      + "[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
+  Page<DiscrepanciesView> findAll(final String searchQuery,
+      final Pageable pageable);
 }

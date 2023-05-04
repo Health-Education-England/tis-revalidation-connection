@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
@@ -54,7 +53,6 @@ import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
-import uk.nhs.hee.tis.revalidation.connection.message.receiver.UpdateConnectionReceiver;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.DoctorsForDBRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -80,9 +78,6 @@ public class ConnectionService {
 
   @Autowired
   private RabbitTemplate rabbitTemplate;
-
-  @Autowired
-  UpdateConnectionReceiver updateConnectionReceiver;
 
   @Value("${app.rabbit.reval.exchange.gmcsync}")
   private String exchange;
@@ -254,14 +249,6 @@ public class ConnectionService {
     } else {
       exceptionService.createExceptionLog(gmcId, exceptionMessage);
     }
-
-    //update elastic search index
-    final var connectionInfoDto = ConnectionInfoDto.builder()
-        .gmcReferenceNumber(gmcId)
-        .designatedBody(designatedBodyCode)
-        .exceptionReason(exceptionMessage)
-        .build();
-    updateConnectionReceiver.handleMessage(connectionInfoDto);
   }
 
   //if bulk request then return generic failure message else gmc error message

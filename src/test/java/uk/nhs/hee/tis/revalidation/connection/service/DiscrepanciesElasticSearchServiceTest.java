@@ -25,6 +25,7 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -33,7 +34,6 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,11 +45,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
-class ExceptionElasticSearchServiceTest {
+class DiscrepanciesElasticSearchServiceTest {
 
   private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
@@ -58,7 +59,7 @@ class ExceptionElasticSearchServiceTest {
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
-  ExceptionElasticSearchService exceptionElasticSearchService;
+  DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   private String gmcRef1;
   private String firstName1;
   private String lastName1;
@@ -97,18 +98,15 @@ class ExceptionElasticSearchServiceTest {
         .exceptionReason(exceptionReason)
         .build();
     exceptionViews.add(discrepanciesView);
-    searchResult = new PageImpl<>(exceptionViews);
+    searchResult = new PageImpl<>(List.of(discrepanciesView));
   }
 
   @Test
-  void shouldSearchForPage() {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
+  void shouldSearchForPage() throws ConnectionQueryException {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
 
-    when(discrepanciesElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(discrepanciesElasticSearchRepository.findAll("", pageableAndSortable))
         .thenReturn(searchResult);
 
     final var records = searchResult.get().collect(toList());
@@ -118,8 +116,22 @@ class ExceptionElasticSearchServiceTest {
         .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
         .build();
 
-    ConnectionSummaryDto result = exceptionElasticSearchService
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForPage("", pageableAndSortable);
     assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPage() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+
+    when(discrepanciesElasticSearchRepository.findAll(searchQuery,
+        pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
+        .searchForPage(searchQuery, pageableAndSortable));
   }
 }

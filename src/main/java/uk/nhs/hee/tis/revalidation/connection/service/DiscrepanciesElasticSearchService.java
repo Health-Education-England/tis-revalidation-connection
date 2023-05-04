@@ -23,66 +23,47 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
+import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
+import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @Service
-public class ConnectedElasticSearchService {
+public class DiscrepanciesElasticSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ConnectedElasticSearchService.class);
-
+  private static final String TARGET = "discrepancies";
   @Autowired
-  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
 
-
   /**
-   * Get connected trainees from Connected elasticsearch index.
+   * Get exceptions from exception elasticsearch index.
    *
    * @param searchQuery query to run
    * @param pageable    pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      Pageable pageable) {
-
+  public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable)
+      throws ConnectionQueryException {
     try {
-      Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .findAll(searchQuery, formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
-              pageable);
+      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
+          .findAll(searchQuery, pageable);
 
-      final var connectedTrainees = result.get().collect(toList());
+      final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper
-              .currentConnectionsToConnectionInfoDtos(connectedTrainees))
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(exceptions))
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search - Connected index",
-          re);
-      throw re;
+      throw new ConnectionQueryException(TARGET, searchQuery, re);
     }
-  }
-
-  private String formatDesignatedBodyCodesForElasticsearchQuery(
-      List<String> designatedBodyCodes) {
-    List<String> escapedCodes = new ArrayList<>();
-    designatedBodyCodes.forEach(code ->
-        escapedCodes.add(code.toLowerCase().replace("1-", ""))
-    );
-    return String.join(" ", escapedCodes);
   }
 }

@@ -25,6 +25,8 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -33,11 +35,7 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.WildcardQueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,10 +46,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.ConnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.ConnectedElasticSearchRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,8 +56,6 @@ class ConnectedElasticSearchServiceTest {
   private static final String VISITOR = "Visitor";
   private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
-  @Mock
-  ConnectedElasticSearchRepository connectedElasticSearchRepository;
   @Mock
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Mock
@@ -73,11 +67,11 @@ class ConnectedElasticSearchServiceTest {
   private String lastName1;
   private LocalDate submissionDate1;
   private String designatedBody1;
+  private String designatedBody2;
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason1;
   private Page<CurrentConnectionsView> currentConnectionsSearchResult;
-  private List<ConnectedView> connectedViews = new ArrayList<>();
 
   /**
    * Set up data for testing.
@@ -89,7 +83,8 @@ class ConnectedElasticSearchServiceTest {
     firstName1 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     submissionDate1 = now();
-    designatedBody1 = faker.lorem().characters(8);
+    designatedBody1 = "1-1RSSPZ7";
+    designatedBody2 = "1-1RSSQ1B";
     programmeName1 = faker.lorem().characters(20);
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
@@ -110,13 +105,12 @@ class ConnectedElasticSearchServiceTest {
 
   @Test
   void shouldSearchForPage() {
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
 
-    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(currentConnectionElasticSearchRepository.findAll("", formattedDbcs, pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -127,26 +121,20 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage("", pageableAndSortable);
+        .searchForPage("", dbcs, pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
   @Test
   void shouldSearchForPageWithQuery() {
     String searchQuery = gmcRef1;
-    BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
-    searchQuery = StringUtils.remove(searchQuery.toLowerCase(), '"');
-    shouldQuery
-        .should(new MatchQueryBuilder("gmcReferenceNumber", searchQuery))
-        .should(new WildcardQueryBuilder("doctorFirstName", "*" + searchQuery + "*"))
-        .should(new WildcardQueryBuilder("doctorLastName", "*" + searchQuery + "*"));
-
-    BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
-    BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
 
-    when(currentConnectionElasticSearchRepository.search(fullQuery, pageableAndSortable))
+    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+        pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -157,7 +145,23 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage(searchQuery, pageableAndSortable);
+        .searchForPage(searchQuery, dbcs, pageableAndSortable);
     assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPageWithQuery() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber.keyword"));
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String formattedDbcs = "1rsspz7 1rssq1b";
+
+    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+        pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(RuntimeException.class, () -> connectedElasticSearchService
+        .searchForPage(searchQuery, dbcs, pageableAndSortable));
   }
 }

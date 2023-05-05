@@ -259,7 +259,7 @@ class ConnectionControllerTest {
   void shouldReturnExceptionTraineeDoctorsInformation() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
+        by(ASC, "gmcReferenceNumber.keyword"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
@@ -292,7 +292,7 @@ class ConnectionControllerTest {
   void shouldReturnExceptionTraineeDoctorsInformationDesc() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(DESC, "gmcReferenceNumber"));
+        by(DESC, "gmcReferenceNumber.keyword"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
@@ -311,7 +311,7 @@ class ConnectionControllerTest {
   void shouldReturnConnectedTraineeDoctorsInformation() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
+        by(ASC, "gmcReferenceNumber.keyword"));
     when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
@@ -343,7 +343,7 @@ class ConnectionControllerTest {
   void shouldReturnConnectedTraineeDoctorsInformationDesc() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(DESC, "gmcReferenceNumber"));
+        by(DESC, "gmcReferenceNumber.keyword"));
     when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
@@ -362,7 +362,7 @@ class ConnectionControllerTest {
   void shouldReturnDisconnectedTraineeDoctorsInformation() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
+        by(ASC, "gmcReferenceNumber.keyword"));
     when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
@@ -393,7 +393,7 @@ class ConnectionControllerTest {
   void shouldReturnDisconnectedTraineeDoctorsInformationDesc() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(DESC, "gmcReferenceNumber"));
+        by(DESC, "gmcReferenceNumber.keyword"));
     when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);

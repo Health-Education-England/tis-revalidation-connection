@@ -291,7 +291,7 @@ public class ConnectionController {
       String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn));
+        by(direction, sortColumn.concat(KEYWORD)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()

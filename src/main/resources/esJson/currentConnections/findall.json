@@ -1,5 +1,8 @@
 {
     "bool": {
+      "must": {
+        "exists" : {"field": "tcsPersonId"}
+      },
       "must_not": {
         "match": {
           "membershipType": "MILITARY"

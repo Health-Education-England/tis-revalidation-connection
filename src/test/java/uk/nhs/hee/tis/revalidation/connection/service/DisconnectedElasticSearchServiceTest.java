@@ -109,7 +109,7 @@ class DisconnectedElasticSearchServiceTest {
     BoolQueryBuilder shouldQuery = new BoolQueryBuilder();
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
 
     when(disconnectedElasticSearchRepository.search(fullQuery, pageableAndSortable))
         .thenReturn(searchResult);
@@ -139,7 +139,7 @@ class DisconnectedElasticSearchServiceTest {
     BoolQueryBuilder mustBetweenDifferentColumnFilters = new BoolQueryBuilder();
     BoolQueryBuilder fullQuery = mustBetweenDifferentColumnFilters.must(shouldQuery);
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
 
     when(disconnectedElasticSearchRepository.search(fullQuery, pageableAndSortable))
         .thenReturn(searchResult);

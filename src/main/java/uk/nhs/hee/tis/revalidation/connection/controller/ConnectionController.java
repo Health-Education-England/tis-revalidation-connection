@@ -66,7 +66,6 @@ public class ConnectionController {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
-  private static final String KEYWORD = ".keyword";
 
   @Autowired
   private ConnectionService connectionService;
@@ -220,7 +219,7 @@ public class ConnectionController {
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn.concat(KEYWORD)));
+        by(direction, sortColumn));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
@@ -256,7 +255,7 @@ public class ConnectionController {
       String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn.concat(KEYWORD)));
+        by(direction, sortColumn));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
@@ -291,7 +290,7 @@ public class ConnectionController {
       String searchQuery) {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn.concat(KEYWORD)));
+        by(direction, sortColumn));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()

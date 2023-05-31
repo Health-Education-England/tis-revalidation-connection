@@ -104,7 +104,7 @@ class DiscrepanciesElasticSearchServiceTest {
   @Test
   void shouldSearchForPage() throws ConnectionQueryException {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
 
     when(discrepanciesElasticSearchRepository.findAll("", pageableAndSortable))
         .thenReturn(searchResult);
@@ -125,7 +125,7 @@ class DiscrepanciesElasticSearchServiceTest {
   void shouldThrowRuntimeExceptionWhenSearchForPage() {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
 
     when(discrepanciesElasticSearchRepository.findAll(searchQuery,
         pageableAndSortable))

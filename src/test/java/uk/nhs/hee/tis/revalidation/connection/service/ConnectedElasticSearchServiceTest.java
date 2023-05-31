@@ -106,7 +106,7 @@ class ConnectedElasticSearchServiceTest {
   @Test
   void shouldSearchForPage() {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
     final List<String> dbcs = List.of(designatedBody1, designatedBody2);
     final String formattedDbcs = "1rsspz7 1rssq1b";
 
@@ -129,7 +129,7 @@ class ConnectedElasticSearchServiceTest {
   void shouldSearchForPageWithQuery() {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
     final List<String> dbcs = List.of(designatedBody1, designatedBody2);
     final String formattedDbcs = "1rsspz7 1rssq1b";
 
@@ -153,7 +153,7 @@ class ConnectedElasticSearchServiceTest {
   void shouldThrowRuntimeExceptionWhenSearchForPageWithQuery() {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber.keyword"));
+        by(ASC, "gmcReferenceNumber"));
     final List<String> dbcs = List.of(designatedBody1, designatedBody2);
     final String formattedDbcs = "1rsspz7 1rssq1b";
 

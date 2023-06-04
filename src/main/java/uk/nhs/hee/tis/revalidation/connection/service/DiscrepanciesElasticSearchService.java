@@ -53,7 +53,7 @@ public class DiscrepanciesElasticSearchService {
       throws ConnectionQueryException {
     try {
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
-          .findAll(searchQuery, pageable);
+          .findAll(searchQuery.toLowerCase(), pageable);
 
       final var exceptions = result.get().collect(toList());
       return ConnectionSummaryDto.builder()

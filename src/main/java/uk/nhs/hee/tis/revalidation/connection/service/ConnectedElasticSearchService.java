@@ -59,7 +59,7 @@ public class ConnectedElasticSearchService {
 
     try {
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .findAll(searchQuery, formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+          .findAll(searchQuery.toLowerCase(), formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
               pageable);
 
       final var connectedTrainees = result.get().collect(toList());

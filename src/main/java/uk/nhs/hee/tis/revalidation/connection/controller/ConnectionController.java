@@ -223,7 +223,7 @@ public class ConnectionController {
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
-        .toString();
+        .toString().toLowerCase();
     var connectionSummaryDto = discrepanciesElasticSearchService
         .searchForPage(searchQueryES, pageableAndSortable);
 

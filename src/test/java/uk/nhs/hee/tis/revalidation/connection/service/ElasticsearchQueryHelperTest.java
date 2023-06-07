@@ -13,7 +13,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 
 @ExtendWith(MockitoExtension.class)
-public class ElasticsearchQueryHelperTest {
+class ElasticsearchQueryHelperTest {
 
   @Test
   void shouldFormatDesignatedBodyCodesForElasticsearchQuery() {

@@ -23,7 +23,6 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -8,14 +8,18 @@
     "filter": [
       {
         "bool": {
-          "should": {
-            "match": {
-              "designatedBody": "?1"
+          "should": [
+            {
+              "match": {
+                "designatedBody": "?1"
+              }
             },
-            "match": {
-              "tcsDesignatedBody": "?1"
+            {
+              "match": {
+                "tcsDesignatedBody": "?1"
+              }
             }
-          }
+          ]
         }
       },
       {

@@ -8,6 +8,18 @@
     "filter": [
       {
         "bool": {
+          "should": {
+            "match": {
+              "designatedBody": "?1"
+            },
+            "match": {
+              "tcsDesignatedBody": "?1"
+            }
+          }
+        }
+      },
+      {
+        "bool": {
           "should": [
             {
               "wildcard": {

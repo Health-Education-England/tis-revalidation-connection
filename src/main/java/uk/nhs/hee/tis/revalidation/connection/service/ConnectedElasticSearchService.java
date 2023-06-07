@@ -47,7 +47,6 @@ public class ConnectedElasticSearchService {
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
 
-
   /**
    * Get connected trainees from Connected elasticsearch index.
    *
@@ -59,7 +58,8 @@ public class ConnectedElasticSearchService {
 
     try {
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .findAll(searchQuery, formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+          .findAll(searchQuery,
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
               pageable);
 
       final var connectedTrainees = result.get().collect(toList());
@@ -77,12 +77,5 @@ public class ConnectedElasticSearchService {
     }
   }
 
-  private String formatDesignatedBodyCodesForElasticsearchQuery(
-      List<String> designatedBodyCodes) {
-    List<String> escapedCodes = new ArrayList<>();
-    designatedBodyCodes.forEach(code ->
-        escapedCodes.add(code.toLowerCase().replace("1-", ""))
-    );
-    return String.join(" ", escapedCodes);
-  }
+
 }

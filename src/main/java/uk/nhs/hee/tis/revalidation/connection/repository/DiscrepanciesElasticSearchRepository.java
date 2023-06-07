@@ -37,6 +37,6 @@ public interface DiscrepanciesElasticSearchRepository
       + "[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
-  Page<DiscrepanciesView> findAll(final String searchQuery,
+  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs,
       final Pageable pageable);
 }

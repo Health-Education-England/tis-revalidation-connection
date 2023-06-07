@@ -225,7 +225,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
     var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
 

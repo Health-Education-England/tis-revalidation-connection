@@ -23,9 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.stereotype.Service;
 
-@Service
 public class ElasticsearchQueryHelper {
 
   private ElasticsearchQueryHelper() {

@@ -252,7 +252,7 @@ public class ConnectionController {
       @RequestParam(name = DESIGNATED_BODY_CODES,
           required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) {
+      String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn));

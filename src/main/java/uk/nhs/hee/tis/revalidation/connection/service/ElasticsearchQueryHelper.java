@@ -21,10 +21,12 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class ElasticsearchQueryHelper {
+public final class ElasticsearchQueryHelper {
 
   private ElasticsearchQueryHelper() {
     throw new IllegalStateException("Utility class");
@@ -38,10 +40,8 @@ public class ElasticsearchQueryHelper {
    */
   public static String formatDesignatedBodyCodesForElasticsearchQuery(
       List<String> designatedBodyCodes) {
-    List<String> escapedCodes = new ArrayList<>();
-    designatedBodyCodes.forEach(code ->
-        escapedCodes.add(code.toLowerCase().replace("1-", ""))
-    );
-    return String.join(" ", escapedCodes);
+    return designatedBodyCodes.stream().map(
+        dbc -> dbc.toLowerCase().replace("1-", "")
+    ).collect(joining(" "));
   }
 }

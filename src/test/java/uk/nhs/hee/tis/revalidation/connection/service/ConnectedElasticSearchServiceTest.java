@@ -162,7 +162,7 @@ class ConnectedElasticSearchServiceTest {
         pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
-    assertThrows(RuntimeException.class, () -> connectedElasticSearchService
+    assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForPage(searchQuery, dbcs, pageableAndSortable));
   }
 }

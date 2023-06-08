@@ -225,7 +225,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
     var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
 
@@ -252,7 +252,7 @@ public class ConnectionController {
       @RequestParam(name = DESIGNATED_BODY_CODES,
           required = false) final List<String> dbcs,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) {
+      String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, sortColumn));

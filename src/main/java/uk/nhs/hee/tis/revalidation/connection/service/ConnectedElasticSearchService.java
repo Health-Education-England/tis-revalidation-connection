@@ -23,30 +23,25 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @Service
 public class ConnectedElasticSearchService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ConnectedElasticSearchService.class);
-
   @Autowired
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
-
 
   /**
    * Get connected trainees from Connected elasticsearch index.
@@ -55,11 +50,12 @@ public class ConnectedElasticSearchService {
    * @param pageable    pagination information
    */
   public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      Pageable pageable) {
+      Pageable pageable) throws ConnectionQueryException {
 
     try {
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .findAll(searchQuery, formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+          .findAll(searchQuery,
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
               pageable);
 
       final var connectedTrainees = result.get().collect(toList());
@@ -71,18 +67,9 @@ public class ConnectedElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      LOG.error("An exception occurred while attempting to do an ES search - Connected index",
-          re);
-      throw re;
+      throw new ConnectionQueryException("current connections", searchQuery, re);
     }
   }
 
-  private String formatDesignatedBodyCodesForElasticsearchQuery(
-      List<String> designatedBodyCodes) {
-    List<String> escapedCodes = new ArrayList<>();
-    designatedBodyCodes.forEach(code ->
-        escapedCodes.add(code.toLowerCase().replace("1-", ""))
-    );
-    return String.join(" ", escapedCodes);
-  }
+
 }

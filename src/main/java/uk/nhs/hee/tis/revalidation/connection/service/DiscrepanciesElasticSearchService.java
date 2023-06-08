@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,6 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private static final String TARGET = "discrepancies";
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
@@ -49,21 +49,24 @@ public class DiscrepanciesElasticSearchService {
    * @param searchQuery query to run
    * @param pageable    pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, Pageable pageable)
+  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
+      Pageable pageable)
       throws ConnectionQueryException {
     try {
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
-          .findAll(searchQuery, pageable);
+          .findAll(searchQuery,
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              pageable);
 
-      final var exceptions = result.get().collect(toList());
+      final var discrepancies = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(exceptions))
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepancies))
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException(TARGET, searchQuery, re);
+      throw new ConnectionQueryException("discrepancies", searchQuery, re);
     }
   }
 }

@@ -47,6 +47,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
@@ -104,7 +105,7 @@ class ConnectedElasticSearchServiceTest {
   }
 
   @Test
-  void shouldSearchForPage() {
+  void shouldSearchForPage() throws ConnectionQueryException {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
     final List<String> dbcs = List.of(designatedBody1, designatedBody2);
@@ -126,7 +127,7 @@ class ConnectedElasticSearchServiceTest {
   }
 
   @Test
-  void shouldSearchForPageWithQuery() {
+  void shouldSearchForPageWithQuery() throws ConnectionQueryException {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
@@ -161,7 +162,7 @@ class ConnectedElasticSearchServiceTest {
         pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
-    assertThrows(RuntimeException.class, () -> connectedElasticSearchService
+    assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForPage(searchQuery, dbcs, pageableAndSortable));
   }
 }

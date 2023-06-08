@@ -19,25 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.annotations.Query;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import static java.util.stream.Collectors.joining;
 
-@Repository
-public interface DiscrepanciesElasticSearchRepository
-    extends ElasticsearchRepository<DiscrepanciesView, String> {
+import java.util.List;
 
-  @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
-      + "\"filter\":[{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
-      + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
-      + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
-      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
-      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
-  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs,
-      final Pageable pageable);
+public final class ElasticsearchQueryHelper {
+
+  private ElasticsearchQueryHelper() {
+    throw new UnsupportedOperationException("Utility class");
+  }
+
+  /**
+   * Format designated body codes for Elasticsearch by stripping hyphens and setting lower case.
+   *
+   * @param designatedBodyCodes list of designated body codes to format
+   *
+   */
+  public static String formatDesignatedBodyCodesForElasticsearchQuery(
+      List<String> designatedBodyCodes) {
+    return designatedBodyCodes.stream().map(
+        dbc -> dbc.toLowerCase().replace("1-", "")
+    ).collect(joining(" "));
+  }
 }

@@ -260,7 +260,8 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
@@ -293,7 +294,8 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
-    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
+    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")

@@ -23,7 +23,6 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class ElasticsearchQueryHelper {

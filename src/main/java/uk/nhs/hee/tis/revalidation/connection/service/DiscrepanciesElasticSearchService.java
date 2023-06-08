@@ -37,7 +37,6 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private static final String TARGET = "discrepancies";
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
 
@@ -59,15 +58,15 @@ public class DiscrepanciesElasticSearchService {
               ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
               pageable);
 
-      final var exceptions = result.get().collect(toList());
+      final var discrepancies = result.get().collect(toList());
       return ConnectionSummaryDto.builder()
           .totalPages(result.getTotalPages())
           .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(exceptions))
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepancies))
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException(TARGET, searchQuery, re);
+      throw new ConnectionQueryException("discrepancies", searchQuery, re);
     }
   }
 }

@@ -17,10 +17,8 @@ class ElasticsearchQueryHelperTest {
 
   @Test
   void shouldFormatDesignatedBodyCodesForElasticsearchQuery() {
-    final String dbc1 = "1-AIIDHJ";
-    final String dbc2 = "AIIDMQ";
     final String dbcformatted = "aiidhj aiidmq";
-    List<String> dbcs = List.of(dbc1, dbc2);
+    List<String> dbcs = List.of("1-AIIDHJ", "AIIDMQ");
 
     final var result = ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(
         dbcs);

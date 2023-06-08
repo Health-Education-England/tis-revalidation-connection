@@ -37,8 +37,6 @@ import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasti
 @Service
 public class ConnectedElasticSearchService {
 
-  private static final String TARGET = "currentConnections";
-
   @Autowired
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
 
@@ -69,7 +67,7 @@ public class ConnectedElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException(TARGET, searchQuery, re);
+      throw new ConnectionQueryException("current connections", searchQuery, re);
     }
   }
 

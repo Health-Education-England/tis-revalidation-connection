@@ -71,6 +71,8 @@ class DiscrepanciesElasticSearchServiceTest {
   private String exceptionReason;
   private Page<DiscrepanciesView> searchResult;
   private List<DiscrepanciesView> exceptionViews = new ArrayList<>();
+  private List<String> dbcs;
+  private String formattedDbcs;
 
   /**
    * Set up data for testing.
@@ -101,14 +103,14 @@ class DiscrepanciesElasticSearchServiceTest {
         .build();
     exceptionViews.add(discrepanciesView);
     searchResult = new PageImpl<>(List.of(discrepanciesView));
+    dbcs = List.of(designatedBody1, designatedBody2);
+    formattedDbcs = "1rsspz7 1rssq1b";
   }
 
   @Test
   void shouldSearchForPage() throws ConnectionQueryException {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
 
     when(discrepanciesElasticSearchRepository.findAll("", formattedDbcs,
         pageableAndSortable))
@@ -131,8 +133,6 @@ class DiscrepanciesElasticSearchServiceTest {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
 
     when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
         pageableAndSortable))
@@ -155,8 +155,6 @@ class DiscrepanciesElasticSearchServiceTest {
     String searchQuery = gmcRef1;
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
 
     when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
         pageableAndSortable))

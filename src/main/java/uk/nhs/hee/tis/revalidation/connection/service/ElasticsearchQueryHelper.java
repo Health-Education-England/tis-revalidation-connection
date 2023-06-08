@@ -28,7 +28,7 @@ import java.util.List;
 public final class ElasticsearchQueryHelper {
 
   private ElasticsearchQueryHelper() {
-    throw new IllegalStateException("Utility class");
+    throw new UnsupportedOperationException("Utility class");
   }
 
   /**

@@ -33,11 +33,11 @@ public interface DiscrepanciesElasticSearchRepository
     extends ElasticsearchRepository<DiscrepanciesView, String> {
 
   @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
-      + "\"filter\":[{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"1\"}},"
-      + "{\"match\":{\"tcsDesignatedBody\":\"1\"}}]}},"
-      + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"*\"}}},"
-      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"*\"}}},"
-      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"*\"}}}]}}]}}")
+      + "\"filter\":[{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
+      + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
+      + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
   Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs,
       final Pageable pageable);
 }

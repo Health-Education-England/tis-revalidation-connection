@@ -50,12 +50,13 @@ public class ConnectedElasticSearchService {
    * @param pageable    pagination information
    */
   public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      Pageable pageable) throws ConnectionQueryException {
+      String programmeName, Pageable pageable) throws ConnectionQueryException {
 
     try {
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
           .findAll(searchQuery,
               ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              programmeName,
               pageable);
 
       final var connectedTrainees = result.get().collect(toList());

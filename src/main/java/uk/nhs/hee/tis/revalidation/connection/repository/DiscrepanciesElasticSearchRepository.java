@@ -35,9 +35,10 @@ public interface DiscrepanciesElasticSearchRepository
   @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
       + "\"filter\":[{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
       + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
+      + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
       + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
-  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs,
+  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String programmeName,
       final Pageable pageable);
 }

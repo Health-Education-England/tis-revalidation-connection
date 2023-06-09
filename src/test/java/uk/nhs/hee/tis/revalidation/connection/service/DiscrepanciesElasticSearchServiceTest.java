@@ -113,7 +113,7 @@ class DiscrepanciesElasticSearchServiceTest {
         by(ASC, "gmcReferenceNumber"));
 
     when(discrepanciesElasticSearchRepository.findAll("", formattedDbcs,
-        pageableAndSortable))
+        "", pageableAndSortable))
         .thenReturn(searchResult);
 
     final var records = searchResult.get().collect(toList());
@@ -124,7 +124,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
-        .searchForPage("", dbcs, pageableAndSortable);
+        .searchForPage("", dbcs, "", pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
@@ -135,7 +135,7 @@ class DiscrepanciesElasticSearchServiceTest {
         by(ASC, "gmcReferenceNumber"));
 
     when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        pageableAndSortable))
+        programmeName1, pageableAndSortable))
         .thenReturn(searchResult);
 
     final var records = searchResult.get().collect(toList());
@@ -146,7 +146,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
-        .searchForPage(searchQuery, dbcs, pageableAndSortable);
+        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable);
     assertThat(result, is(discrepanciesSummary));
   }
 
@@ -157,10 +157,10 @@ class DiscrepanciesElasticSearchServiceTest {
         by(ASC, "gmcReferenceNumber"));
 
     when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        pageableAndSortable))
+        programmeName1, pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
-        .searchForPage(searchQuery, dbcs, pageableAndSortable));
+        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
   }
 }

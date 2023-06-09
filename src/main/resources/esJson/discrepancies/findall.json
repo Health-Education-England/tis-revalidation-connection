@@ -23,6 +23,14 @@
         }
       },
       {
+        "match_phrase": {
+          "programmeName": {
+            "query": "?2",
+            "zero_terms_query": "all"
+          }
+        }
+      },
+      {
         "bool": {
           "should": [
             {

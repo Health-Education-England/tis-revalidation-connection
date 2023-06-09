@@ -67,7 +67,7 @@ public class ConnectionController {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
-  private static final String PROGRAMME_NAME="programmeName";
+  private static final String PROGRAMME_NAME = "programmeName";
 
   @Autowired
   private ConnectionService connectionService;

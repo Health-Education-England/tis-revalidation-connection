@@ -111,7 +111,8 @@ class ConnectedElasticSearchServiceTest {
     final List<String> dbcs = List.of(designatedBody1, designatedBody2);
     final String formattedDbcs = "1rsspz7 1rssq1b";
 
-    when(currentConnectionElasticSearchRepository.findAll("", formattedDbcs, pageableAndSortable))
+    when(currentConnectionElasticSearchRepository.findAll("", formattedDbcs,
+        "", pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -122,7 +123,7 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage("", dbcs, pageableAndSortable);
+        .searchForPage("", dbcs, "", pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
@@ -135,7 +136,7 @@ class ConnectedElasticSearchServiceTest {
     final String formattedDbcs = "1rsspz7 1rssq1b";
 
     when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        pageableAndSortable))
+        programmeName1, pageableAndSortable))
         .thenReturn(currentConnectionsSearchResult);
 
     final var records = currentConnectionsSearchResult.get().collect(toList());
@@ -146,7 +147,7 @@ class ConnectedElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage(searchQuery, dbcs, pageableAndSortable);
+        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
@@ -159,10 +160,10 @@ class ConnectedElasticSearchServiceTest {
     final String formattedDbcs = "1rsspz7 1rssq1b";
 
     when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        pageableAndSortable))
+        programmeName1, pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
     assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
-        .searchForPage(searchQuery, dbcs, pageableAndSortable));
+        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
   }
 }

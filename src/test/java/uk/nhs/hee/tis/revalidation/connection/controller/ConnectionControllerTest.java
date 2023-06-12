@@ -72,6 +72,7 @@ class ConnectionControllerTest {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
+  private static final String PROGRAMME_NAME = "programmeName";
   private final Faker faker = new Faker();
   @Autowired
   private MockMvc mockMvc;
@@ -256,12 +257,12 @@ class ConnectionControllerTest {
   }
 
   @Test
-  void shouldReturnExceptionTraineeDoctorsInformation() throws Exception {
+  void shouldReturnDiscrepanciesTraineeDoctorsInformation() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
@@ -269,6 +270,7 @@ class ConnectionControllerTest {
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
@@ -290,12 +292,12 @@ class ConnectionControllerTest {
   }
 
   @Test
-  void shouldReturnExceptionTraineeDoctorsInformationDesc() throws Exception {
+  void shouldReturnDiscrepanciesTraineeDoctorsInformationDesc() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/exception")
@@ -303,6 +305,7 @@ class ConnectionControllerTest {
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
@@ -315,7 +318,7 @@ class ConnectionControllerTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
     when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/connected")
@@ -323,6 +326,7 @@ class ConnectionControllerTest {
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
@@ -347,13 +351,14 @@ class ConnectionControllerTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
     when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     this.mockMvc.perform(get("/api/connections/connected")
             .param(SORT_ORDER, "desc")
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, String.format("%s,%s", designatedBody1, designatedBody2)))
         .andExpect(status().isOk())
         .andExpect(
@@ -373,6 +378,7 @@ class ConnectionControllerTest {
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
@@ -404,6 +410,7 @@ class ConnectionControllerTest {
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(

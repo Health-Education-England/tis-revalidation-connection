@@ -66,6 +66,7 @@ public class ConnectionController {
   private static final String DESIGNATED_BODY_CODES = "dbcs";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
+  private static final String PROGRAMME_NAME = "programmeName";
 
   @Autowired
   private ConnectionService connectionService;
@@ -215,6 +216,8 @@ public class ConnectionController {
           required = false) final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES,
           required = false) final List<String> dbcs,
+      @RequestParam(name = PROGRAMME_NAME,
+          required = false) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -225,7 +228,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
     var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, programmeName, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
 
@@ -251,6 +254,8 @@ public class ConnectionController {
           required = false) final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES,
           required = false) final List<String> dbcs,
+      @RequestParam(name = PROGRAMME_NAME,
+          required = false) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -261,7 +266,7 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
     var connectionSummaryDto = connectedElasticSearchService
-        .searchForPage(searchQueryES, dbcs, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, programmeName, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

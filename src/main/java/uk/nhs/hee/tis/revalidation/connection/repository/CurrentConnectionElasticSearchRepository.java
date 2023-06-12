@@ -33,10 +33,11 @@ public interface CurrentConnectionElasticSearchRepository
     extends ElasticsearchRepository<CurrentConnectionsView, String> {
 
   @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
-      + "\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},{\"bool\":"
-      + "{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+      + "\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},"
+      + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
+      + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
   Page<CurrentConnectionsView> findAll(final String searchQuery, final String dbcs,
-      final Pageable pageable);
+      String programmeName, final Pageable pageable);
 }

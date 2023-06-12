@@ -50,12 +50,13 @@ public class DiscrepanciesElasticSearchService {
    * @param pageable    pagination information
    */
   public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      Pageable pageable)
+      String programmeName, Pageable pageable)
       throws ConnectionQueryException {
     try {
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
           .findAll(searchQuery,
               ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              programmeName,
               pageable);
 
       final var discrepancies = result.get().collect(toList());

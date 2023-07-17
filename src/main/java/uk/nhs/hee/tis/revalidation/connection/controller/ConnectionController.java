@@ -52,6 +52,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchServ
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
 
 @Slf4j
 @RestController
@@ -222,7 +223,7 @@ public class ConnectionController {
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn));
+        by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
@@ -260,7 +261,7 @@ public class ConnectionController {
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn));
+        by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
 
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()

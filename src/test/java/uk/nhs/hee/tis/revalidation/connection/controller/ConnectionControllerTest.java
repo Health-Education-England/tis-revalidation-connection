@@ -23,8 +23,11 @@ package uk.nhs.hee.tis.revalidation.connection.controller;
 
 import static java.time.LocalDate.now;
 import static java.util.List.of;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -42,11 +45,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
@@ -60,6 +67,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchServ
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
+import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
 
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
@@ -73,6 +81,7 @@ class ConnectionControllerTest {
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
+  private static final String TCS_DESIGNATED_BODY = "tcsDesignatedBody";
   private final Faker faker = new Faker();
   @Autowired
   private MockMvc mockMvc;
@@ -86,6 +95,8 @@ class ConnectionControllerTest {
   private ConnectedElasticSearchService connectedElasticSearchService;
   @MockBean
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  @Captor
+  ArgumentCaptor<Pageable> pageableCaptor;
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
@@ -151,6 +162,8 @@ class ConnectionControllerTest {
     programmeOwner2 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
     exceptionReason2 = faker.lorem().characters(20);
+    ReflectionTestUtils
+        .setField(ElasticsearchQueryHelper.class, "sortFields", List.of(TCS_DESIGNATED_BODY));
   }
 
   @Test
@@ -412,6 +425,44 @@ class ConnectionControllerTest {
             .param(SEARCH_QUERY, EMPTY_STRING)
             .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  @Test
+  void shouldFormatSortColumnsOnConnectedDoctorsRequest() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, TCS_DESIGNATED_BODY + ".keyword"));
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    this.mockMvc.perform(get("/api/connections/connected")
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, TCS_DESIGNATED_BODY)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, String.format("%s,%s", designatedBody1, designatedBody2)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void shouldFormatSortColumnsOnDiscrepanciesDoctorsRequest() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber"));
+    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    this.mockMvc.perform(get("/api/connections/connected")
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, String.format("%s,%s", designatedBody1, designatedBody2)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));

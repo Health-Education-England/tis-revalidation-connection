@@ -24,8 +24,12 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 public final class ElasticsearchQueryHelper {
+
+  @Value("${app.validation.sort.fields.keyword}")
+  private static List<String> sortFields;
 
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");
@@ -42,5 +46,12 @@ public final class ElasticsearchQueryHelper {
     return designatedBodyCodes.stream().map(
         dbc -> dbc.toLowerCase().replace("1-", "")
     ).collect(joining(" "));
+  }
+
+  public static String formatSortFieldForElasticsearchQuery(String sortField) {
+    if(sortFields.contains(sortField)) {
+      return sortField.concat(".keyword");
+    }
+    return sortField;
   }
 }

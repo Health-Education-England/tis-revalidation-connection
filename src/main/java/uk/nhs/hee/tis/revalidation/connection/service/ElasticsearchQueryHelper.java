@@ -48,8 +48,14 @@ public final class ElasticsearchQueryHelper {
     ).collect(joining(" "));
   }
 
+  /**
+   * Format sort columns to add .keyword suffix where required.
+   *
+   * @param sortField name of the field to sort by
+   *
+   */
   public static String formatSortFieldForElasticsearchQuery(String sortField) {
-    if(sortFields.contains(sortField)) {
+    if (sortFields.contains(sortField)) {
       return sortField.concat(".keyword");
     }
     return sortField;

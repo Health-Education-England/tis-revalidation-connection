@@ -7,13 +7,12 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ElasticsearchQueryHelperTest {
 
-  private final String keywordField = "keywordField";
-  private final String formattedKeywordField = "keywordField.keyword";
+  private final String keywordField = "tcsDesignatedBody";
+  private final String formattedKeywordField = "tcsDesignatedBody.keyword";
 
   @Test
   void shouldFormatDesignatedBodyCodesForElasticsearchQuery() {

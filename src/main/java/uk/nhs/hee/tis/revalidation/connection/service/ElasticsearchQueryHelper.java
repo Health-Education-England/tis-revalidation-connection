@@ -27,7 +27,7 @@ import java.util.List;
 
 public final class ElasticsearchQueryHelper {
 
-  private static List<String> sortFields = List.of("designatedBody,tcsDesignatedBody");
+  private static List<String> sortFields = List.of("designatedBody","tcsDesignatedBody");
 
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");

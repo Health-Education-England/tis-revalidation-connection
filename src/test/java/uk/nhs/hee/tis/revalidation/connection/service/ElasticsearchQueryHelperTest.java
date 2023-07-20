@@ -28,10 +28,7 @@ class ElasticsearchQueryHelperTest {
 
   @Test
   void shouldAddKeywordSuffixToKeywordSortFields() {
-    ReflectionTestUtils
-        .setField(ElasticsearchQueryHelper.class, "sortFields", List.of(keywordField));
     final var result = ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(keywordField);
-
     assertThat(result, Matchers.is(formattedKeywordField));
   }
 }

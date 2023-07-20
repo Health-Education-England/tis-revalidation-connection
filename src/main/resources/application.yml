@@ -46,9 +46,6 @@ app:
     gmcUsername: ${GMC_USER_NAME:guest}
     gmcPassword: ${GMC_PASSWORD:guest}
 
-  validation:
-    sort.fields.keyword: ${ES_KEYWORD_SORT_COLUMNS:tcsDesignatedBody,designatedBody}
-
 sentry:
   dsn: ${SENTRY_DSN:}
   environment: ${SENTRY_ENVIRONMENT:}

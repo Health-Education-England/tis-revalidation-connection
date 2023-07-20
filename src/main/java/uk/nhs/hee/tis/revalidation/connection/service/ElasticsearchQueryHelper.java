@@ -24,12 +24,10 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 
 public final class ElasticsearchQueryHelper {
 
-  @Value("${app.validation.sort.fields.keyword}")
-  private static List<String> sortFields;
+  private static List<String> sortFields = List.of("designatedBody,tcsDesignatedBody");
 
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");

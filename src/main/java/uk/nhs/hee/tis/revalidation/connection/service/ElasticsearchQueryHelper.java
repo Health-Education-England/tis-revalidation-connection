@@ -27,6 +27,8 @@ import java.util.List;
 
 public final class ElasticsearchQueryHelper {
 
+  private static List<String> sortFields = List.of("designatedBody","tcsDesignatedBody");
+
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");
   }
@@ -42,5 +44,18 @@ public final class ElasticsearchQueryHelper {
     return designatedBodyCodes.stream().map(
         dbc -> dbc.toLowerCase().replace("1-", "")
     ).collect(joining(" "));
+  }
+
+  /**
+   * Format sort columns to add .keyword suffix where required.
+   *
+   * @param sortField name of the field to sort by
+   *
+   */
+  public static String formatSortFieldForElasticsearchQuery(String sortField) {
+    if (sortFields.contains(sortField)) {
+      return sortField.concat(".keyword");
+    }
+    return sortField;
   }
 }

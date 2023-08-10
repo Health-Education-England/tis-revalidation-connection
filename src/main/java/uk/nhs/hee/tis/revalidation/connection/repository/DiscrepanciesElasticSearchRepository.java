@@ -32,7 +32,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 public interface DiscrepanciesElasticSearchRepository
     extends ElasticsearchRepository<DiscrepanciesView, String> {
 
-  @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
+  @Query("{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"F1\"}},"
       + "\"filter\":[{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
       + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
       + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"

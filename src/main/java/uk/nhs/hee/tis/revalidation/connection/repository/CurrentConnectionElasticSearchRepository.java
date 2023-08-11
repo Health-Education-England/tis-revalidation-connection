@@ -32,7 +32,8 @@ import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 public interface CurrentConnectionElasticSearchRepository
     extends ElasticsearchRepository<CurrentConnectionsView, String> {
 
-  @Query("{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"F1\"}},"
+  @Query("{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}},"
+      + "\"must_not\":{\"match\":{\"placementGrade\":\"F1\"}},"
       + "\"filter\":[{\"match\":{\"designatedBody\":\"?1\"}},"
       + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
       + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"

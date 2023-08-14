@@ -1,15 +1,23 @@
 {
   "bool": {
-    "must_not": {
-      "match": {
-        "membershipType": "MILITARY"
+    "must_not": [
+      {
+        "bool": {
+          "filter": [
+            {
+              "term": {
+                "placementGrade": "F1"
+              }
+            },
+            {
+              "term": {
+                "membershipType": "MILITARY"
+              }
+            }
+          ]
+        }
       }
-    },
-    "must_not": {
-      "match": {
-        "placementGrade": "F1"
-      }
-    },
+    ],
     "filter": [
       {
         "bool": {

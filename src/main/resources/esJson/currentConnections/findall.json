@@ -5,6 +5,11 @@
           "membershipType": "MILITARY"
         }
       },
+      "must_not": {
+        "match": {
+          "placementGrade": "F1"
+        }
+      },
       "filter": [
         {
           "match": {

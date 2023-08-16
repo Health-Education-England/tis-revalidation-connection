@@ -1,24 +1,24 @@
 {
   "bool": {
-    "must_not": [
+    "filter": [
       {
         "bool": {
-          "filter": [
-            {
-              "term": {
-                "placementGrade": "F1"
-              }
-            },
-            {
-              "term": {
-                "membershipType": "MILITARY"
-              }
+          "must_not": {
+            "match": {
+              "membershipType": "MILITARY"
             }
-          ]
+          }
         }
-      }
-    ],
-    "filter": [
+      },
+      {
+        "bool": {
+          "must_not": {
+            "match": {
+              "placementGrade": "F1"
+            }
+          }
+        }
+      },
       {
         "bool": {
           "should": [

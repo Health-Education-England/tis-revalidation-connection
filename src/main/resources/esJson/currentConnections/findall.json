@@ -14,7 +14,7 @@
           "bool": {
             "must_not": {
               "match": {
-                "placementGrade": "F1"
+                "placementGrade": "279"
               }
             }
           }

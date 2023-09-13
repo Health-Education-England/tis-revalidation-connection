@@ -34,7 +34,7 @@ public interface DiscrepanciesElasticSearchRepository
 
   @Query("{\"bool\":{\"filter\":["
       + "{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}}}},"
-      + "{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"F1\"}}}},"
+      + "{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"279\"}}}},"
       + "{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
       + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
       + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"

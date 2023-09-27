@@ -30,6 +30,9 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestTyp
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -227,7 +230,11 @@ public class ConnectionService {
     //save connection info to mongodb
     repository.save(connectionRequestLog);
 
-    sendToRabbitOrExceptionLogs(gmcId, designatedBodyCode, gmcResponse.getReturnCode());
+    sendToRabbitOrExceptionLogs(gmcId,
+        designatedBodyCode,
+        gmcResponse.getReturnCode(),
+        Optional.ofNullable(gmcResponse.getSubmissionDate())
+    );
     final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
     final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
     return UpdateConnectionResponseDto.builder().message(responseMessage).build();
@@ -236,13 +243,16 @@ public class ConnectionService {
   //If success put message into queue to update doctors for DB otherwise log message into exception
   // logs.
   private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
-      final String returnCode) {
+      final String returnCode, Optional<Date> submissionDate) {
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     if (SUCCESS.getCode().equals(returnCode)) {
       final var connectionMessage = ConnectionMessage.builder()
           .gmcId(gmcId)
           .designatedBodyCode(designatedBodyCode)
+          .submissionDate(submissionDate.isPresent() ?
+              submissionDate.get().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() :
+              null)
           .build();
       log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);

@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.message;
 
+import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Data;
 
@@ -30,4 +31,5 @@ public class ConnectionMessage {
 
   private String gmcId;
   private String designatedBodyCode;
+  private LocalDate submissionDate;
 }

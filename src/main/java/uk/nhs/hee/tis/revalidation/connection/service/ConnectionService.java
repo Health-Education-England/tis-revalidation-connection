@@ -250,8 +250,8 @@ public class ConnectionService {
       final var connectionMessage = ConnectionMessage.builder()
           .gmcId(gmcId)
           .designatedBodyCode(designatedBodyCode)
-          .submissionDate(submissionDate.isPresent() ?
-              submissionDate.get().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() :
+          .submissionDate(submissionDate.isPresent()
+              ? submissionDate.get().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() :
               null)
           .build();
       log.info("Sending message to rabbit to remove designated body code");

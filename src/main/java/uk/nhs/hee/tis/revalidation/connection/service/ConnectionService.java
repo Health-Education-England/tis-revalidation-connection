@@ -243,7 +243,7 @@ public class ConnectionService {
   //If success put message into queue to update doctors for DB otherwise log message into exception
   // logs.
   private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
-      final String returnCode, Optional<Date> submissionDate) {
+      final String returnCode, Optional<LocalDate> submissionDate) {
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     if (SUCCESS.getCode().equals(returnCode)) {
@@ -251,7 +251,7 @@ public class ConnectionService {
           .gmcId(gmcId)
           .designatedBodyCode(designatedBodyCode)
           .submissionDate(submissionDate.isPresent()
-              ? submissionDate.get().toInstant().atZone(ZoneId.systemDefault()).toLocalDate() :
+              ? submissionDate.get() :
               null)
           .build();
       log.info("Sending message to rabbit to remove designated body code");

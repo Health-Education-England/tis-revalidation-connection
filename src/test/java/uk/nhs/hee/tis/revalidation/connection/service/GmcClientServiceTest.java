@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,8 @@ class GmcClientServiceTest {
   private String designatedBodyCode;
   private String gmcId;
   private String gmcRequestId;
+  private String submissionDateString;
+  private LocalDate submissionDate;
   private String returnCode;
 
   @BeforeEach
@@ -82,6 +85,8 @@ class GmcClientServiceTest {
     gmcId = faker.number().digits(8);
     gmcRequestId = faker.random().toString();
     returnCode = "0";
+    submissionDate = LocalDate.now();
+    submissionDateString = submissionDate.toString();
 
     final var gmcUrl = faker.internet().url();
     final var soapAction = faker.internet().url();
@@ -107,12 +112,14 @@ class GmcClientServiceTest {
     when(tryAddDoctorResponse.getTryAddDoctorResult()).thenReturn(tryAddDoctorResponseCT);
     when(tryAddDoctorResponseCT.getClientRequestID()).thenReturn(gmcId);
     when(tryAddDoctorResponseCT.getGMCRequestID()).thenReturn(gmcRequestId);
+    when(tryAddDoctorResponseCT.getSubmissionDate()).thenReturn(submissionDateString);
     when(tryAddDoctorResponseCT.getReturnCode()).thenReturn(returnCode);
     final var gmcConnectionResponseDto =
         gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode);
 
     assertThat(gmcConnectionResponseDto.getClientRequestId(), is(gmcId));
     assertThat(gmcConnectionResponseDto.getGmcRequestId(), is(gmcRequestId));
+    assertThat(gmcConnectionResponseDto.getSubmissionDate(), is(submissionDate));
     assertThat(gmcConnectionResponseDto.getReturnCode(), is(returnCode));
   }
 

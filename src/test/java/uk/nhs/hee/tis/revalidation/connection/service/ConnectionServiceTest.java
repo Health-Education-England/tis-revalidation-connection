@@ -85,8 +85,7 @@ class ConnectionServiceTest {
   private String gmcId;
   private String gmcRequestId;
   private String returnCode;
-  private Date submissionDate;
-  private LocalDate submissionDateLocal;
+  private LocalDate submissionDate;
 
   private String connectionId;
   private String gmcClientId;
@@ -110,8 +109,7 @@ class ConnectionServiceTest {
     gmcId = faker.number().digits(8);
     gmcRequestId = faker.random().toString();
     returnCode = "0";
-    submissionDate = new Date();
-    submissionDateLocal = submissionDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    submissionDate = LocalDate.now();
 
     connectionId = faker.number().digits(20);
     gmcClientId = faker.number().digits(8);
@@ -151,7 +149,7 @@ class ConnectionServiceTest {
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
-        .submissionDate(submissionDateLocal)
+        .submissionDate(submissionDate)
         .build();
     verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
@@ -215,7 +213,7 @@ class ConnectionServiceTest {
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
-        .submissionDate(submissionDateLocal)
+        .submissionDate(submissionDate)
         .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage);
   }

@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import java.time.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,6 +76,7 @@ public class GmcClientService {
     return GmcConnectionResponseDto.builder()
         .clientRequestId(tryAddDoctorResult.getClientRequestID())
         .gmcRequestId(tryAddDoctorResult.getGMCRequestID())
+        .submissionDate(LocalDate.parse(tryAddDoctorResult.getSubmissionDate()))
         .returnCode(tryAddDoctorResult.getReturnCode())
         .build();
   }

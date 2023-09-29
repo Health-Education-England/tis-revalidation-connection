@@ -86,7 +86,10 @@ class GmcClientServiceTest {
     gmcRequestId = faker.random().toString();
     returnCode = "0";
     submissionDate = LocalDate.now();
-    submissionDateString = submissionDate.toString();
+    /* From GMC Docs - Submission Date "Should be a valid date in the
+    format DD/MM/YYYY" */
+    submissionDateString = String.format("%02d/%02d/%04d", submissionDate.getDayOfMonth(),
+        submissionDate.getMonthValue(), submissionDate.getYear());
 
     final var gmcUrl = faker.internet().url();
     final var soapAction = faker.internet().url();

@@ -208,12 +208,10 @@ class ConnectionServiceTest {
         .thenReturn(gmcConnectionResponseDto);
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
-    when(gmcConnectionResponseDto.getSubmissionDate()).thenReturn(submissionDate);
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
-        .submissionDate(submissionDate)
         .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage);
   }

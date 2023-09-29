@@ -21,6 +21,8 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,9 +74,12 @@ public class GmcClientService {
 
     final var tryAddDoctorResponse = submitTryAddDoctor(tryAddDoctor);
     final var tryAddDoctorResult = tryAddDoctorResponse.getTryAddDoctorResult();
+
+    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     return GmcConnectionResponseDto.builder()
         .clientRequestId(tryAddDoctorResult.getClientRequestID())
         .gmcRequestId(tryAddDoctorResult.getGMCRequestID())
+        .submissionDate(LocalDate.parse(tryAddDoctorResult.getSubmissionDate(), formatter))
         .returnCode(tryAddDoctorResult.getReturnCode())
         .build();
   }

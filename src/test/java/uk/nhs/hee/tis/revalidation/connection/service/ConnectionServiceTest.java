@@ -30,7 +30,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.github.javafaker.Faker;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +85,7 @@ class ConnectionServiceTest {
   private String gmcId;
   private String gmcRequestId;
   private String returnCode;
+  private LocalDate submissionDate;
 
   private String connectionId;
   private String gmcClientId;
@@ -105,6 +109,7 @@ class ConnectionServiceTest {
     gmcId = faker.number().digits(8);
     gmcRequestId = faker.random().toString();
     returnCode = "0";
+    submissionDate = LocalDate.now();
 
     connectionId = faker.number().digits(20);
     gmcClientId = faker.number().digits(8);
@@ -139,8 +144,12 @@ class ConnectionServiceTest {
         .thenReturn(gmcConnectionResponseDto);
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+    when(gmcConnectionResponseDto.getSubmissionDate()).thenReturn(submissionDate);
     connectionService.addDoctor(addDoctorDto);
-    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
+    var message = ConnectionMessage.builder()
+        .gmcId(gmcId)
+        .designatedBodyCode(designatedBodyCode)
+        .submissionDate(submissionDate)
         .build();
     verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
@@ -200,7 +209,9 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctor(removeDoctorDto);
-    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
+    var message = ConnectionMessage.builder()
+        .gmcId(gmcId)
+        .designatedBodyCode(designatedBodyCode)
         .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage);
   }

@@ -101,6 +101,7 @@ class ConnectionServiceTest {
   private String responseCode;
   private String reasonHide;
   private ConnectionRequestType requestTypeHide;
+  private String admin;
 
   @BeforeEach
   public void setup() {
@@ -125,6 +126,7 @@ class ConnectionServiceTest {
     responseCode = faker.number().digits(5);
     reasonHide = "2";
     requestTypeHide = ConnectionRequestType.HIDE;
+    admin = "admin";
 
     programmeOwnerDesignatedBodyCode = faker.number().digits(8);
 
@@ -161,6 +163,7 @@ class ConnectionServiceTest {
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
+        .admin(admin)
         .build();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
@@ -201,6 +204,7 @@ class ConnectionServiceTest {
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
+        .admin(admin)
         .build();
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
@@ -213,7 +217,7 @@ class ConnectionServiceTest {
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
         .build();
-    verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage);
+    verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage, admin);
   }
 
   @Test

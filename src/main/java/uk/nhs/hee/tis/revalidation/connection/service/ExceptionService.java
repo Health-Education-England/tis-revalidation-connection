@@ -55,9 +55,9 @@ public class ExceptionService {
    * @param gmcId        gmcId of trainees where there are some issue when updating connection
    * @param exceptionMessage response code that response from gmc
    */
-  public void createExceptionLog(final String gmcId, final String exceptionMessage) {
+  public void createExceptionLog(final String gmcId, final String exceptionMessage, String admin) {
     final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(exceptionMessage)
-        .timestamp(now()).build();
+        .timestamp(now()).admin(admin).build();
 
     repository.save(exceptionLog);
   }

@@ -68,18 +68,20 @@ class ExceptionServiceTest {
   private String responseCode;
   private LocalDateTime localDateTime;
   private List<ExceptionLog> exceptionLogList;
+  private String admin;
 
   @BeforeEach
   public void setup() {
     gmcId = faker.number().digits(8);
     responseCode = "0";
     localDateTime = LocalDateTime.now();
+    admin = "admin";
     initializeExceptionLogList();
   }
 
   @Test
   void shouldCreateExceptionLog() {
-    exceptionService.createExceptionLog(gmcId, responseCode);
+    exceptionService.createExceptionLog(gmcId, responseCode, admin);
     verify(repository).save(any(ExceptionLog.class));
   }
 
@@ -106,6 +108,7 @@ class ExceptionServiceTest {
         .gmcId(gmcId)
         .errorMessage(responseCode)
         .timestamp(localDateTime)
+        .admin("admin")
         .build();
     exceptionLogList = new ArrayList<>();
     exceptionLogList.add(exceptionLog);

@@ -180,7 +180,8 @@ public class ConnectionService {
       final var gmcResponse = delegateRequest(changeReason, designatedBodyCode, doctor,
           connectionRequestType);
       return handleGmcResponse(doctor.getGmcId(), changeReason, designatedBodyCode,
-          doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType);
+          doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType,
+          addDoctorDto.getAdmin());
     }).collect(Collectors.toList());
     final var addRemoveResponseFiltered = addRemoveResponse.stream()
         .filter(response -> !response.getMessage().equals(SUCCESS.getMessage())).findAny();
@@ -213,7 +214,8 @@ public class ConnectionService {
       final String changeReason,
       final String designatedBodyCode, final String currentDesignatedBodyCode,
       final GmcConnectionResponseDto gmcResponse,
-      final ConnectionRequestType connectionRequestType) {
+      final ConnectionRequestType connectionRequestType,
+      final String admin) {
 
     final var connectionRequestLog = ConnectionRequestLog.builder()
         .id(UUID.randomUUID().toString())
@@ -233,7 +235,8 @@ public class ConnectionService {
     sendToRabbitOrExceptionLogs(gmcId,
         designatedBodyCode,
         gmcResponse.getReturnCode(),
-        gmcResponse.getSubmissionDate()
+        gmcResponse.getSubmissionDate(),
+        admin
     );
     final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
     final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
@@ -243,7 +246,7 @@ public class ConnectionService {
   //If success put message into queue to update doctors for DB otherwise log message into exception
   // logs.
   private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
-      final String returnCode, LocalDate submissionDate) {
+      final String returnCode, LocalDate submissionDate, String admin) {
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     if (SUCCESS.getCode().equals(returnCode)) {
@@ -255,7 +258,7 @@ public class ConnectionService {
       log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);
     } else {
-      exceptionService.createExceptionLog(gmcId, exceptionMessage);
+      exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
     }
   }
 

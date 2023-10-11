@@ -198,16 +198,16 @@ public class ConnectionController {
   }
 
   /**
-   * GET  /exception : get exception summary.
+   * GET  /discrepancies : get discrepancies summary.
    *
    * @param sortColumn  column to be sorted
    * @param sortOrder   sorting order (ASC or DESC)
    * @param pageNumber  page number of data to get
    * @param dbcs        designated body code of the user
    * @param searchQuery search query of data to get
-   * @return the ResponseEntity with status 200 (OK) and exception summary in body
+   * @return the ResponseEntity with status 200 (OK) and discrepancies summary in body
    */
-  @GetMapping("/exception")
+  @GetMapping("/discrepancies")
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
       @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
           required = false) final String sortColumn,

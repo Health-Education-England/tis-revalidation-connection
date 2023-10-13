@@ -40,4 +40,5 @@ public class ExceptionLog {
   private String gmcId;
   private String errorMessage;
   private LocalDateTime timestamp;
+  private String admin;
 }

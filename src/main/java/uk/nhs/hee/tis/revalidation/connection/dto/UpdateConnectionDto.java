@@ -39,4 +39,5 @@ public class UpdateConnectionDto {
   private String changeReason;
   private String designatedBodyCode;
   private List<DoctorInfoDto> doctors;
+  private String admin;
 }

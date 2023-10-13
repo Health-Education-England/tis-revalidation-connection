@@ -140,6 +140,7 @@ class ConnectionServiceTest {
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(buildDoctorsList())
+        .admin(admin)
         .build();
 
     when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))

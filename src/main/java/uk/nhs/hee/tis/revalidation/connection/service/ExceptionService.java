@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,6 +89,22 @@ public class ExceptionService {
         .totalResults(exceptionLogPage.getTotalElements())
         .exceptionRecord(buildExceptionRecords(exceptionLogs))
         .build();
+  }
+
+  /**
+   * Get today's exception log
+   * @param  today request by date today
+   */
+  public List<ExceptionRecordDto> getExceptionLogForToday(DateTime today){
+    final var todaysExceptions = repository.findByTimestamp(today);
+    return todaysExceptions.stream().map(exceptionLog -> {
+      return ExceptionRecordDto.builder()
+          .gmcId(exceptionLog.getGmcId())
+          .exceptionMessage(exceptionLog.getErrorMessage())
+          .timestamp(exceptionLog.getTimestamp())
+          .admin(exceptionLog.getAdmin())
+          .build();
+    }).collect(toList());
   }
 
   /**

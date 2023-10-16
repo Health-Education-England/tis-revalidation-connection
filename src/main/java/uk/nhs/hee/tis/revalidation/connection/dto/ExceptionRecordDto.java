@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
 
@@ -30,4 +31,6 @@ public class ExceptionRecordDto {
 
   private String gmcId;
   private String exceptionMessage;
+  private LocalDateTime timestamp;
+  private String admin;
 }

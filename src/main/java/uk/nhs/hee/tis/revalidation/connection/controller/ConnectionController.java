@@ -31,9 +31,12 @@ import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.get
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -53,6 +57,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 @Slf4j
 @RestController
@@ -80,6 +85,9 @@ public class ConnectionController {
 
   @Autowired
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
+
+  @Autowired
+  private ExceptionService exceptionService;
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -305,5 +313,17 @@ public class ConnectionController {
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
+  }
+
+  /**
+   * GET  /exceptions/today : get list of exceptions.
+   *
+   * @return the list of ExceptionRecordDto
+   */
+  @GetMapping("/exceptions/today")
+  public List<ExceptionRecordDto> getListOfExceptions() {
+
+    DateTime today = DateTime.now();// need to go to the service method
+    return exceptionService.getExceptionLogForToday(today);
   }
 }

@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
@@ -47,10 +47,11 @@ public class ExceptionService {
    * Create exception log.
    *
    * @param gmcId        gmcId of trainees where there are some issue when updating connection
-   * @param exceptionMessage response code that response from gmc
+   * @param errorMessage response code that response from gmc
    */
-  public void createExceptionLog(final String gmcId, final String exceptionMessage, String admin) {
-    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(exceptionMessage)
+  public void createExceptionLog(final String gmcId, final String errorMessage, String admin) {
+
+    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(errorMessage)
         .timestamp(now()).admin(admin).build();
 
     repository.save(exceptionLog);
@@ -67,17 +68,18 @@ public class ExceptionService {
 
   /**
    * Get today's exception logs for a specific admin
-   * @param  admin request by date today
+   *
+   * @param admin request by date today
    */
-  public List<ExceptionRecordDto> getExceptionLogs(String admin){
+  public List<ExceptionLogDto> getExceptionLogs(String admin) {
     LocalDateTime today = LocalDate.now().atStartOfDay();
     LocalDateTime tomorrow = today.plusDays(1);
 
     final var todaysExceptions = repository.findByAdminAndTimestampBetween(admin, today, tomorrow);
     return todaysExceptions.stream().map(exceptionLog -> {
-      return ExceptionRecordDto.builder()
+      return ExceptionLogDto.builder()
           .gmcId(exceptionLog.getGmcId())
-          .exceptionMessage(exceptionLog.getErrorMessage())
+          .errorMessage(exceptionLog.getErrorMessage())
           .timestamp(exceptionLog.getTimestamp())
           .admin(exceptionLog.getAdmin())
           .build();

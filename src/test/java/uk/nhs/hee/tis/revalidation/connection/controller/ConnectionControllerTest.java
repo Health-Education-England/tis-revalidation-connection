@@ -53,7 +53,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -429,7 +429,7 @@ class ConnectionControllerTest {
 
 
   @Test
-  void shouldReturnAllExceptionsForAnAdmin() throws Exception {
+  void shouldReturnAllTodayExceptionsForAnAdmin() throws Exception {
     final var exceptionRecordDtoList = buildExceptionRecordDtoList();
 
     when(exceptionService.getExceptionLogs(admin)).thenReturn(exceptionRecordDtoList);
@@ -437,8 +437,7 @@ class ConnectionControllerTest {
     mockMvc.perform(get("/api/connections/exceptions/today/{admin}", admin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.[*].gmcId").value(hasItem(gmcId)))
-        .andExpect(jsonPath("$.[*].exceptionMessage").value(hasItem(exceptionReason1)))
-        //.andExpect(jsonPath("$.[*].timestamp").value(hasItem("year=2023")))
+        .andExpect(jsonPath("$.[*].errorMessage").value(hasItem(exceptionReason1)))
         .andExpect(jsonPath("$.[*].admin").value(hasItem(admin)));
 
   }
@@ -503,13 +502,13 @@ class ConnectionControllerTest {
     return of(doctor1, doctor2);
   }
 
-  private List<ExceptionRecordDto> buildExceptionRecordDtoList() {
-    final var record1 = ExceptionRecordDto.builder()
-        .gmcId(gmcId).exceptionMessage(exceptionReason1)
+  private List<ExceptionLogDto> buildExceptionRecordDtoList() {
+    final var record1 = ExceptionLogDto.builder()
+        .gmcId(gmcId).errorMessage(exceptionReason1)
         .timestamp(today).admin(admin)
         .build();
-    final var record2 = ExceptionRecordDto.builder()
-        .gmcId(gmcRef2).exceptionMessage(exceptionReason2)
+    final var record2 = ExceptionLogDto.builder()
+        .gmcId(gmcRef2).errorMessage(exceptionReason2)
         .timestamp(today).admin(admin)
         .build();
     return of(record1, record2);

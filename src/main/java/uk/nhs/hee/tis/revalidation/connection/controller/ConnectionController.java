@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -315,10 +315,10 @@ public class ConnectionController {
   /**
    * GET  /exceptions/today : get list of exceptions.
    *
-   * @return the list of ExceptionRecordDto
+   * @return the list of ExceptionLogDto
    */
   @GetMapping("/exceptions/today/{admin}")
-  public ResponseEntity<List<ExceptionRecordDto>> getListOfExceptions(@PathVariable("admin") final String admin) {
+  public ResponseEntity<List<ExceptionLogDto>> getListOfExceptions(@PathVariable("admin") final String admin) {
 
     log.info("Received request to fetch exceptions for admin: {}", admin);
     final var exceptions =  exceptionService.getExceptionLogs(admin);

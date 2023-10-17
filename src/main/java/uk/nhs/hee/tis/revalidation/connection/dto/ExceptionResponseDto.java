@@ -32,5 +32,5 @@ public class ExceptionResponseDto {
   private long countTotal;
   private long totalPages;
   private long totalResults;
-  private List<ExceptionRecordDto> exceptionRecord;
+  private List<ExceptionLogDto> exceptionRecord;
 }

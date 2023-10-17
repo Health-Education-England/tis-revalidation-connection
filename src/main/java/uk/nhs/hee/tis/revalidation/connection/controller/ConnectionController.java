@@ -70,6 +70,7 @@ public class ConnectionController {
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
+  private static final String ADMIN = "admin";
 
   @Autowired
   private ConnectionService connectionService;
@@ -317,11 +318,12 @@ public class ConnectionController {
    *
    * @return the list of ExceptionLogDto
    */
-  @GetMapping("/exceptions/today/{admin}")
-  public ResponseEntity<List<ExceptionLogDto>> getListOfExceptions(@PathVariable("admin") final String admin) {
+  @GetMapping("/exceptions/today")
+  public ResponseEntity<List<ExceptionLogDto>> getListOfExceptions(
+      @RequestParam(name = ADMIN) final String admin) {
 
     log.info("Received request to fetch exceptions for admin: {}", admin);
-    final var exceptions =  exceptionService.getExceptionLogs(admin);
+    final var exceptions = exceptionService.getExceptionLogs(admin);
     return ResponseEntity.ok().body(exceptions);
 
   }

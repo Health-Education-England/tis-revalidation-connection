@@ -434,7 +434,8 @@ class ConnectionControllerTest {
 
     when(exceptionService.getExceptionLogs(admin)).thenReturn(exceptionRecordDtoList);
 
-    mockMvc.perform(get("/api/connections/exceptions/today/{admin}", admin))
+    mockMvc.perform(get("/api/connections/exceptions/today")
+            .param("admin", admin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.[*].gmcId").value(hasItem(gmcId)))
         .andExpect(jsonPath("$.[*].errorMessage").value(hasItem(exceptionReason1)))

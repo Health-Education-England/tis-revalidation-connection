@@ -320,10 +320,12 @@ public class ConnectionController {
    *
    * @return the list of ExceptionRecordDto
    */
-  @GetMapping("/exceptions/today")
-  public List<ExceptionRecordDto> getListOfExceptions() {
+  @GetMapping("/exceptions/today/{admin}")
+  public ResponseEntity<List<ExceptionRecordDto>> getListOfExceptions(@PathVariable("admin") final String admin) {
 
-    DateTime today = DateTime.now();// need to go to the service method
-    return exceptionService.getExceptionLogForToday(today);
+    log.info("Received request to fetch exceptions for admin: {}", admin);
+    final var exceptions =  exceptionService.getExceptionLogs(admin);
+    return ResponseEntity.ok().body(exceptions);
+
   }
 }

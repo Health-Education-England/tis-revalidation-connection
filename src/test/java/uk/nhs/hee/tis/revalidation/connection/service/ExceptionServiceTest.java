@@ -21,9 +21,10 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static java.util.List.of;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,18 +66,24 @@ class ExceptionServiceTest {
   @Mock
   private ExceptionLog exceptionLog;
 
-  private String gmcId;
+  private String gmcId, gmcId2;
   private String responseCode;
   private LocalDateTime localDateTime;
   private List<ExceptionLog> exceptionLogList;
   private String admin;
+  private String exceptionReason1, exceptionReason2;
+  private LocalDateTime dateTime;
 
   @BeforeEach
   public void setup() {
     gmcId = faker.number().digits(8);
+    gmcId2 = faker.number().digits(8);
     responseCode = "0";
     localDateTime = LocalDateTime.now();
     admin = "admin";
+    exceptionReason1 = faker.letterify("aa");
+    exceptionReason2 = faker.letterify("bb");
+    dateTime = LocalDateTime.now();
     initializeExceptionLogList();
   }
 
@@ -103,6 +111,14 @@ class ExceptionServiceTest {
     assertThat(result.get(gmcId), is(responseCode));
   }
 
+  @Test
+  void shouldReturnExceptionLogs() {
+    when(repository.findByTimestampAndAdmin(dateTime, admin)).thenReturn(buildExceptionLogList());
+
+    final var result = exceptionService.getExceptionLogs(admin);
+    assertThat(result.get(0).getGmcId(), is(gmcId));
+  }
+
   private void initializeExceptionLogList() {
     ExceptionLog exceptionLog = ExceptionLog.builder()
         .gmcId(gmcId)
@@ -112,5 +128,17 @@ class ExceptionServiceTest {
         .build();
     exceptionLogList = new ArrayList<>();
     exceptionLogList.add(exceptionLog);
+  }
+
+  private List<ExceptionLog> buildExceptionLogList() {
+    final var record1 = ExceptionLog.builder()
+        .gmcId(gmcId).errorMessage(exceptionReason1)
+        .timestamp(dateTime).admin(admin)
+        .build();
+    final var record2 = ExceptionLog.builder()
+        .gmcId(gmcId2).errorMessage(exceptionReason2)
+        .timestamp(dateTime).admin(admin)
+        .build();
+    return of(record1, record2);
   }
 }

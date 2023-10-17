@@ -28,11 +28,11 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,10 +93,11 @@ public class ExceptionService {
 
   /**
    * Get today's exception log
-   * @param  today request by date today
+   * @param  admin request by date today
    */
-  public List<ExceptionRecordDto> getExceptionLogForToday(DateTime today){
-    final var todaysExceptions = repository.findByTimestamp(today);
+  public List<ExceptionRecordDto> getExceptionLogs(String admin){
+    LocalDateTime today = LocalDateTime.now();
+    final var todaysExceptions = repository.findByTimestampAndAdmin(today, admin);
     return todaysExceptions.stream().map(exceptionLog -> {
       return ExceptionRecordDto.builder()
           .gmcId(exceptionLog.getGmcId())

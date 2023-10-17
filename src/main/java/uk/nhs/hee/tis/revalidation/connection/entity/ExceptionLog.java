@@ -22,6 +22,9 @@
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
 import java.time.LocalDateTime;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +40,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ExceptionLog {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private int _id;
   private String gmcId;
   private String errorMessage;
   private LocalDateTime timestamp;

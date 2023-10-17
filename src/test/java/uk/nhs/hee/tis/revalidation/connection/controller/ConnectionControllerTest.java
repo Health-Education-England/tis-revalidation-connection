@@ -141,6 +141,7 @@ class ConnectionControllerTest {
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
 
+    admin = faker.internet().emailAddress();
     personId1 = (long) faker.hashCode();
     personId2 = (long) faker.hashCode();
     gmcRef1 = faker.number().digits(8);

@@ -23,29 +23,26 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.List.of;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRequestDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
@@ -60,12 +57,6 @@ class ExceptionServiceTest {
   @Mock
   private ExceptionRepository repository;
 
-  @Mock
-  private Page page;
-
-  @Mock
-  private ExceptionLog exceptionLog;
-
   private String gmcId, gmcId2;
   private String responseCode;
   private LocalDateTime localDateTime;
@@ -73,6 +64,8 @@ class ExceptionServiceTest {
   private String admin;
   private String exceptionReason1, exceptionReason2;
   private LocalDateTime dateTime;
+  @Captor
+  private ArgumentCaptor<LocalDate> localDateCaptor;
 
   @BeforeEach
   public void setup() {
@@ -94,28 +87,11 @@ class ExceptionServiceTest {
   }
 
   @Test
-  void shouldGetExceptionLog() {
-    final var exceptionRequestDto = ExceptionRequestDto.builder().pageNumber(1)
-        .sortOrder("asc").sortColumn("gmcId").build();
-    final var pageableAndSortable = PageRequest.of(1, 20, by(ASC, "gmcId"));
-    when(repository.findAll(pageableAndSortable)).thenReturn(page);
-    when(page.get()).thenReturn(Stream.of(exceptionLog));
-    final var exceptionResponseDto = exceptionService.getExceptionLog(exceptionRequestDto);
-    assertThat(exceptionResponseDto.getExceptionRecord(), hasSize(1));
-  }
-
-  @Test
-  void shouldReturnLogsMap() {
-    when(repository.findAll()).thenReturn(exceptionLogList);
-    final var result = exceptionService.getExceptionsMap();
-    assertThat(result.get(gmcId), is(responseCode));
-  }
-
-  @Test
   void shouldReturnExceptionLogs() {
-    when(repository.findByTimestampAndAdmin(dateTime, admin)).thenReturn(buildExceptionLogList());
+    when(repository.findByTimestampAndAdmin(localDateCaptor.capture(), eq(admin))).thenReturn(buildExceptionLogList());
 
     final var result = exceptionService.getExceptionLogs(admin);
+    assertThat(localDateCaptor.getValue(), is(LocalDate.now())); //request is for today's logs
     assertThat(result.get(0).getGmcId(), is(gmcId));
   }
 

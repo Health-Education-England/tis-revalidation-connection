@@ -23,9 +23,10 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.List.of;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,12 +38,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
@@ -64,8 +62,6 @@ class ExceptionServiceTest {
   private String admin;
   private String exceptionReason1, exceptionReason2;
   private LocalDateTime dateTime;
-  @Captor
-  private ArgumentCaptor<LocalDate> localDateCaptor;
 
   @BeforeEach
   public void setup() {
@@ -88,11 +84,16 @@ class ExceptionServiceTest {
 
   @Test
   void shouldReturnExceptionLogs() {
-    when(repository.findByTimestampAndAdmin(localDateCaptor.capture(), eq(admin))).thenReturn(buildExceptionLogList());
+    LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+    LocalDateTime tomorrowStart = todayStart.plusDays(1);
+
+    when(repository.findByAdminAndTimestampBetween(admin, todayStart, tomorrowStart)).thenReturn(buildExceptionLogList());
 
     final var result = exceptionService.getExceptionLogs(admin);
-    assertThat(localDateCaptor.getValue(), is(LocalDate.now())); //request is for today's logs
     assertThat(result.get(0).getGmcId(), is(gmcId));
+    assertThat(result.get(0).getAdmin(), is(admin));
+    assertThat(result.get(0).getTimestamp(), greaterThan(todayStart));
+    assertThat(result.get(0).getTimestamp(), lessThan(tomorrowStart));
   }
 
   private void initializeExceptionLogList() {

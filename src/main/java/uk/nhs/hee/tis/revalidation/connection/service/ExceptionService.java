@@ -25,6 +25,7 @@ import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +70,10 @@ public class ExceptionService {
    * @param  admin request by date today
    */
   public List<ExceptionRecordDto> getExceptionLogs(String admin){
-    LocalDate today = LocalDate.now();
-    final var todaysExceptions = repository.findByTimestampAndAdmin(today, admin);
+    LocalDateTime today = LocalDate.now().atStartOfDay();
+    LocalDateTime tomorrow = today.plusDays(1);
+
+    final var todaysExceptions = repository.findByAdminAndTimestampBetween(admin, today, tomorrow);
     return todaysExceptions.stream().map(exceptionLog -> {
       return ExceptionRecordDto.builder()
           .gmcId(exceptionLog.getGmcId())
@@ -80,4 +83,5 @@ public class ExceptionService {
           .build();
     }).collect(toList());
   }
+
 }

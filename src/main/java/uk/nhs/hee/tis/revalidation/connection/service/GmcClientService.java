@@ -63,8 +63,8 @@ public class GmcClientService {
   /**
    * add GMC connection for a doctor.
    *
-   * @param gmcId id of doctor to add
-   * @param changeReason reason for adding doctor
+   * @param gmcId              id of doctor to add
+   * @param changeReason       reason for adding doctor
    * @param designatedBodyCode DBC which is going to add for the doctor
    */
   public GmcConnectionResponseDto tryAddDoctor(final String gmcId, final String changeReason,
@@ -74,12 +74,15 @@ public class GmcClientService {
 
     final var tryAddDoctorResponse = submitTryAddDoctor(tryAddDoctor);
     final var tryAddDoctorResult = tryAddDoctorResponse.getTryAddDoctorResult();
+    final var submissionDateString = tryAddDoctorResult.getSubmissionDate();
 
     final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    final LocalDate submissionDate =
+        submissionDateString.isBlank() ? null : LocalDate.parse(submissionDateString, formatter);
     return GmcConnectionResponseDto.builder()
         .clientRequestId(tryAddDoctorResult.getClientRequestID())
         .gmcRequestId(tryAddDoctorResult.getGMCRequestID())
-        .submissionDate(LocalDate.parse(tryAddDoctorResult.getSubmissionDate(), formatter))
+        .submissionDate(submissionDate)
         .returnCode(tryAddDoctorResult.getReturnCode())
         .build();
   }
@@ -87,8 +90,8 @@ public class GmcClientService {
   /**
    * remove GMC connection from a doctor.
    *
-   * @param gmcId id of doctor to remove
-   * @param changeReason reason for removing doctor
+   * @param gmcId              id of doctor to remove
+   * @param changeReason       reason for removing doctor
    * @param designatedBodyCode DBC which is going to remove from the doctor
    */
   public GmcConnectionResponseDto tryRemoveDoctor(final String gmcId, final String changeReason,

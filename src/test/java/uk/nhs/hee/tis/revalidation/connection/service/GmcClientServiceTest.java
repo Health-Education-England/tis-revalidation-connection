@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -123,6 +124,31 @@ class GmcClientServiceTest {
     assertThat(gmcConnectionResponseDto.getClientRequestId(), is(gmcId));
     assertThat(gmcConnectionResponseDto.getGmcRequestId(), is(gmcRequestId));
     assertThat(gmcConnectionResponseDto.getSubmissionDate(), is(submissionDate));
+    assertThat(gmcConnectionResponseDto.getReturnCode(), is(returnCode));
+  }
+
+  @Test
+  void shouldHandleEmptySubmissionDateOnTryAddDoctorRequest() {
+
+    final var addDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(buildDoctorsList())
+        .build();
+
+    when(webServiceTemplate.marshalSendAndReceive(any(String.class), any(
+        TryAddDoctor.class), any(SoapActionCallback.class))).thenReturn(tryAddDoctorResponse);
+    when(tryAddDoctorResponse.getTryAddDoctorResult()).thenReturn(tryAddDoctorResponseCT);
+    when(tryAddDoctorResponseCT.getClientRequestID()).thenReturn(gmcId);
+    when(tryAddDoctorResponseCT.getGMCRequestID()).thenReturn(gmcRequestId);
+    when(tryAddDoctorResponseCT.getSubmissionDate()).thenReturn("");
+    when(tryAddDoctorResponseCT.getReturnCode()).thenReturn(returnCode);
+    final var gmcConnectionResponseDto =
+        gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode);
+
+    assertThat(gmcConnectionResponseDto.getClientRequestId(), is(gmcId));
+    assertThat(gmcConnectionResponseDto.getGmcRequestId(), is(gmcRequestId));
+    assertNull(gmcConnectionResponseDto.getSubmissionDate());
     assertThat(gmcConnectionResponseDto.getReturnCode(), is(returnCode));
   }
 

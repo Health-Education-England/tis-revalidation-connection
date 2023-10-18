@@ -17,7 +17,7 @@ spring:
       uris: ${ES_URLS:http://localhost:9200}
   data:
     mongodb:
-      uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1
+      uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?authSource=admin&authMechanism=SCRAM-SHA-1&replicaSet=rs0&readPreference=secondaryPreferred
 
 server:
   port: 8090

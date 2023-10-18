@@ -22,17 +22,18 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.time.LocalDateTime.now;
-import static java.util.stream.Collectors.toList;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @Slf4j
@@ -42,6 +43,9 @@ public class ExceptionService {
 
   @Autowired
   private ExceptionRepository repository;
+
+  private final ConnectionInfoMapper exceptionLogMapper = Mappers
+      .getMapper(ConnectionInfoMapper.class);
 
   /**
    * Create exception log.
@@ -76,14 +80,7 @@ public class ExceptionService {
     LocalDateTime tomorrow = today.plusDays(1);
 
     final var todaysExceptions = repository.findByAdminAndTimestampBetween(admin, today, tomorrow);
-    return todaysExceptions.stream().map(exceptionLog -> {
-      return ExceptionLogDto.builder()
-          .gmcId(exceptionLog.getGmcId())
-          .errorMessage(exceptionLog.getErrorMessage())
-          .timestamp(exceptionLog.getTimestamp())
-          .admin(exceptionLog.getAdmin())
-          .build();
-    }).collect(toList());
+    return exceptionLogMapper.exceptionLogsToExceptionLogDtos(todaysExceptions);
   }
 
 }

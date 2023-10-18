@@ -25,9 +25,11 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
 @Mapper(componentModel = "spring")
@@ -73,4 +75,7 @@ public interface ConnectionInfoMapper {
   @Mapping(target = "membershipEndDate", source = "programmeMembershipEndDate")
   @Mapping(target = "id", ignore = true)
   MasterDoctorView dtoToMaster(ConnectionInfoDto connectionInfoDto);
+
+  @Mapping(target = "", source = "id", ignore = true)
+  List<ExceptionLogDto> exceptionLogsToExceptionLogDtos(List<ExceptionLog> exceptionLog);
 }

@@ -35,8 +35,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @Document(collection = "exceptionLogs")
 public class ExceptionLog {
-
   @Id
+  private String id;
   private String gmcId;
   private String errorMessage;
   private LocalDateTime timestamp;

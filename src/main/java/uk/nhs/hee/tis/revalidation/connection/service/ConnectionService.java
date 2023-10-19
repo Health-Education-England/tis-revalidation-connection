@@ -31,8 +31,6 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCC
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

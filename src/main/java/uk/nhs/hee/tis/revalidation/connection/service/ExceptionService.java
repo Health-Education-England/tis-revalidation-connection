@@ -22,23 +22,17 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.time.LocalDateTime.now;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.data.domain.PageRequest.of;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-import static org.springframework.data.domain.Sort.by;
 
-import java.util.HashMap;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRecordDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRequestDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @Slf4j
@@ -49,14 +43,19 @@ public class ExceptionService {
   @Autowired
   private ExceptionRepository repository;
 
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
+
   /**
    * Create exception log.
    *
    * @param gmcId        gmcId of trainees where there are some issue when updating connection
-   * @param exceptionMessage response code that response from gmc
+   * @param errorMessage response code that response from gmc
+   * @param admin        the admin that generated the exception log
    */
-  public void createExceptionLog(final String gmcId, final String exceptionMessage, String admin) {
-    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(exceptionMessage)
+  public void createExceptionLog(final String gmcId, final String errorMessage, String admin) {
+
+    final var exceptionLog = ExceptionLog.builder().gmcId(gmcId).errorMessage(errorMessage)
         .timestamp(now()).admin(admin).build();
 
     repository.save(exceptionLog);
@@ -72,42 +71,16 @@ public class ExceptionService {
   }
 
   /**
-   * Get exception log.
+   * Get today's exception logs for a specific admin.
    *
-   * @param requestDto request for getting exception log
+   * @param admin the admin that generated the exception log
    */
-  public ExceptionResponseDto getExceptionLog(final ExceptionRequestDto requestDto) {
-    final var direction = "asc".equalsIgnoreCase(requestDto.getSortOrder()) ? ASC : DESC;
-    final var pageableAndSortable = of(requestDto.getPageNumber(), 20,
-        by(direction, requestDto.getSortColumn()));
+  public List<ExceptionLogDto> getConnectionExceptionLogsFromToday(String admin) {
+    LocalDateTime today = LocalDate.now().atStartOfDay();
+    LocalDateTime tomorrow = today.plusDays(1);
 
-    final var exceptionLogPage = repository.findAll(pageableAndSortable);
-    final var exceptionLogs = exceptionLogPage.get().collect(toList());
-    return ExceptionResponseDto.builder()
-        .totalPages(exceptionLogPage.getTotalPages())
-        .totalResults(exceptionLogPage.getTotalElements())
-        .exceptionRecord(buildExceptionRecords(exceptionLogs))
-        .build();
+    final var todaysExceptions = repository.findByAdminAndTimestampBetween(admin, today, tomorrow);
+    return exceptionLogMapper.exceptionLogsToExceptionLogDtos(todaysExceptions);
   }
 
-  /**
-   * Get exception log hashmap.
-   */
-  public Map<String, String> getExceptionsMap() {
-    Map<String,String> exceptionsMap = new HashMap<>();
-    List<ExceptionLog> exceptionLogList = repository.findAll();
-    for (ExceptionLog exceptionLog: exceptionLogList) {
-      exceptionsMap.put(exceptionLog.getGmcId(), exceptionLog.getErrorMessage());
-    }
-    return exceptionsMap;
-  }
-
-  private List<ExceptionRecordDto> buildExceptionRecords(final List<ExceptionLog> exceptionLogs) {
-    return exceptionLogs.stream().map(exception -> {
-      return ExceptionRecordDto.builder()
-          .gmcId(exception.getGmcId())
-          .exceptionMessage(exception.getErrorMessage())
-          .build();
-    }).collect(toList());
-  }
 }

@@ -92,7 +92,7 @@ class ExceptionServiceTest {
     when(repository.findByAdminAndTimestampBetween(admin, todayStart, tomorrowStart))
         .thenReturn(buildExceptionLogList());
 
-    final var result = exceptionService.getExceptionLogs(admin);
+    final var result = exceptionService.getConnectionExceptionLogsFromToday(admin);
     assertThat(result.get(0).getGmcId(), is(gmcId));
     assertThat(result.get(0).getAdmin(), is(admin));
     assertThat(result.get(0).getTimestamp(), greaterThan(todayStart));

@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @Slf4j
@@ -44,8 +45,8 @@ public class ExceptionService {
   @Autowired
   private ExceptionRepository repository;
 
-  private final ConnectionInfoMapper exceptionLogMapper = Mappers
-      .getMapper(ConnectionInfoMapper.class);
+  private final ExceptionLogMapper exceptionLogMapper = Mappers
+      .getMapper(ExceptionLogMapper.class);
 
   /**
    * Create exception log.
@@ -75,7 +76,7 @@ public class ExceptionService {
    *
    * @param admin request by date today
    */
-  public List<ExceptionLogDto> getExceptionLogs(String admin) {
+  public List<ExceptionLogDto> getConnectionExceptionLogsFromToday(String admin) {
     LocalDateTime today = LocalDate.now().atStartOfDay();
     LocalDateTime tomorrow = today.plusDays(1);
 

@@ -53,7 +53,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -61,7 +60,6 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchServ
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 
 @WebMvcTest(ConnectionController.class)
@@ -89,8 +87,6 @@ class ConnectionControllerTest {
   private ConnectedElasticSearchService connectedElasticSearchService;
   @MockBean
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
-  @MockBean
-  private ExceptionService exceptionService;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -122,8 +118,7 @@ class ConnectionControllerTest {
   private String programmeOwner2;
   private String exceptionReason1;
   private String exceptionReason2;
-  private String admin;
-  private LocalDateTime today;
+
 
   @BeforeEach
   public void setup() {
@@ -141,7 +136,6 @@ class ConnectionControllerTest {
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
 
-    admin = faker.internet().emailAddress();
     personId1 = (long) faker.hashCode();
     personId2 = (long) faker.hashCode();
     gmcRef1 = faker.number().digits(8);
@@ -160,7 +154,6 @@ class ConnectionControllerTest {
     programmeOwner2 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
     exceptionReason2 = faker.lorem().characters(20);
-    today = LocalDateTime.now();
   }
 
   @Test
@@ -426,23 +419,6 @@ class ConnectionControllerTest {
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
   }
-
-
-  @Test
-  void shouldReturnAllTodayExceptionsForAnAdmin() throws Exception {
-    final var exceptionRecordDtoList = buildExceptionRecordDtoList();
-
-    when(exceptionService.getExceptionLogs(admin)).thenReturn(exceptionRecordDtoList);
-
-    mockMvc.perform(get("/api/connections/exceptions/today")
-            .param("admin", admin))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.[*].gmcId").value(hasItem(gmcId)))
-        .andExpect(jsonPath("$.[*].errorMessage").value(hasItem(exceptionReason1)))
-        .andExpect(jsonPath("$.[*].admin").value(hasItem(admin)));
-
-  }
-
   private ConnectionDto prepareConnectionDto() {
     final ConnectionDto connectionDto = new ConnectionDto();
     final ConnectionHistoryDto connectionHistory = ConnectionHistoryDto.builder()
@@ -503,15 +479,5 @@ class ConnectionControllerTest {
     return of(doctor1, doctor2);
   }
 
-  private List<ExceptionLogDto> buildExceptionRecordDtoList() {
-    final var record1 = ExceptionLogDto.builder()
-        .gmcId(gmcId).errorMessage(exceptionReason1)
-        .timestamp(today).admin(admin)
-        .build();
-    final var record2 = ExceptionLogDto.builder()
-        .gmcId(gmcRef2).errorMessage(exceptionReason2)
-        .timestamp(today).admin(admin)
-        .build();
-    return of(record1, record2);
-  }
+
 }

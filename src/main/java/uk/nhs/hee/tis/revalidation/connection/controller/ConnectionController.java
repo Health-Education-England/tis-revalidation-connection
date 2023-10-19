@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -70,7 +69,7 @@ public class ConnectionController {
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
-  private static final String ADMIN = "admin";
+
 
   @Autowired
   private ConnectionService connectionService;
@@ -84,8 +83,6 @@ public class ConnectionController {
   @Autowired
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
 
-  @Autowired
-  private ExceptionService exceptionService;
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -313,18 +310,4 @@ public class ConnectionController {
     return ResponseEntity.ok(connectionSummaryDto);
   }
 
-  /**
-   * GET  /exceptions/today : get list of exceptions.
-   *
-   * @return the list of ExceptionLogDto
-   */
-  @GetMapping("/exceptions/today")
-  public ResponseEntity<List<ExceptionLogDto>> getListOfExceptions(
-      @RequestParam(name = ADMIN) final String admin) {
-
-    log.info("Received request to fetch exceptions for admin: {}", admin);
-    final var exceptions = exceptionService.getExceptionLogs(admin);
-    return ResponseEntity.ok().body(exceptions);
-
-  }
 }

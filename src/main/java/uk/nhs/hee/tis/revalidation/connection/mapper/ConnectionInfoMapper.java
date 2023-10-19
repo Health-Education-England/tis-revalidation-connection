@@ -76,6 +76,4 @@ public interface ConnectionInfoMapper {
   @Mapping(target = "id", ignore = true)
   MasterDoctorView dtoToMaster(ConnectionInfoDto connectionInfoDto);
 
-  @Mapping(target = "", source = "id", ignore = true)
-  List<ExceptionLogDto> exceptionLogsToExceptionLogDtos(List<ExceptionLog> exceptionLog);
 }

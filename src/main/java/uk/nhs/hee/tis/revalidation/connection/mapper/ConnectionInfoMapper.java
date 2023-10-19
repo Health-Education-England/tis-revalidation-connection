@@ -73,5 +73,4 @@ public interface ConnectionInfoMapper {
   @Mapping(target = "membershipEndDate", source = "programmeMembershipEndDate")
   @Mapping(target = "id", ignore = true)
   MasterDoctorView dtoToMaster(ConnectionInfoDto connectionInfoDto);
-
 }

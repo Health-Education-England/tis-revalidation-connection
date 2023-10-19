@@ -479,6 +479,4 @@ class ConnectionControllerTest {
         .build();
     return of(doctor1, doctor2);
   }
-
-
 }

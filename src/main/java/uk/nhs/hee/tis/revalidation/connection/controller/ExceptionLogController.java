@@ -23,7 +23,7 @@ public class ExceptionLogController {
   private static final String ADMIN = "admin";
 
   /**
-   * GET  /exceptions/today : get list of exceptions.
+   * GET  /exceptions/today : get list of exceptions from today for an admin.
    *
    * @return the list of ExceptionLogDto
    */
@@ -34,7 +34,5 @@ public class ExceptionLogController {
     log.info("Received request to fetch exceptions for admin: {}", admin);
     final var exceptions = exceptionService.getConnectionExceptionLogsFromToday(admin);
     return ResponseEntity.ok().body(exceptions);
-
   }
-
 }

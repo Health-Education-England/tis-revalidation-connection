@@ -44,14 +44,15 @@ public class ExceptionService {
   @Autowired
   private ExceptionRepository repository;
 
-  private final ExceptionLogMapper exceptionLogMapper = Mappers
-      .getMapper(ExceptionLogMapper.class);
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
 
   /**
    * Create exception log.
    *
    * @param gmcId        gmcId of trainees where there are some issue when updating connection
    * @param errorMessage response code that response from gmc
+   * @param admin        the admin that generated the exception log
    */
   public void createExceptionLog(final String gmcId, final String errorMessage, String admin) {
 
@@ -73,7 +74,7 @@ public class ExceptionService {
   /**
    * Get today's exception logs for a specific admin.
    *
-   * @param admin request by date today
+   * @param admin the admin that generated the exception log
    */
   public List<ExceptionLogDto> getConnectionExceptionLogsFromToday(String admin) {
     LocalDateTime today = LocalDate.now().atStartOfDay();

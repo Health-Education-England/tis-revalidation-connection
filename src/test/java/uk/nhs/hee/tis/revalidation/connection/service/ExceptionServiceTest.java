@@ -40,8 +40,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +57,9 @@ class ExceptionServiceTest {
 
   @Mock
   private ExceptionRepository repository;
+
+  @Spy
+  private ExceptionLogMapper mapper = new ExceptionLogMapperImpl();
 
   private String gmcId;
   private String gmcId2;

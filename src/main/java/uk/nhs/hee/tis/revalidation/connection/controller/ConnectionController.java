@@ -70,7 +70,6 @@ public class ConnectionController {
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
 
-
   @Autowired
   private ConnectionService connectionService;
 
@@ -82,7 +81,6 @@ public class ConnectionController {
 
   @Autowired
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
-
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -309,5 +307,4 @@ public class ConnectionController {
 
     return ResponseEntity.ok(connectionSummaryDto);
   }
-
 }

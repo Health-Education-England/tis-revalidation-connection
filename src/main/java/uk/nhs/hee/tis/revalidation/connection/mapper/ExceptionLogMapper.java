@@ -11,5 +11,4 @@ public interface ExceptionLogMapper {
 
   @Mapping(target = "id", ignore = true)
   List<ExceptionLogDto> exceptionLogsToExceptionLogDtos(List<ExceptionLog> exceptionLog);
-
 }

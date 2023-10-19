@@ -71,7 +71,7 @@ public class ExceptionService {
   }
 
   /**
-   * Get today's exception logs for a specific admin
+   * Get today's exception logs for a specific admin.
    *
    * @param admin request by date today
    */

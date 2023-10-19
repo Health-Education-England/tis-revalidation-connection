@@ -55,12 +55,14 @@ class ExceptionServiceTest {
   @Mock
   private ExceptionRepository repository;
 
-  private String gmcId, gmcId2;
+  private String gmcId;
+  private String gmcId2;
   private String responseCode;
   private LocalDateTime localDateTime;
   private List<ExceptionLog> exceptionLogList;
   private String admin;
-  private String exceptionReason1, exceptionReason2;
+  private String exceptionReason1;
+  private String exceptionReason2;
   private LocalDateTime dateTime;
 
   @BeforeEach
@@ -87,7 +89,8 @@ class ExceptionServiceTest {
     LocalDateTime todayStart = LocalDate.now().atStartOfDay();
     LocalDateTime tomorrowStart = todayStart.plusDays(1);
 
-    when(repository.findByAdminAndTimestampBetween(admin, todayStart, tomorrowStart)).thenReturn(buildExceptionLogList());
+    when(repository.findByAdminAndTimestampBetween(admin, todayStart, tomorrowStart))
+        .thenReturn(buildExceptionLogList());
 
     final var result = exceptionService.getExceptionLogs(admin);
     assertThat(result.get(0).getGmcId(), is(gmcId));

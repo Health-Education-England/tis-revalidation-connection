@@ -29,5 +29,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
 
 @Repository
 public interface ExceptionRepository extends MongoRepository<ExceptionLog, String> {
-  List<ExceptionLog> findByAdminAndTimestampBetween(final String admin, final LocalDateTime start, final LocalDateTime end);
+
+  List<ExceptionLog> findByAdminAndTimestampBetween(final String admin, final LocalDateTime start,
+      final LocalDateTime end);
 }

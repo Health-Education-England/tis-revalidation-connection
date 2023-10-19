@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
-import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 

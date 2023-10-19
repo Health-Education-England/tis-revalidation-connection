@@ -22,6 +22,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 @WebMvcTest(ExceptionLogController.class)
 class ExceptionLogControllerTest {
+
   private final Faker faker = new Faker();
   private String admin;
   private LocalDateTime today;
@@ -51,7 +52,8 @@ class ExceptionLogControllerTest {
   void shouldReturnAllExceptionsFromTodayForAnAdmin() throws Exception {
     final var exceptionRecordDtoList = buildExceptionRecordDtoList();
 
-    when(exceptionService.getConnectionExceptionLogsFromToday(admin)).thenReturn(exceptionRecordDtoList);
+    when(exceptionService.getConnectionExceptionLogsFromToday(admin)).thenReturn(
+        exceptionRecordDtoList);
 
     mockMvc.perform(get("/api/exceptionLog/today")
             .param("admin", admin))
@@ -64,6 +66,7 @@ class ExceptionLogControllerTest {
         .andExpect(jsonPath("$.[*].admin").value(hasItem(admin)));
 
   }
+
   private List<ExceptionLogDto> buildExceptionRecordDtoList() {
     final var record1 = ExceptionLogDto.builder()
         .gmcId(gmcId1).errorMessage(exceptionReason1)

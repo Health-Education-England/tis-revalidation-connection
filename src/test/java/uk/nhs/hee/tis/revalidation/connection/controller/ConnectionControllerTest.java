@@ -419,6 +419,7 @@ class ConnectionControllerTest {
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
   }
+
   private ConnectionDto prepareConnectionDto() {
     final ConnectionDto connectionDto = new ConnectionDto();
     final ConnectionHistoryDto connectionHistory = ConnectionHistoryDto.builder()

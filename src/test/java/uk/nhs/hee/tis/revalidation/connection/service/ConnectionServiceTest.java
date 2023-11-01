@@ -130,7 +130,7 @@ class ConnectionServiceTest {
 
     programmeOwnerDesignatedBodyCode = faker.number().digits(8);
 
-    setField(connectionService, "esExchange", "esExchange");
+    setField(connectionService, "exchange", "esExchange");
     setField(connectionService, "routingKey", "routingKey");
   }
 

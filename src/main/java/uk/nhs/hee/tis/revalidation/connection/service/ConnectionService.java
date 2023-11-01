@@ -26,7 +26,6 @@ import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
-import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.UNHIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
@@ -80,17 +79,11 @@ public class ConnectionService {
   @Autowired
   private RabbitTemplate rabbitTemplate;
 
-  @Value("${app.rabbit.reval.exchange.gmcsync}")
-  private String exchange;
-
   @Value("${app.rabbit.reval.exchange}")
-  private String esExchange;
+  private String exchange;
 
   @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
-
-  @Value("${app.rabbit.reval.queue.connection.update}}")
-  private String esTisRoutingKey;
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -106,7 +99,7 @@ public class ConnectionService {
 
   public UpdateConnectionResponseDto unhideConnection(
       final UpdateConnectionDto unhideConnectionDto) {
-    return processUnhideConnection(unhideConnectionDto, UNHIDE);
+    return processUnhideConnection(unhideConnectionDto);
   }
 
   /**
@@ -153,9 +146,7 @@ public class ConnectionService {
    */
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
-    return allConnections.stream().map(hidden -> {
-      return hidden.getGmcId();
-    }).collect(toList());
+    return allConnections.stream().map(HideConnectionLog::getGmcId).collect(toList());
   }
 
   /**
@@ -254,7 +245,7 @@ public class ConnectionService {
           .submissionDate(submissionDate)
           .build();
       log.info("Sending message to rabbit to remove designated body code");
-      rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);
+      rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
       exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
     }
@@ -278,8 +269,7 @@ public class ConnectionService {
   }
 
   private UpdateConnectionResponseDto processUnhideConnection(
-      final UpdateConnectionDto unhideConnectionDto,
-      final ConnectionRequestType connectionRequestType) {
+      final UpdateConnectionDto unhideConnectionDto) {
     unhideConnectionDto.getDoctors().forEach(doctor -> removeHideConnectionLog(doctor.getGmcId()));
     return UpdateConnectionResponseDto.builder().message("Record has been unhidden").build();
   }

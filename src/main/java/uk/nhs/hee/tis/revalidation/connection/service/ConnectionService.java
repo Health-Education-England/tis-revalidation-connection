@@ -36,7 +36,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
@@ -61,29 +60,34 @@ import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepositor
 @Service
 public class ConnectionService {
 
-  @Autowired
-  private GmcClientService gmcClientService;
+  private final GmcClientService gmcClientService;
 
-  @Autowired
-  private ExceptionService exceptionService;
+  private final ExceptionService exceptionService;
 
-  @Autowired
-  private ConnectionRepository repository;
+  private final ConnectionRepository repository;
 
-  @Autowired
-  private HideConnectionRepository hideRepository;
+  private final HideConnectionRepository hideRepository;
 
-  @Autowired
-  private DoctorsForDBRepository doctorsForDbRepository;
+  private final DoctorsForDBRepository doctorsForDbRepository;
 
-  @Autowired
-  private RabbitTemplate rabbitTemplate;
+  private final RabbitTemplate rabbitTemplate;
 
   @Value("${app.rabbit.reval.exchange}")
   private String exchange;
 
   @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
+
+  public ConnectionService(GmcClientService gmcClientService, ExceptionService exceptionService,
+      ConnectionRepository repository, HideConnectionRepository hideRepository,
+      DoctorsForDBRepository doctorsForDbRepository, RabbitTemplate rabbitTemplate) {
+    this.gmcClientService = gmcClientService;
+    this.exceptionService = exceptionService;
+    this.repository = repository;
+    this.hideRepository = hideRepository;
+    this.doctorsForDbRepository = doctorsForDbRepository;
+    this.rabbitTemplate = rabbitTemplate;
+  }
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -187,7 +191,7 @@ public class ConnectionService {
   private GmcConnectionResponseDto delegateRequest(final String changeReason,
       final String designatedBodyCode,
       final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
-    GmcConnectionResponseDto gmcResponse = null;
+    GmcConnectionResponseDto gmcResponse;
     if (ADD == connectionRequestType) {
       gmcResponse = gmcClientService
           .tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);

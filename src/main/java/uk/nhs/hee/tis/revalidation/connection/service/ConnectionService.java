@@ -47,13 +47,11 @@ import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
-import uk.nhs.hee.tis.revalidation.connection.entity.DoctorsForDB;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
-import uk.nhs.hee.tis.revalidation.connection.repository.DoctorsForDBRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
 @Slf4j
@@ -68,8 +66,6 @@ public class ConnectionService {
 
   private final HideConnectionRepository hideRepository;
 
-  private final DoctorsForDBRepository doctorsForDbRepository;
-
   private final RabbitTemplate rabbitTemplate;
 
   @Value("${app.rabbit.reval.exchange}")
@@ -80,12 +76,11 @@ public class ConnectionService {
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionService exceptionService,
       ConnectionRepository repository, HideConnectionRepository hideRepository,
-      DoctorsForDBRepository doctorsForDbRepository, RabbitTemplate rabbitTemplate) {
+      RabbitTemplate rabbitTemplate) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
     this.hideRepository = hideRepository;
-    this.doctorsForDbRepository = doctorsForDbRepository;
     this.rabbitTemplate = rabbitTemplate;
   }
 
@@ -151,17 +146,6 @@ public class ConnectionService {
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
     return allConnections.stream().map(HideConnectionLog::getGmcId).collect(toList());
-  }
-
-  /**
-   * Get GMC DoctorsForDB data by GMC reference number.
-   *
-   * @param gmcReferenceNumber gmcId of the trainee
-   * @return GMC DoctorsForDB data of the trainee
-   */
-  public Optional<DoctorsForDB> getDoctorsForDbByGmcId(final String gmcReferenceNumber) {
-    return doctorsForDbRepository
-        .findFirstByGmcReferenceNumberOrderBySubmissionDateDesc(gmcReferenceNumber);
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(

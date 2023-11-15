@@ -81,7 +81,7 @@ class ConnectionServiceTest {
   private GmcConnectionResponseDto gmcConnectionResponseDto;
 
   @Mock
-  private ExceptionService exceptionService;
+  private ExceptionLogService exceptionService;
   @Captor
   private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
 

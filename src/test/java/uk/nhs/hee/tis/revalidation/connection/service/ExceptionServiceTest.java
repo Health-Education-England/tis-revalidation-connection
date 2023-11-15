@@ -53,7 +53,7 @@ class ExceptionServiceTest {
   private final Faker faker = new Faker();
 
   @InjectMocks
-  private ExceptionService exceptionService;
+  private ExceptionLogService exceptionService;
 
   @Mock
   private ExceptionRepository repository;

@@ -38,7 +38,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 @Slf4j
 @Transactional
 @Service
-public class ExceptionService {
+public class ExceptionLogService {
 
   @Autowired
   private ExceptionRepository repository;

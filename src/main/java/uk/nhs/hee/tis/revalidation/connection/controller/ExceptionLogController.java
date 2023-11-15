@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionLogService;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/exceptionLog")
 public class ExceptionLogController {
-  private ExceptionService exceptionService;
+  private ExceptionLogService exceptionService;
 
-  public ExceptionLogController(ExceptionService exceptionService) {
+  public ExceptionLogController(ExceptionLogService exceptionService) {
     this.exceptionService = exceptionService;
   }
 

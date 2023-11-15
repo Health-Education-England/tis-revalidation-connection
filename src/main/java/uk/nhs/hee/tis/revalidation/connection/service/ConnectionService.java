@@ -26,20 +26,16 @@ import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
-import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.UNHIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
@@ -62,32 +58,32 @@ import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepositor
 @Service
 public class ConnectionService {
 
-  @Autowired
-  private GmcClientService gmcClientService;
+  private final GmcClientService gmcClientService;
 
-  @Autowired
-  private ExceptionService exceptionService;
+  private final ExceptionService exceptionService;
 
-  @Autowired
-  private ConnectionRepository repository;
+  private final ConnectionRepository repository;
 
-  @Autowired
-  private HideConnectionRepository hideRepository;
+  private final HideConnectionRepository hideRepository;
 
-  @Autowired
-  private RabbitTemplate rabbitTemplate;
-
-  @Value("${app.rabbit.reval.exchange.gmcsync}")
-  private String exchange;
+  private final RabbitTemplate rabbitTemplate;
 
   @Value("${app.rabbit.reval.exchange}")
-  private String esExchange;
+  private String exchange;
 
   @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
 
-  @Value("${app.rabbit.reval.queue.connection.update}}")
-  private String esTisRoutingKey;
+  public ConnectionService(GmcClientService gmcClientService, ExceptionService exceptionService,
+      ConnectionRepository repository, HideConnectionRepository hideRepository,
+      DoctorsForDBRepository doctorsForDbRepository, RabbitTemplate rabbitTemplate) {
+    this.gmcClientService = gmcClientService;
+    this.exceptionService = exceptionService;
+    this.repository = repository;
+    this.hideRepository = hideRepository;
+    this.doctorsForDbRepository = doctorsForDbRepository;
+    this.rabbitTemplate = rabbitTemplate;
+  }
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
     return processConnectionRequest(addDoctorDto, ADD);
@@ -103,7 +99,7 @@ public class ConnectionService {
 
   public UpdateConnectionResponseDto unhideConnection(
       final UpdateConnectionDto unhideConnectionDto) {
-    return processUnhideConnection(unhideConnectionDto, UNHIDE);
+    return processUnhideConnection(unhideConnectionDto);
   }
 
   /**
@@ -150,9 +146,7 @@ public class ConnectionService {
    */
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
-    return allConnections.stream().map(hidden -> {
-      return hidden.getGmcId();
-    }).collect(toList());
+    return allConnections.stream().map(HideConnectionLog::getGmcId).collect(toList());
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(
@@ -182,7 +176,7 @@ public class ConnectionService {
   private GmcConnectionResponseDto delegateRequest(final String changeReason,
       final String designatedBodyCode,
       final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
-    GmcConnectionResponseDto gmcResponse = null;
+    GmcConnectionResponseDto gmcResponse;
     if (ADD == connectionRequestType) {
       gmcResponse = gmcClientService
           .tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
@@ -240,7 +234,7 @@ public class ConnectionService {
           .submissionDate(submissionDate)
           .build();
       log.info("Sending message to rabbit to remove designated body code");
-      rabbitTemplate.convertAndSend(esExchange, routingKey, connectionMessage);
+      rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
       exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
     }
@@ -264,8 +258,7 @@ public class ConnectionService {
   }
 
   private UpdateConnectionResponseDto processUnhideConnection(
-      final UpdateConnectionDto unhideConnectionDto,
-      final ConnectionRequestType connectionRequestType) {
+      final UpdateConnectionDto unhideConnectionDto) {
     unhideConnectionDto.getDoctors().forEach(doctor -> removeHideConnectionLog(doctor.getGmcId()));
     return UpdateConnectionResponseDto.builder().message("Record has been unhidden").build();
   }

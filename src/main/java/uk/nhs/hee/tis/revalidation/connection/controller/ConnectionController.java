@@ -53,6 +53,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 @Slf4j
 @RestController

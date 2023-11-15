@@ -30,14 +30,8 @@ app:
     limit.retries: true
 
   rabbit:
-    reval.exchange.gmcsync: ${EXCHANGE:reval.exchange.gmcsync}
-    reval.queue.gmcsync.connection: ${REVAL_RABBIT_GMCSYNC_CONNECTION_QUEUE:reval.queue.gmcsync.connection}
     reval.routingKey.gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
     reval.exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
-    reval.queue.connection.update: ${REVAL_RABBIT_QUEUE:reval.queue.connection.update}
-    reval.routingKey.connection.update: ${REVAL_RABBIT_ROUTING_KEY:reval.connection.update}
-    reval.queue.connection.manualupdate: ${CONNECTION_QUEUE:reval.queue.connection.manualupdate.recommendation}
-    reval.queue.masterdoctorview.updated.connection: ${REVAL_RABBIT_INDEX_CHANGE_QUEUE:reval.queue.masterdoctorview.updated.connection}
     reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
 
   gmc:

@@ -21,30 +21,30 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
+import static java.util.List.of;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionRequestDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ExceptionLog;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ExceptionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,24 +58,29 @@ class ExceptionServiceTest {
   @Mock
   private ExceptionRepository repository;
 
-  @Mock
-  private Page page;
-
-  @Mock
-  private ExceptionLog exceptionLog;
+  @Spy
+  private ExceptionLogMapper mapper = new ExceptionLogMapperImpl();
 
   private String gmcId;
+  private String gmcId2;
   private String responseCode;
   private LocalDateTime localDateTime;
   private List<ExceptionLog> exceptionLogList;
   private String admin;
+  private String exceptionReason1;
+  private String exceptionReason2;
+  private LocalDateTime dateTime;
 
   @BeforeEach
   public void setup() {
     gmcId = faker.number().digits(8);
+    gmcId2 = faker.number().digits(8);
     responseCode = "0";
     localDateTime = LocalDateTime.now();
     admin = "admin";
+    exceptionReason1 = faker.letterify("aa");
+    exceptionReason2 = faker.letterify("bb");
+    dateTime = LocalDateTime.now();
     initializeExceptionLogList();
   }
 
@@ -86,21 +91,18 @@ class ExceptionServiceTest {
   }
 
   @Test
-  void shouldGetExceptionLog() {
-    final var exceptionRequestDto = ExceptionRequestDto.builder().pageNumber(1)
-        .sortOrder("asc").sortColumn("gmcId").build();
-    final var pageableAndSortable = PageRequest.of(1, 20, by(ASC, "gmcId"));
-    when(repository.findAll(pageableAndSortable)).thenReturn(page);
-    when(page.get()).thenReturn(Stream.of(exceptionLog));
-    final var exceptionResponseDto = exceptionService.getExceptionLog(exceptionRequestDto);
-    assertThat(exceptionResponseDto.getExceptionRecord(), hasSize(1));
-  }
+  void shouldReturnExceptionLogs() {
+    LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+    LocalDateTime tomorrowStart = todayStart.plusDays(1);
 
-  @Test
-  void shouldReturnLogsMap() {
-    when(repository.findAll()).thenReturn(exceptionLogList);
-    final var result = exceptionService.getExceptionsMap();
-    assertThat(result.get(gmcId), is(responseCode));
+    when(repository.findByAdminAndTimestampBetween(admin, todayStart, tomorrowStart))
+        .thenReturn(buildExceptionLogList());
+
+    final var result = exceptionService.getConnectionExceptionLogsFromToday(admin);
+    assertThat(result.get(0).getGmcId(), is(gmcId));
+    assertThat(result.get(0).getAdmin(), is(admin));
+    assertThat(result.get(0).getTimestamp(), greaterThan(todayStart));
+    assertThat(result.get(0).getTimestamp(), lessThan(tomorrowStart));
   }
 
   private void initializeExceptionLogList() {
@@ -112,5 +114,17 @@ class ExceptionServiceTest {
         .build();
     exceptionLogList = new ArrayList<>();
     exceptionLogList.add(exceptionLog);
+  }
+
+  private List<ExceptionLog> buildExceptionLogList() {
+    final var record1 = ExceptionLog.builder()
+        .gmcId(gmcId).errorMessage(exceptionReason1)
+        .timestamp(dateTime).admin(admin)
+        .build();
+    final var record2 = ExceptionLog.builder()
+        .gmcId(gmcId2).errorMessage(exceptionReason2)
+        .timestamp(dateTime).admin(admin)
+        .build();
+    return of(record1, record2);
   }
 }

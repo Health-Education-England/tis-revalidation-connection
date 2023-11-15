@@ -21,13 +21,21 @@
 
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 
 @Data
 @Builder
-public class ExceptionRecordDto {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ExceptionLogDto {
 
   private String gmcId;
-  private String exceptionMessage;
+  private String errorMessage;
+  private LocalDateTime timestamp;
+  private String admin;
 }

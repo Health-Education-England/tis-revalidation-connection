@@ -61,6 +61,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 
+
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
 
@@ -86,6 +87,7 @@ class ConnectionControllerTest {
   private ConnectedElasticSearchService connectedElasticSearchService;
   @MockBean
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
+
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
@@ -116,6 +118,7 @@ class ConnectionControllerTest {
   private String programmeOwner2;
   private String exceptionReason1;
   private String exceptionReason2;
+
 
   @BeforeEach
   public void setup() {

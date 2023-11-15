@@ -207,7 +207,7 @@ public class ConnectionController {
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
-  @GetMapping("/discrepancies")
+  @GetMapping(value = {"/exception", "/discrepancies"})
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
       @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
           required = false) final String sortColumn,

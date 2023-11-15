@@ -76,12 +76,11 @@ public class ConnectionService {
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionService exceptionService,
       ConnectionRepository repository, HideConnectionRepository hideRepository,
-      DoctorsForDBRepository doctorsForDbRepository, RabbitTemplate rabbitTemplate) {
+      RabbitTemplate rabbitTemplate) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
     this.hideRepository = hideRepository;
-    this.doctorsForDbRepository = doctorsForDbRepository;
     this.rabbitTemplate = rabbitTemplate;
   }
 

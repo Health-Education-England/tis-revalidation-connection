@@ -31,7 +31,6 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.from
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -231,6 +230,7 @@ public class ConnectionService {
           .gmcId(gmcId)
           .designatedBodyCode(designatedBodyCode)
           .submissionDate(submissionDate)
+          .gmcLastUpdatedDateTime(now())
           .build();
       log.info("Sending message to rabbit to remove designated body code");
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);

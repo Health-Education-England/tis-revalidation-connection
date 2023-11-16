@@ -23,7 +23,11 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,12 +36,12 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -78,6 +82,8 @@ class ConnectionServiceTest {
 
   @Mock
   private ExceptionService exceptionService;
+  @Captor
+  private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -148,14 +154,27 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
     when(gmcConnectionResponseDto.getSubmissionDate()).thenReturn(submissionDate);
+
     connectionService.addDoctor(addDoctorDto);
-    var message = ConnectionMessage.builder()
-        .gmcId(gmcId)
-        .designatedBodyCode(designatedBodyCode)
-        .submissionDate(submissionDate)
-        .build();
-    verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
+
+    verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
+        eq("routingKey"), connectionMessageArgCaptor.capture());
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
+
+    List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
+    assertEquals(2, connectionMessageList.size());
+
+    ConnectionMessage connectionMessage1 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage1.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
+    assertEquals(submissionDate, connectionMessage1.getSubmissionDate());
+    assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
+
+    ConnectionMessage connectionMessage2 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage2.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage2.getDesignatedBodyCode());
+    assertEquals(submissionDate, connectionMessage2.getSubmissionDate());
+    assertNotNull(connectionMessage2.getGmcLastUpdatedDateTime());
   }
 
   @Test
@@ -171,11 +190,29 @@ class ConnectionServiceTest {
         .thenReturn(gmcConnectionResponseDto);
     when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
-    verify(rabbitTemplate, times(2)).convertAndSend("esExchange", "routingKey", message);
+
+    verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
+        eq("routingKey"), connectionMessageArgCaptor.capture());
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
+
+    List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
+    assertEquals(2, connectionMessageList.size());
+
+    ConnectionMessage connectionMessage1 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage1.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
+    assertNull(connectionMessage1.getSubmissionDate());
+    assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
+
+    ConnectionMessage connectionMessage2 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage2.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage2.getDesignatedBodyCode());
+    assertNull(connectionMessage2.getSubmissionDate());
+    assertNotNull(connectionMessage2.getGmcLastUpdatedDateTime());
   }
 
   @Test

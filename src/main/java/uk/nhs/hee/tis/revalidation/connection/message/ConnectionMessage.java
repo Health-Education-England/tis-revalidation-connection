@@ -33,6 +33,8 @@ public class ConnectionMessage {
   private String gmcId;
   private String designatedBodyCode;
   private LocalDate submissionDate;
-  // Use this field to tell us when gmc info last changed for this doctor.
+  /**
+   * Use this field to tell us when gmc info last changed for this doctor.
+   */
   private LocalDateTime gmcLastUpdatedDateTime;
 }

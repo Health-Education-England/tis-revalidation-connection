@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
@@ -37,16 +38,13 @@ import uk.nhs.hee.tis.revalidation.connection.repository.ExceptionRepository;
 @Slf4j
 @Transactional
 @Service
-public class ExceptionLogService {
+public class ExceptionService {
 
+  @Autowired
   private ExceptionRepository repository;
-  private ExceptionLogMapper exceptionLogMapper;
 
-  public ExceptionLogService(ExceptionRepository repository,
-      ExceptionLogMapper exceptionLogMapper) {
-    this.repository = repository;
-    this.exceptionLogMapper = exceptionLogMapper;
-  }
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
 
   /**
    * Create exception log.
@@ -84,4 +82,5 @@ public class ExceptionLogService {
     final var todaysExceptions = repository.findByAdminAndTimestampBetween(admin, today, tomorrow);
     return exceptionLogMapper.exceptionLogsToExceptionLogDtos(todaysExceptions);
   }
+
 }

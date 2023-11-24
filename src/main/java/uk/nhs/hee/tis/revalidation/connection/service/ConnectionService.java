@@ -59,7 +59,7 @@ public class ConnectionService {
 
   private final GmcClientService gmcClientService;
 
-  private final ExceptionLogService exceptionService;
+  private final ExceptionService exceptionService;
 
   private final ConnectionRepository repository;
 
@@ -73,7 +73,7 @@ public class ConnectionService {
   @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
 
-  public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
+  public ConnectionService(GmcClientService gmcClientService, ExceptionService exceptionService,
       ConnectionRepository repository, HideConnectionRepository hideRepository,
       RabbitTemplate rabbitTemplate) {
     this.gmcClientService = gmcClientService;

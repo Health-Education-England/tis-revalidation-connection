@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/tis-revalidation-connection.iml" filepath="$PROJECT_DIR$/.idea/tis-revalidation-connection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tis-revalidation-connection.main.iml" filepath="$PROJECT_DIR$/.idea/modules/tis-revalidation-connection.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tis-revalidation-connection.test.iml" filepath="$PROJECT_DIR$/.idea/modules/tis-revalidation-connection.test.iml" />
+    </modules>
+  </component>
+</project>

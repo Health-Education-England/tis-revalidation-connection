@@ -53,7 +53,6 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
 
 @Slf4j
 @RestController
@@ -208,7 +207,7 @@ public class ConnectionController {
    * @param searchQuery search query of data to get
    * @return the ResponseEntity with status 200 (OK) and exception summary in body
    */
-  @GetMapping("/exception")
+  @GetMapping(value = {"/exception", "/discrepancies"})
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
       @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
           required = false) final String sortColumn,

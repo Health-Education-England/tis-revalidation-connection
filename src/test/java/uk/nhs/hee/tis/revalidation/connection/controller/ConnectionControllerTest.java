@@ -268,7 +268,7 @@ class ConnectionControllerTest {
         List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
-    this.mockMvc.perform(get("/api/connections/exception")
+    this.mockMvc.perform(get("/api/connections/discrepancies")
             .param(SORT_ORDER, "asc")
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
@@ -303,7 +303,7 @@ class ConnectionControllerTest {
         List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
-    this.mockMvc.perform(get("/api/connections/exception")
+    this.mockMvc.perform(get("/api/connections/discrepancies")
             .param(SORT_ORDER, "desc")
             .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)

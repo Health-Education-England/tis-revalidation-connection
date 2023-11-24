@@ -18,7 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.nhs.hee.tis.revalidation.connection.dto.ExceptionLogDto;
-import uk.nhs.hee.tis.revalidation.connection.service.ExceptionService;
+import uk.nhs.hee.tis.revalidation.connection.service.ExceptionLogService;
 
 @WebMvcTest(ExceptionLogController.class)
 class ExceptionLogControllerTest {
@@ -33,7 +33,7 @@ class ExceptionLogControllerTest {
   @Autowired
   private MockMvc mockMvc;
   @MockBean
-  private ExceptionService exceptionService;
+  private ExceptionLogService exceptionService;
   @InjectMocks
   private ExceptionLogController exceptionLogController;
 

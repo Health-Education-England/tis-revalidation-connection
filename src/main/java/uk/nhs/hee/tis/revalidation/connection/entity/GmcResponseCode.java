@@ -32,9 +32,10 @@ public enum GmcResponseCode {
   INVALID_CREDENTIALS("99", "Invalid Credentials (user name / password / IP address)"),
   DOCTOR_ALREADY_ASSOCIATED("100", "Doctor already associated with your Designated Body"),
   DOCTOR_REVALIDATION_LOCKED("106",
-      "Doctor has a revalidation lock applied. You should call GMC Contact Centre to have this reviewed and/or lifted."),
-  MISSING_INTERNAL_USER("110","Missing Internal User"),
-  MISSING_OR_INVALID_REASON_CODE("120","Missing / Invalid Change Code (Reason)"),
+      "Doctor has a revalidation lock applied."
+          + " You should call GMC Contact Centre to have this reviewed and/or lifted."),
+  MISSING_INTERNAL_USER("110", "Missing Internal User"),
+  MISSING_OR_INVALID_REASON_CODE("120", "Missing / Invalid Change Code (Reason)"),
   DOCTOR_NOT_ASSOCIATED_WITH_DESIGNATED_BODY("140",
       "Doctor not associated with your Designated Body"),
   DOCTOR_DB_HISTORY_LOCKED("160",
@@ -85,4 +86,4 @@ public enum GmcResponseCode {
   public String getMessage() {
     return message;
   }
-  }
+}

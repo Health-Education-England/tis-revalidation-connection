@@ -242,7 +242,7 @@ public class ConnectionService {
   //if bulk request then return generic failure message else gmc error message
   private String getReturnMessage(final String message, final int requestSize) {
     if (requestSize > 1) {
-      return "Some changes have failed with GMC, please check the exceptions queue";
+      return "Some changes have failed with GMC, please check the failed GMC updates list";
     }
     return message;
   }

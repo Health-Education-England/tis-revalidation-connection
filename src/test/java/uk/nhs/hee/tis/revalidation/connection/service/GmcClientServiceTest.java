@@ -155,13 +155,6 @@ class GmcClientServiceTest {
 
   @Test
   void shouldHandleNullSubmissionDateOnTryAddDoctorRequest() {
-
-    final var addDoctorDto = UpdateConnectionDto.builder()
-        .changeReason(changeReason)
-        .designatedBodyCode(designatedBodyCode)
-        .doctors(buildDoctorsList())
-        .build();
-
     when(webServiceTemplate.marshalSendAndReceive(any(String.class), any(
         TryAddDoctor.class), any(SoapActionCallback.class))).thenReturn(tryAddDoctorResponse);
     when(tryAddDoctorResponse.getTryAddDoctorResult()).thenReturn(tryAddDoctorResponseCT);

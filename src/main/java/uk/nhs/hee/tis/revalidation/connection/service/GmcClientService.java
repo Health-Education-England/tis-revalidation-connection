@@ -79,7 +79,8 @@ public class GmcClientService {
 
     final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     final LocalDate submissionDate =
-        StringUtils.isBlank(submissionDateString) ? null : LocalDate.parse(submissionDateString, formatter);
+        StringUtils.isBlank(submissionDateString) ?
+            null : LocalDate.parse(submissionDateString, formatter);
     return GmcConnectionResponseDto.builder()
         .clientRequestId(tryAddDoctorResult.getClientRequestID())
         .gmcRequestId(tryAddDoctorResult.getGMCRequestID())

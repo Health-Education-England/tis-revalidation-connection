@@ -160,7 +160,6 @@ class GmcClientServiceTest {
     when(tryAddDoctorResponse.getTryAddDoctorResult()).thenReturn(tryAddDoctorResponseCT);
     when(tryAddDoctorResponseCT.getClientRequestID()).thenReturn(gmcId);
     when(tryAddDoctorResponseCT.getGMCRequestID()).thenReturn(gmcRequestId);
-    when(tryAddDoctorResponseCT.getSubmissionDate()).thenReturn(null);
     when(tryAddDoctorResponseCT.getReturnCode()).thenReturn(returnCode);
     final var gmcConnectionResponseDto =
         assertDoesNotThrow(

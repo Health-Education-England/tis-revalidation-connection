@@ -316,6 +316,116 @@ class ConnectionControllerTest {
   }
 
   @Test
+  void shouldReturnDiscrepanciesDoctorsToConnect() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+    when(discrepanciesElasticSearchService.searchForPageToConnect(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/discrepancies/connectable")
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
+        .andExpect(
+            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)))
+        .andExpect(
+            jsonPath("$.connections.[*].exceptionReason").value(hasItem(exceptionReason2)));
+  }
+
+  @Test
+  void shouldReturnDiscrepanciesDoctorsToConnectDesc() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber"));
+    when(discrepanciesElasticSearchService.searchForPageToConnect(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/discrepancies/connectable")
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  @Test
+  void shouldReturnDiscrepanciesDoctorsToDisconnect() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+    when(discrepanciesElasticSearchService.searchForPageToDisconnect(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/discrepancies/disconnectable")
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
+        .andExpect(
+            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
+        .andExpect(
+            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)))
+        .andExpect(
+            jsonPath("$.connections.[*].exceptionReason").value(hasItem(exceptionReason2)));
+  }
+
+  @Test
+  void shouldReturnDiscrepanciesDoctorsToDisconnectDesc() throws Exception {
+    final var connectionSummary = prepareConnectionSummary();
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(DESC, "gmcReferenceNumber"));
+    when(discrepanciesElasticSearchService.searchForPageToDisconnect(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), pageableAndSortable))
+        .thenReturn(connectionSummary);
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/discrepancies/disconnectable")
+            .param(SORT_ORDER, "desc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  @Test
   void shouldReturnConnectedTraineeDoctorsInformation() throws Exception {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,

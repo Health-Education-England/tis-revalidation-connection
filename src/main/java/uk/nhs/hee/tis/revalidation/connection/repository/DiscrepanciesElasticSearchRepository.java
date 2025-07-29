@@ -43,4 +43,28 @@ public interface DiscrepanciesElasticSearchRepository
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
   Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String programmeName,
       final Pageable pageable);
+
+  @Query("{\"bool\":{\"filter\":["
+      + "{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}}}},"
+      + "{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"279\"}}}},"
+      + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}},"
+      + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
+      + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
+      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
+  Page<DiscrepanciesView> findAllToConnect(final String searchQuery, String dbcs,
+      String programmeName,
+      final Pageable pageable);
+
+  @Query("{\"bool\":{\"filter\":["
+      + "{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}}}},"
+          + "{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"279\"}}}},"
+          + "{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
+          + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
+          + "{\"bool\":{\"must\":{\"exists\":{\"field\":\"designatedBody\"}}}},"
+          + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
+          + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
+          + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
+  Page<DiscrepanciesView> findAllToDisconnect(final String searchQuery, String dbcs,
+      final Pageable pageable);
 }

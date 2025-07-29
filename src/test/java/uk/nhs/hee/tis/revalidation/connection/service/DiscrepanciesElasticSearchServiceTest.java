@@ -163,4 +163,118 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
   }
+
+  @Test
+  void shouldSearchForPageToConnect() throws ConnectionQueryException {
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToConnect("", formattedDbcs,
+        "", pageableAndSortable))
+        .thenReturn(searchResult);
+
+    final var records = searchResult.get().collect(toList());
+    var connectionSummary = ConnectionSummaryDto.builder()
+        .totalPages(searchResult.getTotalPages())
+        .totalResults(searchResult.getTotalElements())
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
+        .build();
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPageToConnect("", dbcs, "", pageableAndSortable);
+    assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldSearchForPageToConnectWithQuery() throws ConnectionQueryException {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToConnect(searchQuery, formattedDbcs,
+        programmeName1, pageableAndSortable))
+        .thenReturn(searchResult);
+
+    final var records = searchResult.get().collect(toList());
+    var discrepanciesSummary = ConnectionSummaryDto.builder()
+        .totalPages(searchResult.getTotalPages())
+        .totalResults(searchResult.getTotalElements())
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
+        .build();
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPageToConnect(searchQuery, dbcs, programmeName1, pageableAndSortable);
+    assertThat(result, is(discrepanciesSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPageToConnect() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToConnect(searchQuery, formattedDbcs,
+        programmeName1, pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
+        .searchForPageToConnect(searchQuery, dbcs, programmeName1, pageableAndSortable));
+  }
+
+  @Test
+  void shouldSearchForPageToDisconnect() throws ConnectionQueryException {
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToDisconnect("", formattedDbcs,
+        pageableAndSortable))
+        .thenReturn(searchResult);
+
+    final var records = searchResult.get().collect(toList());
+    var connectionSummary = ConnectionSummaryDto.builder()
+        .totalPages(searchResult.getTotalPages())
+        .totalResults(searchResult.getTotalElements())
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
+        .build();
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPageToDisconnect("", dbcs, pageableAndSortable);
+    assertThat(result, is(connectionSummary));
+  }
+
+  @Test
+  void shouldSearchForPageToDisconnectWithQuery() throws ConnectionQueryException {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToDisconnect(searchQuery, formattedDbcs,
+        pageableAndSortable))
+        .thenReturn(searchResult);
+
+    final var records = searchResult.get().collect(toList());
+    var discrepanciesSummary = ConnectionSummaryDto.builder()
+        .totalPages(searchResult.getTotalPages())
+        .totalResults(searchResult.getTotalElements())
+        .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(records))
+        .build();
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPageToDisconnect(searchQuery, dbcs, pageableAndSortable);
+    assertThat(result, is(discrepanciesSummary));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForPageToDisconnect() {
+    String searchQuery = gmcRef1;
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+
+    when(discrepanciesElasticSearchRepository.findAllToDisconnect(searchQuery, formattedDbcs,
+        pageableAndSortable))
+        .thenThrow(RuntimeException.class);
+
+    assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
+        .searchForPageToDisconnect(searchQuery, dbcs, pageableAndSortable));
+  }
 }

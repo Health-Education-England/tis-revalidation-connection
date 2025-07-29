@@ -198,14 +198,15 @@ public class ConnectionController {
   }
 
   /**
-   * GET  /exception : get exception summary.
+   * GET  /discrepancies : get discrepancies summary.
    *
-   * @param sortColumn  column to be sorted
-   * @param sortOrder   sorting order (ASC or DESC)
-   * @param pageNumber  page number of data to get
-   * @param dbcs        designated body code of the user
-   * @param searchQuery search query of data to get
-   * @return the ResponseEntity with status 200 (OK) and exception summary in body
+   * @param sortColumn    column to be sorted
+   * @param sortOrder     sorting order (ASC or DESC)
+   * @param pageNumber    page number of data to get
+   * @param dbcs          designated body code of the user
+   * @param programmeName programme name to filter by
+   * @param searchQuery   search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and discrepancies summary in body
    */
   @GetMapping(value = {"/exception", "/discrepancies"})
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
@@ -216,9 +217,9 @@ public class ConnectionController {
       @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
           required = false) final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES,
-          required = false) final List<String> dbcs,
+          required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
       @RequestParam(name = PROGRAMME_NAME,
-          required = false) final String programmeName,
+          required = false, defaultValue = EMPTY_STRING) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -233,6 +234,80 @@ public class ConnectionController {
 
     return ResponseEntity.ok(connectionSummaryDto);
 
+  }
+
+  /**
+   * GET  /discrepancies/connectable : get list of doctors to connect.
+   *
+   * @param sortColumn    column to be sorted
+   * @param sortOrder     sorting order (ASC or DESC)
+   * @param pageNumber    page number of data to get
+   * @param dbcs          designated body code of the user
+   * @param programmeName programme name to filter by
+   * @param searchQuery   search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and connectable discrepancies in body
+   */
+  @GetMapping(value = {"/discrepancies/connectable"})
+  public ResponseEntity<ConnectionSummaryDto> getSummaryConnectable(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
+      @RequestParam(name = PROGRAMME_NAME,
+          required = false, defaultValue = EMPTY_STRING) final String programmeName,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+      String searchQuery) throws ConnectionQueryException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString().toLowerCase();
+    var connectionSummaryDto = discrepanciesElasticSearchService
+        .searchForPageToConnect(searchQueryES, dbcs, programmeName, pageableAndSortable);
+
+    return ResponseEntity.ok(connectionSummaryDto);
+
+  }
+
+  /**
+   * GET  /discrepancies/disconnectable : get list of doctors to disconnect.
+   *
+   * @param sortColumn  column to be sorted
+   * @param sortOrder   sorting order (ASC or DESC)
+   * @param pageNumber  page number of data to get
+   * @param dbcs        designated body code of the user
+   * @param searchQuery search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and disconnectable discrepancies in body
+   */
+  @GetMapping(value = {"/discrepancies/disconnectable"})
+  public ResponseEntity<ConnectionSummaryDto> getSummaryDisconnectable(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+      String searchQuery) throws ConnectionQueryException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString().toLowerCase();
+    var connectionSummaryDto = discrepanciesElasticSearchService
+        .searchForPageToDisconnect(searchQueryES, dbcs, pageableAndSortable);
+
+    return ResponseEntity.ok(connectionSummaryDto);
   }
 
   /**

@@ -44,10 +44,12 @@ public class DiscrepanciesElasticSearchService {
   ConnectionInfoMapper connectionInfoMapper;
 
   /**
-   * Get exceptions from exception elasticsearch index.
+   * Get discrepancies from discrepancies elasticsearch index.
    *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
+   * @param searchQuery   query to run
+   * @param dbcs          list of dbcs to limit the search to
+   * @param programmeName programme name to filter by
+   * @param pageable      pagination information
    */
   public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
       String programmeName, Pageable pageable)
@@ -67,7 +69,65 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException("discrepancies", searchQuery, re);
+      throw new ConnectionQueryException("discrepancies (all)", searchQuery, re);
+    }
+  }
+
+  /**
+   * Get discrepancies that should be connected from discrepancies elasticsearch index.
+   *
+   * @param searchQuery   query to run
+   * @param dbcs          list of dbcs to limit the search to
+   * @param programmeName programme name to filter by
+   * @param pageable      pagination information
+   */
+  public ConnectionSummaryDto searchForPageToConnect(String searchQuery, List<String> dbcs,
+      String programmeName, Pageable pageable)
+      throws ConnectionQueryException {
+    try {
+      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
+          .findAllToConnect(searchQuery,
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              programmeName,
+              pageable);
+
+      final var discrepancies = result.get().collect(toList());
+      return ConnectionSummaryDto.builder()
+          .totalPages(result.getTotalPages())
+          .totalResults(result.getTotalElements())
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepancies))
+          .build();
+
+    } catch (RuntimeException re) {
+      throw new ConnectionQueryException("discrepancies (connectable)", searchQuery, re);
+    }
+  }
+
+  /**
+   * Get discrepancies that should be disconnected from discrepancies elasticsearch index.
+   *
+   * @param searchQuery query to run
+   * @param dbcs        list of dbcs to limit the search to
+   * @param pageable    pagination information
+   */
+  public ConnectionSummaryDto searchForPageToDisconnect(String searchQuery, List<String> dbcs,
+      Pageable pageable)
+      throws ConnectionQueryException {
+    try {
+      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
+          .findAllToDisconnect(searchQuery,
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              pageable);
+
+      final var discrepancies = result.get().collect(toList());
+      return ConnectionSummaryDto.builder()
+          .totalPages(result.getTotalPages())
+          .totalResults(result.getTotalElements())
+          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepancies))
+          .build();
+
+    } catch (RuntimeException re) {
+      throw new ConnectionQueryException("discrepancies (disconnectable)", searchQuery, re);
     }
   }
 }

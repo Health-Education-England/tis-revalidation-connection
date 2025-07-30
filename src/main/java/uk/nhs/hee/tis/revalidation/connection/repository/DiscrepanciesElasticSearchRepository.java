@@ -41,6 +41,7 @@ public interface DiscrepanciesElasticSearchRepository
       + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
-  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String tisDbcs, String programmeName,
+  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String tisDbcs,
+      String programmeName,
       final Pageable pageable);
 }

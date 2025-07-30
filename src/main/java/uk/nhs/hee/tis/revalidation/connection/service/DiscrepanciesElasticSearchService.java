@@ -52,7 +52,8 @@ public class DiscrepanciesElasticSearchService {
    * @param programmeName programme name to filter by
    * @param pageable      pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs, List<String> tisDbcs,
+  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
+      List<String> tisDbcs,
       String programmeName, Pageable pageable)
       throws ConnectionQueryException {
     try {

@@ -303,7 +303,8 @@ class ConnectionControllerTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
+        EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")

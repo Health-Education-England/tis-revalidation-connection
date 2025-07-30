@@ -71,6 +71,7 @@ class ConnectionControllerTest {
   private static final String PAGE_NUMBER = "pageNumber";
   private static final String PAGE_NUMBER_VALUE = "0";
   private static final String DESIGNATED_BODY_CODES = "dbcs";
+  private static final String TIS_DESIGNATED_BODY_CODES = "tisDesignatedBodies";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
@@ -265,7 +266,8 @@ class ConnectionControllerTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
+        EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -274,7 +276,8 @@ class ConnectionControllerTest {
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
             .param(PROGRAMME_NAME, EMPTY_STRING)
-            .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(DESIGNATED_BODY_CODES, dbcString)
+            .param(TIS_DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
@@ -300,7 +303,7 @@ class ConnectionControllerTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+        List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -309,7 +312,8 @@ class ConnectionControllerTest {
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
             .param(PROGRAMME_NAME, EMPTY_STRING)
-            .param(DESIGNATED_BODY_CODES, dbcString))
+            .param(DESIGNATED_BODY_CODES, dbcString)
+            .param(TIS_DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));

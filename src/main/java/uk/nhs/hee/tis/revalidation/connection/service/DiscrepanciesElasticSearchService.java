@@ -44,18 +44,22 @@ public class DiscrepanciesElasticSearchService {
   ConnectionInfoMapper connectionInfoMapper;
 
   /**
-   * Get exceptions from exception elasticsearch index.
+   * Get discrepancies from discrepancies elasticsearch index.
    *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
+   * @param searchQuery   query to run
+   * @param dbcs          list of gmc dbcs to limit the search to
+   * @param tisDbcs       list of tis dbcs to limit the search to
+   * @param programmeName programme name to filter by
+   * @param pageable      pagination information
    */
-  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
+  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs, List<String> tisDbcs,
       String programmeName, Pageable pageable)
       throws ConnectionQueryException {
     try {
       Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
           .findAll(searchQuery,
               ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
+              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(tisDbcs),
               programmeName,
               pageable);
 

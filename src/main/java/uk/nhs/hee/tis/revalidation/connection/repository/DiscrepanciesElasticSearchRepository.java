@@ -36,11 +36,11 @@ public interface DiscrepanciesElasticSearchRepository
       + "{\"bool\":{\"must_not\":{\"match\":{\"membershipType\":\"MILITARY\"}}}},"
       + "{\"bool\":{\"must_not\":{\"match\":{\"placementGrade\":\"279\"}}}},"
       + "{\"bool\":{\"should\":[{\"match\":{\"designatedBody\":\"?1\"}},"
-      + "{\"match\":{\"tcsDesignatedBody\":\"?1\"}}]}},"
-      + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
+      + "{\"match\":{\"tcsDesignatedBody\":\"?2\"}}]}},"
+      + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?3\",\"zero_terms_query\":\"all\"}}},"
       + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
-  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String programmeName,
+  Page<DiscrepanciesView> findAll(final String searchQuery, String dbcs, String tisDbcs, String programmeName,
       final Pageable pageable);
 }

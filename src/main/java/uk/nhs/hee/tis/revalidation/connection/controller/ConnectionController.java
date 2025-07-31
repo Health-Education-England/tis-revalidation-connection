@@ -65,6 +65,7 @@ public class ConnectionController {
   private static final String PAGE_NUMBER = "pageNumber";
   private static final String PAGE_NUMBER_VALUE = "0";
   private static final String DESIGNATED_BODY_CODES = "dbcs";
+  private static final String TIS_DESIGNATED_BODY_CODES = "tisDesignatedBodies";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
@@ -198,14 +199,16 @@ public class ConnectionController {
   }
 
   /**
-   * GET  /exception : get exception summary.
+   * GET  /discrepancies : get discrepancies summary.
    *
-   * @param sortColumn  column to be sorted
-   * @param sortOrder   sorting order (ASC or DESC)
-   * @param pageNumber  page number of data to get
-   * @param dbcs        designated body code of the user
-   * @param searchQuery search query of data to get
-   * @return the ResponseEntity with status 200 (OK) and exception summary in body
+   * @param sortColumn    column to be sorted
+   * @param sortOrder     sorting order (ASC or DESC)
+   * @param pageNumber    page number of data to get
+   * @param dbcs          gmc designated body code of the user
+   * @param tisDbcs       tis designated body code of the user
+   * @param programmeName programme name to filter by
+   * @param searchQuery   search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and discrepancies summary in body
    */
   @GetMapping(value = {"/exception", "/discrepancies"})
   public ResponseEntity<ConnectionSummaryDto> getSummaryDiscrepancies(
@@ -216,9 +219,11 @@ public class ConnectionController {
       @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
           required = false) final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES,
-          required = false) final List<String> dbcs,
+          required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
+      @RequestParam(name = TIS_DESIGNATED_BODY_CODES,
+          required = false, defaultValue = EMPTY_STRING) final List<String> tisDbcs,
       @RequestParam(name = PROGRAMME_NAME,
-          required = false) final String programmeName,
+          required = false, defaultValue = EMPTY_STRING) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
@@ -229,10 +234,9 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
     var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, dbcs, programmeName, pageableAndSortable);
+        .searchForPage(searchQueryES, dbcs, tisDbcs, programmeName, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
-
   }
 
   /**

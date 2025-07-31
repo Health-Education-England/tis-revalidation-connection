@@ -112,7 +112,7 @@ class DiscrepanciesElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
 
-    when(discrepanciesElasticSearchRepository.findAll("", formattedDbcs,
+    when(discrepanciesElasticSearchRepository.findAll("", formattedDbcs, formattedDbcs,
         "", pageableAndSortable))
         .thenReturn(searchResult);
 
@@ -124,7 +124,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
-        .searchForPage("", dbcs, "", pageableAndSortable);
+        .searchForPage("", dbcs, dbcs, "", pageableAndSortable);
     assertThat(result, is(connectionSummary));
   }
 
@@ -134,7 +134,7 @@ class DiscrepanciesElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
 
-    when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+    when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs, formattedDbcs,
         programmeName1, pageableAndSortable))
         .thenReturn(searchResult);
 
@@ -146,7 +146,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .build();
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
-        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable);
+        .searchForPage(searchQuery, dbcs, dbcs, programmeName1, pageableAndSortable);
     assertThat(result, is(discrepanciesSummary));
   }
 
@@ -156,11 +156,11 @@ class DiscrepanciesElasticSearchServiceTest {
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
 
-    when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs,
+    when(discrepanciesElasticSearchRepository.findAll(searchQuery, formattedDbcs, formattedDbcs,
         programmeName1, pageableAndSortable))
         .thenThrow(RuntimeException.class);
 
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
-        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
+        .searchForPage(searchQuery, dbcs, dbcs, programmeName1, pageableAndSortable));
   }
 }

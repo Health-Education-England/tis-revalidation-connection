@@ -23,27 +23,33 @@ package uk.nhs.hee.tis.revalidation.connection.entity;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Document(collection = "connectionLogs")
-public class ConnectionRequestLog {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = false)
+public class ConnectionRequestLog extends ConnectionLog {
 
-  @Id
-  private String id;
-  private String gmcId;
   private String gmcClientId;
-  private String newDesignatedBodyCode;
-  private String previousDesignatedBodyCode;
   private String reason;
   private ConnectionRequestType requestType;
-  private LocalDateTime requestTime;
   private String responseCode;
+
+  /**
+   * Constructor to populate parent class fields.
+   */
+  public ConnectionRequestLog(String gmcClientId, String reason, ConnectionRequestType requestType,
+      String responseCode, String id, String gmcId, String newDesignatedBodyCode,
+      String previousDesignatedBodyCode, String updatedBy, LocalDateTime eventDateTime) {
+    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode, updatedBy, eventDateTime);
+    this.gmcClientId = gmcClientId;
+    this.reason = reason;
+    this.requestType = requestType;
+    this.responseCode = responseCode;
+  }
 }

@@ -119,6 +119,7 @@ class ConnectionControllerTest {
   private String programmeOwner2;
   private String exceptionReason1;
   private String exceptionReason2;
+  private String updatedBy;
 
 
   @BeforeEach
@@ -155,6 +156,7 @@ class ConnectionControllerTest {
     programmeOwner2 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
     exceptionReason2 = faker.lorem().characters(20);
+    updatedBy = faker.lorem().characters(8);
   }
 
   @Test
@@ -232,8 +234,11 @@ class ConnectionControllerTest {
         .andExpect(jsonPath("$.connectionHistory.[*].reason").value(hasItem(reason)))
         .andExpect(jsonPath("$.connectionHistory.[*].requestType")
             .value(hasItem(requestType.toString())))
+        .andExpect(jsonPath("$.connectionHistory.[*].updatedBy")
+            .value(hasItem(updatedBy)))
         .andExpect(
             jsonPath("$.connectionHistory.[*].responseCode").value(hasItem(responseCode)));
+
   }
 
   @Test
@@ -437,6 +442,7 @@ class ConnectionControllerTest {
         .requestType(requestType)
         .requestTime(requestTime)
         .responseCode(responseCode)
+        .updatedBy(updatedBy)
         .build();
     connectionDto.setConnectionHistory(List.of(connectionHistory));
     return connectionDto;

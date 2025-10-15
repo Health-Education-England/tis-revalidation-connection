@@ -17,7 +17,7 @@ spring:
       uris: ${ES_URLS:http://localhost:9200}
   data:
     mongodb:
-      uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?${MONGODB_PARAMS:authSource=admin&authMechanism=SCRAM-SHA-1&replicaSet=rs0&readPreference=secondaryPreferred}
+      uri: mongodb://${MONGODB_USERNAME:root}:${MONGODB_PASSWORD:password}@${MONGODB_HOST:localhost}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:revalidation}?${MONGODB_PARAMS:authSource=admin&authMechanism=SCRAM-SHA-1}
 
 server:
   port: 8090
@@ -33,6 +33,8 @@ app:
     reval.routingKey.gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
     reval.exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
     reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
+    reval.queue.connection.log: ${CONNECTION_LOG_QUEUE:reval.queue.connection.log}
+
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

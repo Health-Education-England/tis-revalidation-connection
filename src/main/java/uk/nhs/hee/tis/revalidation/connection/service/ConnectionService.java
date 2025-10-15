@@ -39,16 +39,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -67,6 +70,8 @@ public class ConnectionService {
 
   private final RabbitTemplate rabbitTemplate;
 
+  private final ConnectionLogMapper connectionLogMapper;
+
   @Value("${app.rabbit.reval.exchange}")
   private String exchange;
 
@@ -75,12 +80,13 @@ public class ConnectionService {
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
       ConnectionRepository repository, HideConnectionRepository hideRepository,
-      RabbitTemplate rabbitTemplate) {
+      RabbitTemplate rabbitTemplate, ConnectionLogMapper connectionLogMapper) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
     this.hideRepository = hideRepository;
     this.rabbitTemplate = rabbitTemplate;
+    this.connectionLogMapper = connectionLogMapper;
   }
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
@@ -109,12 +115,13 @@ public class ConnectionService {
   public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
     var connectionDto = new ConnectionDto();
-    final var connections = repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId);
+    final var connections = repository.findAllByGmcIdOrderByEventDateTimeDesc(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
       var reasonMessage = "";
-      if (connection.getRequestType().equals(ADD)) {
+      Boolean requestTypePresent = connection.getRequestType() != null;
+      if (requestTypePresent && connection.getRequestType().equals(ADD)) {
         reasonMessage = AddConnectionReasonCode.fromCode(connection.getReason());
-      } else if (connection.getRequestType().equals(REMOVE)) {
+      } else if (requestTypePresent && connection.getRequestType().equals(REMOVE)) {
         reasonMessage = RemoveConnectionReasonCode.fromCode(connection.getReason());
       }
 
@@ -127,9 +134,10 @@ public class ConnectionService {
           .reason(connection.getReason())
           .reasonMessage(reasonMessage)
           .requestType(connection.getRequestType())
-          .requestTime(connection.getRequestTime())
+          .requestTime(connection.getEventDateTime())
           .responseCode(connection.getResponseCode())
           .responseMessage(GmcResponseCode.fromCodeToMessage(connection.getResponseCode()))
+          .updatedBy(connection.getUpdatedBy())
           .build();
     }).collect(toList());
     connectionDto.setConnectionHistory(allConnectionsForTrainee);
@@ -145,6 +153,17 @@ public class ConnectionService {
   public List<String> getAllHiddenConnections() {
     final var allConnections = hideRepository.findAll();
     return allConnections.stream().map(HideConnectionLog::getGmcId).collect(toList());
+  }
+
+  /**
+   * Record basic Connection Log for change to Doctor connection.
+   *
+   * @param connectionLogDto dto containing connection log info
+   */
+  public void recordConnectionLog(
+      ConnectionLogDto connectionLogDto
+  ) {
+    repository.save(connectionLogMapper.fromDto(connectionLogDto));
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(
@@ -202,7 +221,8 @@ public class ConnectionService {
         .reason(changeReason)
         .requestType(connectionRequestType)
         .responseCode(gmcResponse.getReturnCode())
-        .requestTime(now())
+        .eventDateTime(now())
+        .updatedBy(admin)
         .build();
 
     //save connection info to mongodb

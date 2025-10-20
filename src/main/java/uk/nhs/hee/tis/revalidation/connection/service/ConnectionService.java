@@ -118,10 +118,10 @@ public class ConnectionService {
     final var connections = repository.findAllByGmcIdOrderByEventDateTimeDesc(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
       var reasonMessage = "";
-      Boolean requestTypePresent = connection.getRequestType() != null;
-      if (requestTypePresent && connection.getRequestType().equals(ADD)) {
+      var requestType = connection.getRequestType();
+      if (requestType != null && requestType.equals(ADD)) {
         reasonMessage = AddConnectionReasonCode.fromCode(connection.getReason());
-      } else if (requestTypePresent && connection.getRequestType().equals(REMOVE)) {
+      } else if (requestType != null && requestType.equals(REMOVE)) {
         reasonMessage = RemoveConnectionReasonCode.fromCode(connection.getReason());
       }
 

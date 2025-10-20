@@ -33,7 +33,7 @@ app:
     reval.routingKey.gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
     reval.exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
     reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
-    reval.queue.connection.connectionLog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionLog}
+    reval.queue.connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

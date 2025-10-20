@@ -14,7 +14,7 @@ public class RabbitMessageListener {
     this.connectionService = connectionService;
   }
 
-  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.log}")
+  @RabbitListener(queues = "${app.rabbit.reval.queue.connection.connectionLog}")
   public void receiveConnectionLog(ConnectionLogDto connectionLogDto) {
     connectionService.recordConnectionLog(connectionLogDto);
   }

@@ -27,7 +27,9 @@ import java.util.List;
 
 public final class ElasticsearchQueryHelper {
 
-  private static List<String> sortFields = List.of("designatedBody","tcsDesignatedBody");
+  private static final List<String> KEYWORD_SORT_FIELDS = List.of("designatedBody",
+      "tcsDesignatedBody",
+      "programmeOwner", "membershipType");
 
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");
@@ -37,7 +39,6 @@ public final class ElasticsearchQueryHelper {
    * Format designated body codes for Elasticsearch by stripping hyphens and setting lower case.
    *
    * @param designatedBodyCodes list of designated body codes to format
-   *
    */
   public static String formatDesignatedBodyCodesForElasticsearchQuery(
       List<String> designatedBodyCodes) {
@@ -50,10 +51,9 @@ public final class ElasticsearchQueryHelper {
    * Format sort columns to add .keyword suffix where required.
    *
    * @param sortField name of the field to sort by
-   *
    */
   public static String formatSortFieldForElasticsearchQuery(String sortField) {
-    if (sortFields.contains(sortField)) {
+    if (KEYWORD_SORT_FIELDS.contains(sortField)) {
       return sortField.concat(".keyword");
     }
     return sortField;

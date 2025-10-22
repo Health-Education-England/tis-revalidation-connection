@@ -115,7 +115,7 @@ public class ConnectionService {
   public ConnectionDto getTraineeConnectionInfo(final String gmcId) {
     log.info("Fetching connections info for GmcId: {}", gmcId);
     var connectionDto = new ConnectionDto();
-    final var connections = repository.findAllByGmcIdOrderByEventDateTimeDesc(gmcId);
+    final var connections = repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId);
     final var allConnectionsForTrainee = connections.stream().map(connection -> {
       var reasonMessage = "";
       var requestType = connection.getRequestType();
@@ -134,7 +134,7 @@ public class ConnectionService {
           .reason(connection.getReason())
           .reasonMessage(reasonMessage)
           .requestType(connection.getRequestType())
-          .requestTime(connection.getEventDateTime())
+          .requestTime(connection.getRequestTime())
           .responseCode(connection.getResponseCode())
           .responseMessage(GmcResponseCode.fromCodeToMessage(connection.getResponseCode()))
           .updatedBy(connection.getUpdatedBy())
@@ -163,7 +163,9 @@ public class ConnectionService {
   public void recordConnectionLog(
       ConnectionLogDto connectionLogDto
   ) {
-    repository.save(connectionLogMapper.fromDto(connectionLogDto));
+    ConnectionLog log = connectionLogMapper.fromDto(connectionLogDto);
+    log.setId(UUID.randomUUID().toString());
+    repository.save(log);
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(
@@ -221,7 +223,7 @@ public class ConnectionService {
         .reason(changeReason)
         .requestType(connectionRequestType)
         .responseCode(gmcResponse.getReturnCode())
-        .eventDateTime(now())
+        .requestTime(now())
         .updatedBy(admin)
         .build();
 

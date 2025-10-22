@@ -47,7 +47,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
@@ -274,7 +273,7 @@ class ConnectionServiceTest {
   void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connection1 = prepareConnectionAdd();
     final var connection2 = prepareConnectionRemove();
-    when(repository.findAllByGmcIdOrderByEventDateTimeDesc(gmcId))
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId))
         .thenReturn(List.of(connection1, connection2));
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
@@ -294,7 +293,7 @@ class ConnectionServiceTest {
 
   @Test
   void shouldNotFailWhenThereIsNoConnectionForADoctorInTheService() throws Exception {
-    when(repository.findAllByGmcIdOrderByEventDateTimeDesc(gmcId)).thenReturn(List.of());
+    when(repository.findAllByGmcIdOrderByRequestTimeDesc(gmcId)).thenReturn(List.of());
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(0));
@@ -333,7 +332,7 @@ class ConnectionServiceTest {
     assertThat(result.getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
     assertThat(result.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
     assertThat(result.getUpdatedBy(), is(admin));
-    assertThat(result.getEventDateTime(), is(requestTime));
+    assertThat(result.getRequestTime(), is(requestTime));
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {
@@ -345,7 +344,7 @@ class ConnectionServiceTest {
         .previousDesignatedBodyCode(previousDesignatedBodyCode)
         .reason(reasonAdd)
         .requestType(requestTypeAdd)
-        .eventDateTime(requestTime)
+        .requestTime(requestTime)
         .responseCode(responseCode)
         .build();
   }
@@ -359,7 +358,7 @@ class ConnectionServiceTest {
         .previousDesignatedBodyCode(previousDesignatedBodyCode)
         .reason(reasonRemove)
         .requestType(requestTypeRemove)
-        .eventDateTime(requestTime)
+        .requestTime(requestTime)
         .responseCode(responseCode)
         .build();
   }

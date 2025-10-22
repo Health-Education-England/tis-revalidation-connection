@@ -45,8 +45,8 @@ public class ConnectionRequestLog extends ConnectionLog {
    */
   public ConnectionRequestLog(String gmcClientId, String reason, ConnectionRequestType requestType,
       String responseCode, String id, String gmcId, String newDesignatedBodyCode,
-      String previousDesignatedBodyCode, String updatedBy, LocalDateTime eventDateTime) {
-    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode, updatedBy, eventDateTime);
+      String previousDesignatedBodyCode, String updatedBy, LocalDateTime requestTime) {
+    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode, updatedBy, requestTime);
     this.gmcClientId = gmcClientId;
     this.reason = reason;
     this.requestType = requestType;

@@ -8,8 +8,9 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
 @Mapper(componentModel = "spring", imports = UUID.class)
 public interface ConnectionLogMapper {
-  @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
+  @Mapping(source = "eventDateTime", target = "requestTime")
   ConnectionLog fromDto(ConnectionLogDto connectionLogDto);
 
+  @Mapping(source = "requestTime", target = "eventDateTime")
   ConnectionLogDto toDto(ConnectionLog connectionLog);
 }

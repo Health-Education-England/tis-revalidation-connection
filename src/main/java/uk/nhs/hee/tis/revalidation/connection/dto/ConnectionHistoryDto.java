@@ -49,4 +49,5 @@ public class ConnectionHistoryDto {
   private LocalDateTime requestTime;
   private String responseCode;
   private String responseMessage;
+  private String updatedBy;
 }

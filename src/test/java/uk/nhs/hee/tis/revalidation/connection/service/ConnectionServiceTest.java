@@ -44,15 +44,20 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -82,8 +87,14 @@ class ConnectionServiceTest {
 
   @Mock
   private ExceptionLogService exceptionService;
+
+  @Spy
+  private ConnectionLogMapper connectionLogMapper = new ConnectionLogMapperImpl();
+
   @Captor
   private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
+  @Captor
+  private ArgumentCaptor<ConnectionLog> connectionLogArgCaptor;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -303,6 +314,25 @@ class ConnectionServiceTest {
     when(hideRepository.findAll()).thenReturn(List.of());
     var hiddenGmcIds = connectionService.getAllHiddenConnections();
     assertThat(hiddenGmcIds.size(), is(0));
+  }
+
+  @Test
+  void shouldRecordConnectionLog() {
+    ConnectionLogDto connectionLogDto = ConnectionLogDto.builder().gmcId(gmcId)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
+        .build();
+
+    connectionService.recordConnectionLog(connectionLogDto);
+
+    verify(repository).save(connectionLogArgCaptor.capture());
+
+    ConnectionLog result = connectionLogArgCaptor.getValue();
+    assertThat(result.getGmcId(), is(gmcId));
+    assertThat(result.getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
+    assertThat(result.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
+    assertThat(result.getUpdatedBy(), is(admin));
+    assertThat(result.getRequestTime(), is(requestTime));
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

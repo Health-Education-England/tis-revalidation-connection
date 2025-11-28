@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.annotations.Query;
@@ -39,7 +40,9 @@ public interface CurrentConnectionElasticSearchRepository
       + "{\"match_phrase\":{\"programmeName\":{\"query\":\"?2\",\"zero_terms_query\":\"all\"}}},"
       + "{\"bool\":{\"should\":[{\"wildcard\":{\"doctorFirstName\":{\"value\":\"?0*\"}}},"
       + "{\"wildcard\":{\"doctorLastName\":{\"value\":\"?0*\"}}},"
-      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}}]}}")
+      + "{\"wildcard\":{\"gmcReferenceNumber\":{\"value\":\"?0*\"}}}]}},"
+      + "{ \"range\": { \"membershipEndDate\": { \"gte\": \"?3\", \"lte\": \"?4\" }}}]}}")
   Page<CurrentConnectionsView> findAll(final String searchQuery, final String dbcs,
-      String programmeName, final Pageable pageable);
+      String programmeName,  final LocalDate membershipEndDateFrom,
+      final LocalDate membershipEndDateTo, final Pageable pageable);
 }

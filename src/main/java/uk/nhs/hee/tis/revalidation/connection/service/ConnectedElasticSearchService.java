@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,13 +51,16 @@ public class ConnectedElasticSearchService {
    * @param pageable    pagination information
    */
   public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      String programmeName, Pageable pageable) throws ConnectionQueryException {
+      String programmeName, LocalDate membershipEndDateFrom,
+      LocalDate membershipEndDateTo,Pageable pageable) throws ConnectionQueryException {
 
     try {
       Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
           .findAll(searchQuery,
               ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
               programmeName,
+              membershipEndDateFrom,
+              membershipEndDateTo,
               pageable);
 
       final var connectedTrainees = result.get().collect(toList());

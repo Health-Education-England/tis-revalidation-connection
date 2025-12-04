@@ -50,4 +50,6 @@ public class ConnectionInfoDto {
   LocalDate programmeMembershipStartDate;
   LocalDate programmeMembershipEndDate;
   String exceptionReason;
+  String updatedBy;
+  LocalDate lastConnectionDateTime;
 }

@@ -24,32 +24,48 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import org.assertj.core.util.Lists;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
+
 
 @ExtendWith(MockitoExtension.class)
 class ConnectedElasticSearchServiceTest {
@@ -61,6 +77,8 @@ class ConnectedElasticSearchServiceTest {
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
+  @Mock
+  private ElasticsearchOperations elasticsearchOperations;
   @InjectMocks
   ConnectedElasticSearchService connectedElasticSearchService;
   private String gmcRef1;
@@ -165,5 +183,62 @@ class ConnectedElasticSearchServiceTest {
 
     assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
+  }
+
+  @Test
+  void shouldSearchForPageWithMembershipEndDateFromToAndReturnConnectionSummary()
+      throws Exception {
+
+    String searchQuery = "smith";
+    List<String> dbcs = List.of("DB1", "DB2");
+    String programmeName = "Programme1";
+    LocalDate from = LocalDate.of(2024, 1, 1);
+    LocalDate to = LocalDate.of(2024, 12, 31);
+    Pageable pageable = PageRequest.of(0, 20);
+
+    CurrentConnectionsView entity = new CurrentConnectionsView();
+    entity.setId("1L");
+    entity.setGmcReferenceNumber("1234567");
+
+    @SuppressWarnings("unchecked")
+    SearchHit<CurrentConnectionsView> hit =
+        (SearchHit<CurrentConnectionsView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(entity);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<CurrentConnectionsView> hits =
+        (SearchHits<CurrentConnectionsView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(CurrentConnectionsView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = connectedElasticSearchService
+        .searchForPageWithMembershipEndDate(
+            searchQuery, dbcs, programmeName, from, to, pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), is(1L));
+    assertThat(result.getTotalPages(), is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(CurrentConnectionsView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, containsString("membershipEndDate"));
+    assertThat(queryString, containsString(from.toString()));
+    assertThat(queryString, containsString(to.toString()));
   }
 }

@@ -229,7 +229,13 @@ public class ConnectionController {
       @RequestParam(name = PROGRAMME_NAME,
           required = false, defaultValue = EMPTY_STRING) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) throws ConnectionQueryException {
+      String searchQuery,
+      @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateFrom,
+      @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -237,9 +243,29 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
-    var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, dbcs, tisDbcs, programmeName, pageableAndSortable);
 
+    final ConnectionSummaryDto connectionSummaryDto;
+    if (membershipEndDateFrom != null || membershipEndDateTo != null) {
+      connectionSummaryDto =
+          discrepanciesElasticSearchService.searchForPageWithMembershipEndDate(
+              searchQueryES,
+              dbcs,
+              tisDbcs,
+              programmeName,
+              membershipEndDateFrom,
+              membershipEndDateTo,
+              pageableAndSortable
+          );
+    } else {
+      connectionSummaryDto =
+          discrepanciesElasticSearchService.searchForPage(
+              searchQueryES,
+              dbcs,
+              tisDbcs,
+              programmeName,
+              pageableAndSortable
+          );
+    }
     return ResponseEntity.ok(connectionSummaryDto);
   }
 
@@ -267,10 +293,10 @@ public class ConnectionController {
           required = false) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery,
-      @RequestParam(name = MEMBERSHIP_END_DATE_FROM)
+      @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateFrom,
-      @RequestParam(name = MEMBERSHIP_END_DATE_TO)
+      @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateTo
       ) throws ConnectionQueryException {
@@ -281,8 +307,27 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
-    var connectionSummaryDto = connectedElasticSearchService
-        .searchForPage(searchQueryES, dbcs, programmeName, membershipEndDateFrom, membershipEndDateTo, pageableAndSortable);
+
+    final ConnectionSummaryDto connectionSummaryDto;
+    if (membershipEndDateFrom != null || membershipEndDateTo != null) {
+      connectionSummaryDto =
+          connectedElasticSearchService.searchForPageWithMembershipEndDate(
+              searchQueryES,
+              dbcs,
+              programmeName,
+              membershipEndDateFrom,
+              membershipEndDateTo,
+              pageableAndSortable
+          );
+    } else {
+      connectionSummaryDto =
+          connectedElasticSearchService.searchForPage(
+              searchQueryES,
+              dbcs,
+              programmeName,
+              pageableAndSortable
+          );
+    }
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

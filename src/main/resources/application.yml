@@ -29,11 +29,19 @@ app:
     exchange: "ex.error"
     limit.retries: true
 
+  reval:
+    essync.batchsize: ${ESSYNC_BATCH_SIZE:5000}
+
   rabbit:
-    reval.routingKey.gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
-    reval.exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
-    reval.routingKey.connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
-    reval.queue.connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
+    reval:
+      exchange: ${REVAL_RABBIT_EXCHANGE:reval.exchange}
+      routingKey:
+        gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
+        connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
+        connectionlog.essyncdata: ${CONNECTIONLOG_ESSYNCDATA_ROUTING_KEY:reval.routingkey.connectionlog.essyncdata}
+      queue:
+        connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
+        connectionlog.essyncstart: ${CONNECTION_LOG_ESSYNCSTART_QUEUE:reval.queue.connectionlog.essyncstart.connection}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

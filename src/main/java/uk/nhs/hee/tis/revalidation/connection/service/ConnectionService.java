@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
@@ -53,6 +54,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
@@ -66,6 +68,8 @@ public class ConnectionService {
 
   private final ConnectionRepository repository;
 
+  private final ConnectionLogCustomRepository connectionLogCustomRepository;
+
   private final HideConnectionRepository hideRepository;
 
   private final RabbitTemplate rabbitTemplate;
@@ -78,12 +82,17 @@ public class ConnectionService {
   @Value("${app.rabbit.reval.routingKey.connection.manualupdate}")
   private String routingKey;
 
+  @Value("${app.rabbit.reval.routingKey.connectionlog.essyncdata}")
+  private String esSyncDataRoutingKey;
+
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
-      ConnectionRepository repository, HideConnectionRepository hideRepository,
-      RabbitTemplate rabbitTemplate, ConnectionLogMapper connectionLogMapper) {
+      ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
+      HideConnectionRepository hideRepository, RabbitTemplate rabbitTemplate,
+      ConnectionLogMapper connectionLogMapper) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
+    this.connectionLogCustomRepository = connectionLogCustomRepository;
     this.hideRepository = hideRepository;
     this.rabbitTemplate = rabbitTemplate;
     this.connectionLogMapper = connectionLogMapper;
@@ -299,4 +308,31 @@ public class ConnectionService {
     hideRepository.deleteById(gmcId);
   }
 
+  public void getConnectionLogsForSync(int pageSize) {
+    long start = System.currentTimeMillis();
+
+    int currentPage = 0;
+    Page<ConnectionLog> connectionLogs;
+
+    do {
+      connectionLogs = connectionLogCustomRepository.getLatestLogsWithPaging(currentPage, pageSize);
+      log.info("Fetched page {} with {} connection logs for sync.", currentPage,
+          connectionLogs.getNumberOfElements());
+      rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey,
+          connectionLogMapper.toDtoList(connectionLogs.toList()));
+      currentPage++;
+    } while (currentPage < connectionLogs.getTotalPages());
+
+    long end = System.currentTimeMillis();
+    long duration = end - start;
+    log.info("Time taken to fetch {} connection logs for sync: {} ms ({} seconds)", pageSize, duration, duration / 1000.0);
+
+    int totalPage = connectionLogs.getTotalPages();
+    log.info("Total pages to process for connection logs sync: {}", totalPage);
+    rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, getSyncEndMessageDto());
+  }
+
+  private ConnectionLogDto getSyncEndMessageDto() {
+    return ConnectionLogDto.builder().syncEnd(true).build();
+  }
 }

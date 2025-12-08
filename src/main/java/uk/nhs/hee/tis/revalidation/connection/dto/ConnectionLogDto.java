@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mongodb.lang.Nullable;
 import io.swagger.annotations.ApiModel;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -20,4 +21,6 @@ public class ConnectionLogDto {
   private String previousDesignatedBodyCode;
   private String updatedBy;
   private LocalDateTime eventDateTime;
+  @Nullable
+  Boolean syncEnd;
 }

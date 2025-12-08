@@ -48,15 +48,15 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private final static String DOCTOR_FIRST_NAME_FIELD = "doctorFirstName";
-  private final static String DOCTOR_LAST_NAME_FIELD = "doctorLastName";
-  private final static String GMC_REFERENCE_NUMBER_FIELD = "gmcReferenceNumber";
-  private final static String PROGRAMME_NAME_FIELD = "programmeName";
-  private final static String DESIGNATED_BODY_FIELD = "designatedBody";
-  private final static String TCS_DESIGNATED_BODY_FIELD = "tcsDesignatedBody";
-  private final static String MEMBERSHIP_TYPE_FIELD = "membershipType";
-  private final static String PLACEMENT_GRADE_FIELD = "placementGrade";
-  private final static String EXCLUDED_PLACEMENT_GRADE = "279";
+  private final static String DOCTOR_FIRST_NAME_DISCREPANCIES = "doctorFirstName";
+  private final static String DOCTOR_LAST_NAME_DISCREPANCIES = "doctorLastName";
+  private final static String GMC_REFERENCE_NUMBER_DISCREPANCIES = "gmcReferenceNumber";
+  private final static String PROGRAMME_NAME_DISCREPANCIES = "programmeName";
+  private final static String DESIGNATED_BODY_DISCREPANCIES = "designatedBody";
+  private final static String TCS_DESIGNATED_BODY_DISCREPANCIES = "tcsDesignatedBody";
+  private final static String MEMBERSHIP_TYPE_DISCREPANCIES = "membershipType";
+  private final static String PLACEMENT_GRADE_DISCREPANCIES = "placementGrade";
+  private final static String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
   private final static String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private final static String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
   @Autowired
@@ -125,12 +125,14 @@ public class DiscrepanciesElasticSearchService {
 
       rootQuery.filter(
           QueryBuilders.boolQuery()
-              .mustNot(QueryBuilders.matchQuery(MEMBERSHIP_TYPE_FIELD, EXCLUDED_MEMBERSHIP_TYPE))
+              .mustNot(
+                  QueryBuilders.matchQuery(MEMBERSHIP_TYPE_DISCREPANCIES, EXCLUDED_MEMBERSHIP_TYPE))
       );
 
       rootQuery.filter(
           QueryBuilders.boolQuery()
-              .mustNot(QueryBuilders.matchQuery(PLACEMENT_GRADE_FIELD, EXCLUDED_PLACEMENT_GRADE))
+              .mustNot(QueryBuilders.matchQuery(PLACEMENT_GRADE_DISCREPANCIES,
+                  EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES))
       );
 
       String formattedDbcs =
@@ -138,20 +140,22 @@ public class DiscrepanciesElasticSearchService {
       String formattedTisDbcs =
           ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(tisDbcs);
       BoolQueryBuilder designatedBodyQuery = QueryBuilders.boolQuery()
-          .should(QueryBuilders.matchQuery(DESIGNATED_BODY_FIELD, formattedDbcs))
-          .should(QueryBuilders.matchQuery(TCS_DESIGNATED_BODY_FIELD, formattedTisDbcs))
+          .should(QueryBuilders.matchQuery(DESIGNATED_BODY_DISCREPANCIES, formattedDbcs))
+          .should(QueryBuilders.matchQuery(TCS_DESIGNATED_BODY_DISCREPANCIES, formattedTisDbcs))
           .minimumShouldMatch(1);
       rootQuery.filter(designatedBodyQuery);
 
       if (StringUtils.hasText(programmeName)) {
-        rootQuery.filter(QueryBuilders.matchPhraseQuery(PROGRAMME_NAME_FIELD, programmeName));
+        rootQuery.filter(
+            QueryBuilders.matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName));
       }
 
       if (StringUtils.hasText(searchQuery)) {
         BoolQueryBuilder searchSubQuery = QueryBuilders.boolQuery()
-            .should(QueryBuilders.wildcardQuery(DOCTOR_FIRST_NAME_FIELD, searchQuery + "*"))
-            .should(QueryBuilders.wildcardQuery(DOCTOR_LAST_NAME_FIELD, searchQuery + "*"))
-            .should(QueryBuilders.wildcardQuery(GMC_REFERENCE_NUMBER_FIELD, searchQuery + "*"))
+            .should(QueryBuilders.wildcardQuery(DOCTOR_FIRST_NAME_DISCREPANCIES, searchQuery + "*"))
+            .should(QueryBuilders.wildcardQuery(DOCTOR_LAST_NAME_DISCREPANCIES, searchQuery + "*"))
+            .should(
+                QueryBuilders.wildcardQuery(GMC_REFERENCE_NUMBER_DISCREPANCIES, searchQuery + "*"))
             .minimumShouldMatch(1);
 
         rootQuery.filter(searchSubQuery);

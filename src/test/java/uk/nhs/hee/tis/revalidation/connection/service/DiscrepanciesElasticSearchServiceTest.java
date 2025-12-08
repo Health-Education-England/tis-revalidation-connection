@@ -24,8 +24,16 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.by;
@@ -34,15 +42,25 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
+import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -56,6 +74,8 @@ class DiscrepanciesElasticSearchServiceTest {
   private final Faker faker = new Faker();
   @Mock
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
+  @Mock
+  private ElasticsearchOperations elasticsearchOperations;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
@@ -162,5 +182,63 @@ class DiscrepanciesElasticSearchServiceTest {
 
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForPage(searchQuery, dbcs, dbcs, programmeName1, pageableAndSortable));
+  }
+
+  @Test
+  void shouldSearchForPageWithMembershipEndDateFromToAndReturnDiscrepanciesSummary()
+      throws Exception {
+
+    String searchQuery = "smith";
+    List<String> dbcs = List.of("DB1", "DB2");
+    List<String> tisDbcs = List.of("DB1", "DB2");
+    String programmeName = "Programme1";
+    LocalDate from = LocalDate.of(2024, 1, 1);
+    LocalDate to = LocalDate.of(2024, 12, 31);
+    Pageable pageable = PageRequest.of(0, 20);
+
+    DiscrepanciesView entity = new DiscrepanciesView();
+    entity.setId("1L");
+    entity.setGmcReferenceNumber("1234567");
+
+    @SuppressWarnings("unchecked")
+    SearchHit<DiscrepanciesView> hit =
+        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(entity);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<DiscrepanciesView> hits =
+        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForPageWithMembershipEndDate(
+            searchQuery, dbcs, tisDbcs, programmeName, from, to, pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, containsString("membershipEndDate"));
+    assertThat(queryString, containsString(from.toString()));
+    assertThat(queryString, containsString(to.toString()));
   }
 }

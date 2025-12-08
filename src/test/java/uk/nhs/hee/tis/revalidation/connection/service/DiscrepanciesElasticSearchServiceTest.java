@@ -188,13 +188,13 @@ class DiscrepanciesElasticSearchServiceTest {
   void shouldSearchForPageWithMembershipEndDateFromToAndReturnDiscrepanciesSummary()
       throws Exception {
 
-    String searchQuery = "smith";
-    List<String> dbcs = List.of("DB1", "DB2");
-    List<String> tisDbcs = List.of("DB1", "DB2");
-    String programmeName = "Programme1";
-    LocalDate from = LocalDate.of(2024, 1, 1);
-    LocalDate to = LocalDate.of(2024, 12, 31);
-    Pageable pageable = PageRequest.of(0, 20);
+    final String searchQuery = "smith";
+    final List<String> dbcs1 = List.of("DB1", "DB2");
+    final List<String> tisDbcs = List.of("DB1", "DB2");
+    final String programmeName = "Programme1";
+    final LocalDate from = LocalDate.of(2024, 1, 1);
+    final LocalDate to = LocalDate.of(2024, 12, 31);
+    final Pageable pageable = PageRequest.of(0, 20);
 
     DiscrepanciesView entity = new DiscrepanciesView();
     entity.setId("1L");
@@ -220,7 +220,7 @@ class DiscrepanciesElasticSearchServiceTest {
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForPageWithMembershipEndDate(
-            searchQuery, dbcs, tisDbcs, programmeName, from, to, pageable);
+            searchQuery, dbcs1, tisDbcs, programmeName, from, to, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));

@@ -189,12 +189,12 @@ class ConnectedElasticSearchServiceTest {
   void shouldSearchForPageWithMembershipEndDateFromToAndReturnConnectionSummary()
       throws Exception {
 
-    String searchQuery = "smith";
-    List<String> dbcs = List.of("DB1", "DB2");
-    String programmeName = "Programme1";
-    LocalDate from = LocalDate.of(2024, 1, 1);
-    LocalDate to = LocalDate.of(2024, 12, 31);
-    Pageable pageable = PageRequest.of(0, 20);
+    final String searchQuery = "smith";
+    final List<String> dbcs = List.of("DB1", "DB2");
+    final String programmeName = "Programme1";
+    final LocalDate from = LocalDate.of(2024, 1, 1);
+    final LocalDate to = LocalDate.of(2024, 12, 31);
+    final Pageable pageable = PageRequest.of(0, 20);
 
     CurrentConnectionsView entity = new CurrentConnectionsView();
     entity.setId("1L");

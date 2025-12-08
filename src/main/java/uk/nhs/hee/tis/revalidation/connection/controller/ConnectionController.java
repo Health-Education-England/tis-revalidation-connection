@@ -298,8 +298,7 @@ public class ConnectionController {
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate membershipEndDateTo
-      ) throws ConnectionQueryException {
+      LocalDate membershipEndDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));

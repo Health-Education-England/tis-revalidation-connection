@@ -48,16 +48,16 @@ import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasti
 @Service
 public class ConnectedElasticSearchService {
 
-  private final static String DOCTOR_FIRST_NAME_FIELD = "doctorFirstName";
-  private final static String DOCTOR_LAST_NAME_FIELD = "doctorLastName";
-  private final static String GMC_REFERENCE_NUMBER_FIELD = "gmcReferenceNumber";
-  private final static String PROGRAMME_NAME_FIELD = "programmeName";
-  private final static String DESIGNATED_BODY_FIELD = "designatedBody";
-  private final static String MEMBERSHIP_TYPE_FIELD = "membershipType";
-  private final static String PLACEMENT_GRADE_FIELD = "placementGrade";
-  private final static String EXCLUDED_PLACEMENT_GRADE = "279";
-  private final static String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
-  private final static String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
+  private static final String DOCTOR_FIRST_NAME_FIELD = "doctorFirstName";
+  private static final String DOCTOR_LAST_NAME_FIELD = "doctorLastName";
+  private static final String GMC_REFERENCE_NUMBER_FIELD = "gmcReferenceNumber";
+  private static final String PROGRAMME_NAME_FIELD = "programmeName";
+  private static final String DESIGNATED_BODY_FIELD = "designatedBody";
+  private static final String MEMBERSHIP_TYPE_FIELD = "membershipType";
+  private static final String PLACEMENT_GRADE_FIELD = "placementGrade";
+  private static final String EXCLUDED_PLACEMENT_GRADE = "279";
+  private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
+  private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
   @Autowired
   CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Autowired

@@ -48,17 +48,17 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  private final static String DOCTOR_FIRST_NAME_DISCREPANCIES = "doctorFirstName";
-  private final static String DOCTOR_LAST_NAME_DISCREPANCIES = "doctorLastName";
-  private final static String GMC_REFERENCE_NUMBER_DISCREPANCIES = "gmcReferenceNumber";
-  private final static String PROGRAMME_NAME_DISCREPANCIES = "programmeName";
-  private final static String DESIGNATED_BODY_DISCREPANCIES = "designatedBody";
-  private final static String TCS_DESIGNATED_BODY_DISCREPANCIES = "tcsDesignatedBody";
-  private final static String MEMBERSHIP_TYPE_DISCREPANCIES = "membershipType";
-  private final static String PLACEMENT_GRADE_DISCREPANCIES = "placementGrade";
-  private final static String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
-  private final static String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
-  private final static String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
+  private static final String DOCTOR_FIRST_NAME_DISCREPANCIES = "doctorFirstName";
+  private static final String DOCTOR_LAST_NAME_DISCREPANCIES = "doctorLastName";
+  private static final String GMC_REFERENCE_NUMBER_DISCREPANCIES = "gmcReferenceNumber";
+  private static final String PROGRAMME_NAME_DISCREPANCIES = "programmeName";
+  private static final String DESIGNATED_BODY_DISCREPANCIES = "designatedBody";
+  private static final String TCS_DESIGNATED_BODY_DISCREPANCIES = "tcsDesignatedBody";
+  private static final String MEMBERSHIP_TYPE_DISCREPANCIES = "membershipType";
+  private static final String PLACEMENT_GRADE_DISCREPANCIES = "placementGrade";
+  private static final String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
+  private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
+  private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
   @Autowired
   DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
   @Autowired

@@ -48,15 +48,6 @@ import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasti
 @Service
 public class ConnectedElasticSearchService {
 
-  @Autowired
-  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
-
-  @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
-
-  @Autowired
-  private ElasticsearchOperations elasticsearchOperations;
-
   private final static String DOCTOR_FIRST_NAME_FIELD = "doctorFirstName";
   private final static String DOCTOR_LAST_NAME_FIELD = "doctorLastName";
   private final static String GMC_REFERENCE_NUMBER_FIELD = "gmcReferenceNumber";
@@ -67,6 +58,12 @@ public class ConnectedElasticSearchService {
   private final static String EXCLUDED_PLACEMENT_GRADE = "279";
   private final static String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private final static String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
+  @Autowired
+  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
+  @Autowired
+  ConnectionInfoMapper connectionInfoMapper;
+  @Autowired
+  private ElasticsearchOperations elasticsearchOperations;
 
   /**
    * Get connected trainees from Connected elasticsearch index.
@@ -98,15 +95,15 @@ public class ConnectedElasticSearchService {
   }
 
   /**
-   * Get connected trainees from Connected elasticsearch index
-   * when pm end date values are there for filtering.
+   * Get connected trainees from Connected elasticsearch index when pm end date values are there for
+   * filtering.
    *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
-   * @param dbcs designated body
-   * @param programmeName programme name
+   * @param searchQuery           query to run
+   * @param pageable              pagination information
+   * @param dbcs                  designated body
+   * @param programmeName         programme name
    * @param membershipEndDateFrom range of date from
-   * @param membershipEndDateTo range of date to
+   * @param membershipEndDateTo   range of date to
    */
   public ConnectionSummaryDto searchForPageWithMembershipEndDate(String searchQuery,
       List<String> dbcs,

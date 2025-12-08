@@ -48,12 +48,6 @@ import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSea
 @Service
 public class DiscrepanciesElasticSearchService {
 
-  @Autowired
-  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
-
-  @Autowired
-  ConnectionInfoMapper connectionInfoMapper;
-
   private final static String DOCTOR_FIRST_NAME_FIELD = "doctorFirstName";
   private final static String DOCTOR_LAST_NAME_FIELD = "doctorLastName";
   private final static String GMC_REFERENCE_NUMBER_FIELD = "gmcReferenceNumber";
@@ -65,6 +59,10 @@ public class DiscrepanciesElasticSearchService {
   private final static String EXCLUDED_PLACEMENT_GRADE = "279";
   private final static String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private final static String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
+  @Autowired
+  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
+  @Autowired
+  ConnectionInfoMapper connectionInfoMapper;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
 

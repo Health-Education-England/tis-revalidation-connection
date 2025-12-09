@@ -22,11 +22,15 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.time.LocalDate;
 import java.util.List;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -111,7 +115,7 @@ public class DiscrepanciesElasticSearchService {
    * @param membershipEndDateFrom range of date from
    * @param membershipEndDateTo   range of date to
    */
-  public ConnectionSummaryDto searchForPageWithMembershipEndDate(String searchQuery,
+  public ConnectionSummaryDto searchForDiscrepanciesPageWithFilters(String searchQuery,
       List<String> dbcs,
       List<String> tisDbcs,
       String programmeName,
@@ -121,48 +125,41 @@ public class DiscrepanciesElasticSearchService {
       throws ConnectionQueryException {
 
     try {
-      BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
+      BoolQueryBuilder rootQuery = boolQuery();
 
       rootQuery.filter(
-          QueryBuilders.boolQuery()
-              .mustNot(
-                  QueryBuilders.matchQuery(MEMBERSHIP_TYPE_DISCREPANCIES, EXCLUDED_MEMBERSHIP_TYPE))
-      );
+          boolQuery().mustNot(matchQuery(MEMBERSHIP_TYPE_DISCREPANCIES, EXCLUDED_MEMBERSHIP_TYPE)));
 
-      rootQuery.filter(
-          QueryBuilders.boolQuery()
-              .mustNot(QueryBuilders.matchQuery(PLACEMENT_GRADE_DISCREPANCIES,
-                  EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES))
-      );
+      rootQuery.filter(boolQuery().mustNot(
+          matchQuery(PLACEMENT_GRADE_DISCREPANCIES, EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES)));
 
       String formattedDbcs =
           ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs);
       String formattedTisDbcs =
           ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(tisDbcs);
-      BoolQueryBuilder designatedBodyQuery = QueryBuilders.boolQuery()
-          .should(QueryBuilders.matchQuery(DESIGNATED_BODY_DISCREPANCIES, formattedDbcs))
-          .should(QueryBuilders.matchQuery(TCS_DESIGNATED_BODY_DISCREPANCIES, formattedTisDbcs))
+      BoolQueryBuilder designatedBodyQuery = boolQuery()
+          .should(matchQuery(DESIGNATED_BODY_DISCREPANCIES, formattedDbcs))
+          .should(matchQuery(TCS_DESIGNATED_BODY_DISCREPANCIES, formattedTisDbcs))
           .minimumShouldMatch(1);
       rootQuery.filter(designatedBodyQuery);
 
       if (StringUtils.hasText(programmeName)) {
-        rootQuery.filter(
-            QueryBuilders.matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName));
+        rootQuery.filter(matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName));
       }
 
       if (StringUtils.hasText(searchQuery)) {
-        BoolQueryBuilder searchSubQuery = QueryBuilders.boolQuery()
-            .should(QueryBuilders.wildcardQuery(DOCTOR_FIRST_NAME_DISCREPANCIES, searchQuery + "*"))
-            .should(QueryBuilders.wildcardQuery(DOCTOR_LAST_NAME_DISCREPANCIES, searchQuery + "*"))
+        BoolQueryBuilder searchSubQuery = boolQuery()
+            .should(wildcardQuery(DOCTOR_FIRST_NAME_DISCREPANCIES, searchQuery + "*"))
+            .should(wildcardQuery(DOCTOR_LAST_NAME_DISCREPANCIES, searchQuery + "*"))
             .should(
-                QueryBuilders.wildcardQuery(GMC_REFERENCE_NUMBER_DISCREPANCIES, searchQuery + "*"))
+                wildcardQuery(GMC_REFERENCE_NUMBER_DISCREPANCIES, searchQuery + "*"))
             .minimumShouldMatch(1);
 
         rootQuery.filter(searchSubQuery);
       }
 
       if (membershipEndDateFrom != null || membershipEndDateTo != null) {
-        RangeQueryBuilder dateRange = QueryBuilders.rangeQuery(PROGRAMME_MEMBERSHIP_END_DATE_FIELD);
+        RangeQueryBuilder dateRange = rangeQuery(PROGRAMME_MEMBERSHIP_END_DATE_FIELD);
         if (membershipEndDateFrom != null) {
           dateRange.gte(membershipEndDateFrom.toString());
         }

@@ -219,7 +219,7 @@ class ConnectedElasticSearchServiceTest {
         .thenReturn(mappedDtos);
 
     ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPageWithMembershipEndDate(
+        .searchForConnectionPageWithFilters(
             searchQuery, dbcs, programmeName, from, to, pageable);
 
     assertThat(result, notNullValue());

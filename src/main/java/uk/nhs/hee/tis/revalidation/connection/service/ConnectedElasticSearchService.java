@@ -22,12 +22,17 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.time.LocalDate;
 import java.util.List;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -105,7 +110,7 @@ public class ConnectedElasticSearchService {
    * @param membershipEndDateFrom range of date from
    * @param membershipEndDateTo   range of date to
    */
-  public ConnectionSummaryDto searchForPageWithMembershipEndDate(String searchQuery,
+  public ConnectionSummaryDto searchForConnectionPageWithFilters(String searchQuery,
       List<String> dbcs,
       String programmeName,
       LocalDate membershipEndDateFrom,
@@ -114,40 +119,37 @@ public class ConnectedElasticSearchService {
       throws ConnectionQueryException {
 
     try {
-      BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
+      BoolQueryBuilder rootQuery = boolQuery();
 
       rootQuery.filter(
-          QueryBuilders.boolQuery()
-              .mustNot(QueryBuilders.matchQuery(MEMBERSHIP_TYPE_FIELD, EXCLUDED_MEMBERSHIP_TYPE))
-      );
+          boolQuery().mustNot(matchQuery(MEMBERSHIP_TYPE_FIELD, EXCLUDED_MEMBERSHIP_TYPE)));
 
       rootQuery.filter(
-          QueryBuilders.boolQuery()
-              .mustNot(QueryBuilders.matchQuery(PLACEMENT_GRADE_FIELD, EXCLUDED_PLACEMENT_GRADE))
-      );
+          boolQuery().mustNot(matchQuery(PLACEMENT_GRADE_FIELD, EXCLUDED_PLACEMENT_GRADE)));
 
-      String formattedDbcs =
-          ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs);
+      String formattedDbcs = ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(
+          dbcs);
       if (StringUtils.hasText(formattedDbcs)) {
-        rootQuery.filter(QueryBuilders.matchQuery(DESIGNATED_BODY_FIELD, formattedDbcs));
+        rootQuery.filter(matchQuery(DESIGNATED_BODY_FIELD, formattedDbcs));
       }
 
       if (StringUtils.hasText(programmeName)) {
-        rootQuery.filter(QueryBuilders.matchPhraseQuery(PROGRAMME_NAME_FIELD, programmeName));
+        rootQuery.filter(matchPhraseQuery(PROGRAMME_NAME_FIELD, programmeName).zeroTermsQuery(
+            ZeroTermsQuery.ALL));
       }
 
       if (StringUtils.hasText(searchQuery)) {
-        BoolQueryBuilder searchSubQuery = QueryBuilders.boolQuery()
-            .should(QueryBuilders.wildcardQuery(DOCTOR_FIRST_NAME_FIELD, searchQuery + "*"))
-            .should(QueryBuilders.wildcardQuery(DOCTOR_LAST_NAME_FIELD, searchQuery + "*"))
-            .should(QueryBuilders.wildcardQuery(GMC_REFERENCE_NUMBER_FIELD, searchQuery + "*"))
+        BoolQueryBuilder searchSubQuery = boolQuery()
+            .should(wildcardQuery(DOCTOR_FIRST_NAME_FIELD, searchQuery + "*"))
+            .should(wildcardQuery(DOCTOR_LAST_NAME_FIELD, searchQuery + "*"))
+            .should(wildcardQuery(GMC_REFERENCE_NUMBER_FIELD, searchQuery + "*"))
             .minimumShouldMatch(1);
 
         rootQuery.filter(searchSubQuery);
       }
 
       if (membershipEndDateFrom != null || membershipEndDateTo != null) {
-        RangeQueryBuilder dateRange = QueryBuilders.rangeQuery(PROGRAMME_MEMBERSHIP_END_DATE_FIELD);
+        RangeQueryBuilder dateRange = rangeQuery(PROGRAMME_MEMBERSHIP_END_DATE_FIELD);
         if (membershipEndDateFrom != null) {
           dateRange.gte(membershipEndDateFrom.toString());
         }

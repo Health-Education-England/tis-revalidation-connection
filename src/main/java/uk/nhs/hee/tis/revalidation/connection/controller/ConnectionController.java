@@ -244,10 +244,8 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
 
-    final ConnectionSummaryDto connectionSummaryDto;
-    if (membershipEndDateFrom != null || membershipEndDateTo != null) {
-      connectionSummaryDto =
-          discrepanciesElasticSearchService.searchForPageWithMembershipEndDate(
+    final ConnectionSummaryDto connectionSummaryDto =
+        discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(
               searchQueryES,
               dbcs,
               tisDbcs,
@@ -256,16 +254,7 @@ public class ConnectionController {
               membershipEndDateTo,
               pageableAndSortable
           );
-    } else {
-      connectionSummaryDto =
-          discrepanciesElasticSearchService.searchForPage(
-              searchQueryES,
-              dbcs,
-              tisDbcs,
-              programmeName,
-              pageableAndSortable
-          );
-    }
+
     return ResponseEntity.ok(connectionSummaryDto);
   }
 
@@ -307,10 +296,8 @@ public class ConnectionController {
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
 
-    final ConnectionSummaryDto connectionSummaryDto;
-    if (membershipEndDateFrom != null || membershipEndDateTo != null) {
-      connectionSummaryDto =
-          connectedElasticSearchService.searchForPageWithMembershipEndDate(
+    final ConnectionSummaryDto connectionSummaryDto =
+        connectedElasticSearchService.searchForConnectionPageWithFilters(
               searchQueryES,
               dbcs,
               programmeName,
@@ -318,15 +305,6 @@ public class ConnectionController {
               membershipEndDateTo,
               pageableAndSortable
           );
-    } else {
-      connectionSummaryDto =
-          connectedElasticSearchService.searchForPage(
-              searchQueryES,
-              dbcs,
-              programmeName,
-              pageableAndSortable
-          );
-    }
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

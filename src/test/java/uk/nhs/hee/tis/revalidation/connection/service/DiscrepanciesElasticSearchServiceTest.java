@@ -219,7 +219,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .thenReturn(mappedDtos);
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
-        .searchForPageWithMembershipEndDate(
+        .searchForDiscrepanciesPageWithFilters(
             searchQuery, dbcs1, tisDbcs, programmeName, from, to, pageable);
 
     assertThat(result, notNullValue());

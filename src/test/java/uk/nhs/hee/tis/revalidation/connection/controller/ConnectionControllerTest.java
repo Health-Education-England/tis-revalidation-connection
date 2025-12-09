@@ -74,6 +74,7 @@ class ConnectionControllerTest {
   private static final String TIS_DESIGNATED_BODY_CODES = "tisDesignatedBodies";
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
+  private static final LocalDate EMPTY_DATE = null;
   private static final String PROGRAMME_NAME = "programmeName";
   private final Faker faker = new Faker();
   @Autowired
@@ -270,9 +271,9 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
+    when(discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
-        EMPTY_STRING, pageableAndSortable))
+        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -307,9 +308,9 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
-    when(discrepanciesElasticSearchService.searchForPage(EMPTY_STRING,
+    when(discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
-        EMPTY_STRING, pageableAndSortable))
+        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -330,8 +331,9 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(ASC, "gmcReferenceNumber"));
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+    when(connectedElasticSearchService.searchForConnectionPageWithFilters(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, EMPTY_DATE, EMPTY_DATE,
+        pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/connected")
@@ -363,8 +365,9 @@ class ConnectionControllerTest {
     final var connectionSummary = prepareConnectionSummary();
     final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
         by(DESC, "gmcReferenceNumber"));
-    when(connectedElasticSearchService.searchForPage(EMPTY_STRING,
-        List.of(designatedBody1, designatedBody2), EMPTY_STRING, pageableAndSortable))
+    when(connectedElasticSearchService.searchForConnectionPageWithFilters(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2), EMPTY_STRING, EMPTY_DATE, EMPTY_DATE,
+        pageableAndSortable))
         .thenReturn(connectionSummary);
     this.mockMvc.perform(get("/api/connections/connected")
             .param(SORT_ORDER, "desc")

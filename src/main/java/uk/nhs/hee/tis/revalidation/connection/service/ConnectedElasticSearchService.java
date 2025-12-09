@@ -127,8 +127,8 @@ public class ConnectedElasticSearchService {
       rootQuery.filter(
           boolQuery().mustNot(matchQuery(PLACEMENT_GRADE_FIELD, EXCLUDED_PLACEMENT_GRADE)));
 
-      String formattedDbcs = ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(
-          dbcs);
+      String formattedDbcs = ElasticsearchQueryHelper
+          .formatDesignatedBodyCodesForElasticsearchQuery(dbcs);
       if (StringUtils.hasText(formattedDbcs)) {
         rootQuery.filter(matchQuery(DESIGNATED_BODY_FIELD, formattedDbcs));
       }

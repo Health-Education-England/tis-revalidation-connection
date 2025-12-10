@@ -31,10 +31,12 @@ import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.get
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +71,8 @@ public class ConnectionController {
   private static final String SEARCH_QUERY = "searchQuery";
   private static final String EMPTY_STRING = "";
   private static final String PROGRAMME_NAME = "programmeName";
+  private static final String MEMBERSHIP_END_DATE_FROM = "membershipEndDateFrom";
+  private static final String MEMBERSHIP_END_DATE_TO = "membershipEndDateTo";
 
   @Autowired
   private ConnectionService connectionService;
@@ -225,7 +229,13 @@ public class ConnectionController {
       @RequestParam(name = PROGRAMME_NAME,
           required = false, defaultValue = EMPTY_STRING) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) throws ConnectionQueryException {
+      String searchQuery,
+      @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateFrom,
+      @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -233,8 +243,17 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
-    var connectionSummaryDto = discrepanciesElasticSearchService
-        .searchForPage(searchQueryES, dbcs, tisDbcs, programmeName, pageableAndSortable);
+
+    final ConnectionSummaryDto connectionSummaryDto =
+        discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(
+              searchQueryES,
+              dbcs,
+              tisDbcs,
+              programmeName,
+              membershipEndDateFrom,
+              membershipEndDateTo,
+              pageableAndSortable
+          );
 
     return ResponseEntity.ok(connectionSummaryDto);
   }
@@ -262,7 +281,13 @@ public class ConnectionController {
       @RequestParam(name = PROGRAMME_NAME,
           required = false) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) throws ConnectionQueryException {
+      String searchQuery,
+      @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateFrom,
+      @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate membershipEndDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -270,8 +295,16 @@ public class ConnectionController {
     searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
     var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
         .toString().toLowerCase();
-    var connectionSummaryDto = connectedElasticSearchService
-        .searchForPage(searchQueryES, dbcs, programmeName, pageableAndSortable);
+
+    final ConnectionSummaryDto connectionSummaryDto =
+        connectedElasticSearchService.searchForConnectionPageWithFilters(
+              searchQueryES,
+              dbcs,
+              programmeName,
+              membershipEndDateFrom,
+              membershipEndDateTo,
+              pageableAndSortable
+          );
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

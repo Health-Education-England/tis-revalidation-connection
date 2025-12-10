@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.hamcrest.Matchers;
@@ -46,8 +45,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -63,7 +60,6 @@ import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 @ExtendWith(MockitoExtension.class)
 class DiscrepanciesElasticSearchServiceTest {
 
-  private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
   @Mock
   private ElasticsearchOperations elasticsearchOperations;
@@ -80,10 +76,7 @@ class DiscrepanciesElasticSearchServiceTest {
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason;
-  private Page<DiscrepanciesView> searchResult;
-  private List<DiscrepanciesView> exceptionViews = new ArrayList<>();
-  private List<String> dbcs;
-  private String formattedDbcs;
+  private DiscrepanciesView discrepanciesView;
 
   /**
    * Set up data for testing.
@@ -101,7 +94,7 @@ class DiscrepanciesElasticSearchServiceTest {
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason = faker.lorem().characters(20);
 
-    DiscrepanciesView discrepanciesView = DiscrepanciesView.builder()
+    discrepanciesView = DiscrepanciesView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -112,10 +105,6 @@ class DiscrepanciesElasticSearchServiceTest {
         .programmeOwner(programmeOwner1)
         .exceptionReason(exceptionReason)
         .build();
-    exceptionViews.add(discrepanciesView);
-    searchResult = new PageImpl<>(List.of(discrepanciesView));
-    dbcs = List.of(designatedBody1, designatedBody2);
-    formattedDbcs = "1rsspz7 1rssq1b";
   }
 
   @Test
@@ -123,21 +112,17 @@ class DiscrepanciesElasticSearchServiceTest {
       throws Exception {
 
     final String searchQuery = "smith";
-    final List<String> dbcs1 = List.of("DB1", "DB2");
-    final List<String> tisDbcs = List.of("DB1", "DB2");
-    final String programmeName = "Programme1";
+    final List<String> dbcs1 = List.of(designatedBody1, designatedBody2);
+    final List<String> tisDbcs = List.of(designatedBody1, designatedBody2);
+    final String programmeName = programmeName1;
     final LocalDate from = LocalDate.of(2024, 1, 1);
     final LocalDate to = LocalDate.of(2024, 12, 31);
     final Pageable pageable = PageRequest.of(0, 20);
 
-    DiscrepanciesView entity = new DiscrepanciesView();
-    entity.setId("1L");
-    entity.setGmcReferenceNumber("1234567");
-
     @SuppressWarnings("unchecked")
     SearchHit<DiscrepanciesView> hit =
         (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
-    when(hit.getContent()).thenReturn(entity);
+    when(hit.getContent()).thenReturn(discrepanciesView);
 
     @SuppressWarnings("unchecked")
     SearchHits<DiscrepanciesView> hits =

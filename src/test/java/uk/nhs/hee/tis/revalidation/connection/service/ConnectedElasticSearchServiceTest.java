@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.List;
-import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,8 +45,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -64,8 +61,6 @@ import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 @ExtendWith(MockitoExtension.class)
 class ConnectedElasticSearchServiceTest {
 
-  private static final String VISITOR = "Visitor";
-  private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
@@ -82,7 +77,7 @@ class ConnectedElasticSearchServiceTest {
   private String programmeName1;
   private String programmeOwner1;
   private String exceptionReason1;
-  private Page<CurrentConnectionsView> currentConnectionsSearchResult;
+  private CurrentConnectionsView currentConnectionsView;
 
   /**
    * Set up data for testing.
@@ -100,7 +95,7 @@ class ConnectedElasticSearchServiceTest {
     programmeOwner1 = faker.lorem().characters(20);
     exceptionReason1 = faker.lorem().characters(20);
 
-    CurrentConnectionsView currentConnectionsView = CurrentConnectionsView.builder()
+    currentConnectionsView = CurrentConnectionsView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef1)
         .doctorFirstName(firstName1)
@@ -111,7 +106,6 @@ class ConnectedElasticSearchServiceTest {
         .programmeOwner(programmeOwner1)
         .exceptionReason(exceptionReason1)
         .build();
-    currentConnectionsSearchResult = new PageImpl<>(Lists.list(currentConnectionsView));
   }
 
   @Test
@@ -119,20 +113,16 @@ class ConnectedElasticSearchServiceTest {
       throws Exception {
 
     final String searchQuery = "smith";
-    final List<String> dbcs = List.of("DB1", "DB2");
-    final String programmeName = "Programme1";
+    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
+    final String programmeName = programmeName1;
     final LocalDate from = LocalDate.of(2024, 1, 1);
     final LocalDate to = LocalDate.of(2024, 12, 31);
     final Pageable pageable = PageRequest.of(0, 20);
 
-    CurrentConnectionsView entity = new CurrentConnectionsView();
-    entity.setId("1L");
-    entity.setGmcReferenceNumber("1234567");
-
     @SuppressWarnings("unchecked")
     SearchHit<CurrentConnectionsView> hit =
         (SearchHit<CurrentConnectionsView>) mock(SearchHit.class);
-    when(hit.getContent()).thenReturn(entity);
+    when(hit.getContent()).thenReturn(currentConnectionsView);
 
     @SuppressWarnings("unchecked")
     SearchHits<CurrentConnectionsView> hits =

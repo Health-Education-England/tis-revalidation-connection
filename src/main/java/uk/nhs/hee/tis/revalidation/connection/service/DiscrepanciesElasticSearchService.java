@@ -48,7 +48,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.DiscrepanciesElasticSearchRepository;
 
 @Service
 public class DiscrepanciesElasticSearchService {
@@ -64,45 +63,11 @@ public class DiscrepanciesElasticSearchService {
   private static final String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
   private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
-  @Autowired
-  DiscrepanciesElasticSearchRepository discrepanciesElasticSearchRepository;
+
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
-
-  /**
-   * Get discrepancies from discrepancies elasticsearch index.
-   *
-   * @param searchQuery   query to run
-   * @param dbcs          list of gmc dbcs to limit the search to
-   * @param tisDbcs       list of tis dbcs to limit the search to
-   * @param programmeName programme name to filter by
-   * @param pageable      pagination information
-   */
-  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      List<String> tisDbcs,
-      String programmeName, Pageable pageable)
-      throws ConnectionQueryException {
-    try {
-      Page<DiscrepanciesView> result = discrepanciesElasticSearchRepository
-          .findAll(searchQuery,
-              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
-              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(tisDbcs),
-              programmeName,
-              pageable);
-
-      final var discrepancies = result.get().collect(toList());
-      return ConnectionSummaryDto.builder()
-          .totalPages(result.getTotalPages())
-          .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepancies))
-          .build();
-
-    } catch (RuntimeException re) {
-      throw new ConnectionQueryException("discrepancies", searchQuery, re);
-    }
-  }
 
   /**
    * Get trainees with discrepancies from discrepancies elasticsearch index when pm end date values

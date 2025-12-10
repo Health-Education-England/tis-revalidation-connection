@@ -22,21 +22,17 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.time.LocalDate.now;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.by;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -62,9 +58,7 @@ import org.springframework.data.elasticsearch.core.query.Query;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
-import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -73,8 +67,6 @@ class ConnectedElasticSearchServiceTest {
   private static final String VISITOR = "Visitor";
   private static final String PAGE_NUMBER_VALUE = "0";
   private final Faker faker = new Faker();
-  @Mock
-  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
   @Mock
@@ -123,69 +115,6 @@ class ConnectedElasticSearchServiceTest {
   }
 
   @Test
-  void shouldSearchForPage() throws ConnectionQueryException {
-    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
-
-    when(currentConnectionElasticSearchRepository.findAll("", formattedDbcs,
-        "", pageableAndSortable))
-        .thenReturn(currentConnectionsSearchResult);
-
-    final var records = currentConnectionsSearchResult.get().collect(toList());
-    var connectionSummary = ConnectionSummaryDto.builder()
-        .totalPages(currentConnectionsSearchResult.getTotalPages())
-        .totalResults(currentConnectionsSearchResult.getTotalElements())
-        .connections(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(records))
-        .build();
-
-    ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage("", dbcs, "", pageableAndSortable);
-    assertThat(result, is(connectionSummary));
-  }
-
-  @Test
-  void shouldSearchForPageWithQuery() throws ConnectionQueryException {
-    String searchQuery = gmcRef1;
-    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
-
-    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        programmeName1, pageableAndSortable))
-        .thenReturn(currentConnectionsSearchResult);
-
-    final var records = currentConnectionsSearchResult.get().collect(toList());
-    var connectionSummary = ConnectionSummaryDto.builder()
-        .totalPages(currentConnectionsSearchResult.getTotalPages())
-        .totalResults(currentConnectionsSearchResult.getTotalElements())
-        .connections(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(records))
-        .build();
-
-    ConnectionSummaryDto result = connectedElasticSearchService
-        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable);
-    assertThat(result, is(connectionSummary));
-  }
-
-  @Test
-  void shouldThrowRuntimeExceptionWhenSearchForPageWithQuery() {
-    String searchQuery = gmcRef1;
-    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
-    final List<String> dbcs = List.of(designatedBody1, designatedBody2);
-    final String formattedDbcs = "1rsspz7 1rssq1b";
-
-    when(currentConnectionElasticSearchRepository.findAll(searchQuery, formattedDbcs,
-        programmeName1, pageableAndSortable))
-        .thenThrow(RuntimeException.class);
-
-    assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
-        .searchForPage(searchQuery, dbcs, programmeName1, pageableAndSortable));
-  }
-
-  @Test
   void shouldSearchForPageWithMembershipEndDateFromToAndReturnConnectionSummary()
       throws Exception {
 
@@ -227,7 +156,6 @@ class ConnectedElasticSearchServiceTest {
     assertThat(result.getTotalPages(), is(1L));
     assertThat(result.getConnections(), hasSize(1));
 
-    @SuppressWarnings("unchecked")
     ArgumentCaptor<NativeSearchQuery> queryCaptor =
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 

@@ -48,7 +48,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.repository.CurrentConnectionElasticSearchRepository;
 
 @Service
 public class ConnectedElasticSearchService {
@@ -63,41 +62,11 @@ public class ConnectedElasticSearchService {
   private static final String EXCLUDED_PLACEMENT_GRADE = "279";
   private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
-  @Autowired
-  CurrentConnectionElasticSearchRepository currentConnectionElasticSearchRepository;
+
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
   @Autowired
   private ElasticsearchOperations elasticsearchOperations;
-
-  /**
-   * Get connected trainees from Connected elasticsearch index.
-   *
-   * @param searchQuery query to run
-   * @param pageable    pagination information
-   */
-  public ConnectionSummaryDto searchForPage(String searchQuery, List<String> dbcs,
-      String programmeName, Pageable pageable) throws ConnectionQueryException {
-
-    try {
-      Page<CurrentConnectionsView> result = currentConnectionElasticSearchRepository
-          .findAll(searchQuery,
-              ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs),
-              programmeName,
-              pageable);
-
-      final var connectedTrainees = result.get().collect(toList());
-      return ConnectionSummaryDto.builder()
-          .totalPages(result.getTotalPages())
-          .totalResults(result.getTotalElements())
-          .connections(connectionInfoMapper
-              .currentConnectionsToConnectionInfoDtos(connectedTrainees))
-          .build();
-
-    } catch (RuntimeException re) {
-      throw new ConnectionQueryException("current connections", searchQuery, re);
-    }
-  }
 
   /**
    * Get connected trainees from Connected elasticsearch index when pm end date values are there for

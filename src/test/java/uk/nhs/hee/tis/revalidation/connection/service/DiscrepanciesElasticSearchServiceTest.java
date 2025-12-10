@@ -227,7 +227,6 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThat(result.getTotalPages(), Matchers.is(1L));
     assertThat(result.getConnections(), hasSize(1));
 
-    @SuppressWarnings("unchecked")
     ArgumentCaptor<NativeSearchQuery> queryCaptor =
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 

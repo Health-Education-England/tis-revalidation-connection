@@ -70,16 +70,20 @@ class DiscrepanciesElasticSearchServiceTest {
   @InjectMocks
   DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   private String gmcRef;
-  private String firstName, lastName;
+  private String firstName;
+  private String lastName;
   private LocalDate submissionDate;
-  private String designatedBody1, designatedBody2;
+  private String designatedBody1;
+  private String designatedBody2;
   private String programmeName;
   private String programmeOwner;
   private String exceptionReason;
   private DiscrepanciesView discrepanciesView;
   private String searchQuery;
-  private List<String> dbcs, tisDbcs;
-  private LocalDate from, to;
+  private List<String> dbcs;
+  private List<String> tisDbcs;
+  private LocalDate from;
+  private LocalDate to;
   private Pageable pageable;
 
   /**

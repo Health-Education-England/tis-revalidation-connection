@@ -70,16 +70,19 @@ class ConnectedElasticSearchServiceTest {
   @InjectMocks
   ConnectedElasticSearchService connectedElasticSearchService;
   private String gmcRef;
-  private String firstName, lastName;
+  private String firstName;
+  private String lastName;
   private LocalDate submissionDate;
-  private String designatedBody1, designatedBody2;
+  private String designatedBody1;
+  private String designatedBody2;
   private String programmeName;
   private String programmeOwner;
   private String exceptionReason;
   private CurrentConnectionsView currentConnectionsView;
   private String searchQuery;
   private List<String> dbcs;
-  private LocalDate from, to;
+  private LocalDate from;
+  private LocalDate to;
   private Pageable pageable;
 
   /**

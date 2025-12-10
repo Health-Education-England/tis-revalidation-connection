@@ -54,6 +54,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
@@ -308,8 +309,8 @@ public class ConnectionService {
     hideRepository.deleteById(gmcId);
   }
 
-  public void getConnectionLogsForSync(int pageSize) {
-    long start = System.currentTimeMillis();
+  public void sendConnectionLogsForSync(int pageSize) {
+//    long start = System.currentTimeMillis();
 
     int currentPage = 0;
     Page<ConnectionLog> connectionLogs;
@@ -318,21 +319,20 @@ public class ConnectionService {
       connectionLogs = connectionLogCustomRepository.getLatestLogsWithPaging(currentPage, pageSize);
       log.info("Fetched page {} with {} connection logs for sync.", currentPage,
           connectionLogs.getNumberOfElements());
-      rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey,
-          connectionLogMapper.toDtoList(connectionLogs.toList()));
+      var syncDataPayload = IndexSyncMessage.builder()
+          .payload(connectionLogMapper.toDtoList(connectionLogs.toList())).syncEnd(false).build();
+      rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncDataPayload);
       currentPage++;
     } while (currentPage < connectionLogs.getTotalPages());
 
-    long end = System.currentTimeMillis();
-    long duration = end - start;
-    log.info("Time taken to fetch {} connection logs for sync: {} ms ({} seconds)", pageSize, duration, duration / 1000.0);
+//    long end = System.currentTimeMillis();
+//    long duration = end - start;
+//    log.info("Time taken to fetch {} connection logs for sync: {} ms ({} seconds)", pageSize, duration, duration / 1000.0);
 
-    int totalPage = connectionLogs.getTotalPages();
-    log.info("Total pages to process for connection logs sync: {}", totalPage);
-    rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, getSyncEndMessageDto());
-  }
+    log.info("Total pages to process for connection logs sync: {}", connectionLogs.getTotalPages());
 
-  private ConnectionLogDto getSyncEndMessageDto() {
-    return ConnectionLogDto.builder().syncEnd(true).build();
+    var syncEndPayload = IndexSyncMessage.builder().payload(List.of()).syncEnd(true)
+        .build();
+    rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
 }

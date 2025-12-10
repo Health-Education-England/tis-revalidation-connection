@@ -21,6 +21,4 @@ public class ConnectionLogDto {
   private String previousDesignatedBodyCode;
   private String updatedBy;
   private LocalDateTime eventDateTime;
-  @Nullable
-  Boolean syncEnd;
 }

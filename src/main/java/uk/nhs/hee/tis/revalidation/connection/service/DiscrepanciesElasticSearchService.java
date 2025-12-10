@@ -32,6 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -144,7 +145,9 @@ public class DiscrepanciesElasticSearchService {
       rootQuery.filter(designatedBodyQuery);
 
       if (StringUtils.hasText(programmeName)) {
-        rootQuery.filter(matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName));
+        rootQuery.filter(
+            matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName).zeroTermsQuery(
+                ZeroTermsQuery.ALL));
       }
 
       if (StringUtils.hasText(searchQuery)) {

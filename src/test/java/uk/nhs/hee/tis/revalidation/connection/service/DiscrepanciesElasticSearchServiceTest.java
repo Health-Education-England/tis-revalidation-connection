@@ -26,6 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,6 +56,7 @@ import org.springframework.data.elasticsearch.core.query.Query;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,16 +69,18 @@ class DiscrepanciesElasticSearchServiceTest {
   ConnectionInfoMapper connectionInfoMapper;
   @InjectMocks
   DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
-  private String gmcRef1;
-  private String firstName1;
-  private String lastName1;
-  private LocalDate submissionDate1;
-  private String designatedBody1;
-  private String designatedBody2;
-  private String programmeName1;
-  private String programmeOwner1;
+  private String gmcRef;
+  private String firstName, lastName;
+  private LocalDate submissionDate;
+  private String designatedBody1, designatedBody2;
+  private String programmeName;
+  private String programmeOwner;
   private String exceptionReason;
   private DiscrepanciesView discrepanciesView;
+  private String searchQuery;
+  private List<String> dbcs, tisDbcs;
+  private LocalDate from, to;
+  private Pageable pageable;
 
   /**
    * Set up data for testing.
@@ -84,25 +88,31 @@ class DiscrepanciesElasticSearchServiceTest {
   @BeforeEach
   public void setup() {
 
-    gmcRef1 = faker.number().digits(8);
-    firstName1 = faker.name().firstName();
-    lastName1 = faker.name().lastName();
-    submissionDate1 = now();
+    gmcRef = faker.number().digits(8);
+    firstName = faker.name().firstName();
+    lastName = faker.name().lastName();
+    submissionDate = now();
     designatedBody1 = "1-1RSSPZ7";
     designatedBody2 = "1-1RSSQ1B";
-    programmeName1 = faker.lorem().characters(20);
-    programmeOwner1 = faker.lorem().characters(20);
+    programmeName = faker.lorem().characters(20);
+    programmeOwner = faker.lorem().characters(20);
     exceptionReason = faker.lorem().characters(20);
+    searchQuery = "smith";
+    tisDbcs = List.of(designatedBody1, designatedBody2);
+    dbcs = List.of(designatedBody1, designatedBody2);
+    from = LocalDate.of(2024, 1, 1);
+    to = LocalDate.of(2024, 12, 31);
+    pageable = PageRequest.of(0, 20);
 
     discrepanciesView = DiscrepanciesView.builder()
         .tcsPersonId((long) 111)
-        .gmcReferenceNumber(gmcRef1)
-        .doctorFirstName(firstName1)
-        .doctorLastName(lastName1)
-        .submissionDate(submissionDate1)
-        .programmeName(programmeName1)
+        .gmcReferenceNumber(gmcRef)
+        .doctorFirstName(firstName)
+        .doctorLastName(lastName)
+        .submissionDate(submissionDate)
+        .programmeName(programmeName)
         .designatedBody(designatedBody1)
-        .programmeOwner(programmeOwner1)
+        .programmeOwner(programmeOwner)
         .exceptionReason(exceptionReason)
         .build();
   }
@@ -110,14 +120,6 @@ class DiscrepanciesElasticSearchServiceTest {
   @Test
   void shouldSearchForPageWithMembershipEndDateFromToAndReturnDiscrepanciesSummary()
       throws Exception {
-
-    final String searchQuery = "smith";
-    final List<String> dbcs1 = List.of(designatedBody1, designatedBody2);
-    final List<String> tisDbcs = List.of(designatedBody1, designatedBody2);
-    final String programmeName = programmeName1;
-    final LocalDate from = LocalDate.of(2024, 1, 1);
-    final LocalDate to = LocalDate.of(2024, 12, 31);
-    final Pageable pageable = PageRequest.of(0, 20);
 
     @SuppressWarnings("unchecked")
     SearchHit<DiscrepanciesView> hit =
@@ -139,7 +141,7 @@ class DiscrepanciesElasticSearchServiceTest {
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
-            searchQuery, dbcs1, tisDbcs, programmeName, from, to, pageable);
+            searchQuery, dbcs, tisDbcs, programmeName, from, to, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));
@@ -158,5 +160,16 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThat(queryString, containsString("membershipEndDate"));
     assertThat(queryString, containsString(from.toString()));
     assertThat(queryString, containsString(to.toString()));
+  }
+
+  @Test
+  void shouldThrowRuntimeExceptionWhenSearchForDiscrepanciesPage() {
+
+    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+        .thenThrow(new RuntimeException("Elasticsearch failure"));
+
+    assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
+        .searchForDiscrepanciesPageWithFilters(
+            searchQuery, dbcs, tisDbcs, programmeName, from, to, pageable));
   }
 }

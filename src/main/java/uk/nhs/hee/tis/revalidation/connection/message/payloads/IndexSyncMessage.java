@@ -22,13 +22,14 @@
 package uk.nhs.hee.tis.revalidation.connection.message.payloads;
 
 import io.swagger.annotations.ApiModel;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 
+/**
+ * Message wrapper for index sync messages
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

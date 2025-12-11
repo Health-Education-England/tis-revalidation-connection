@@ -24,9 +24,12 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,6 +50,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
@@ -59,6 +64,8 @@ import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
+import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
+import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
@@ -75,6 +82,9 @@ class ConnectionServiceTest {
 
   @Mock
   private ConnectionRepository repository;
+
+  @Mock
+  private ConnectionLogCustomRepository connectionLogCustomRepository;
 
   @Mock
   private HideConnectionRepository hideRepository;
@@ -95,6 +105,8 @@ class ConnectionServiceTest {
   private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
   @Captor
   private ArgumentCaptor<ConnectionLog> connectionLogArgCaptor;
+  @Captor
+  private ArgumentCaptor<IndexSyncMessage<List<ConnectionLogDto>>> indexSyncMessageCaptor;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -149,6 +161,7 @@ class ConnectionServiceTest {
 
     setField(connectionService, "exchange", "esExchange");
     setField(connectionService, "routingKey", "routingKey");
+    setField(connectionService, "esSyncDataRoutingKey", "esSyncRoutingKey");
   }
 
   @Test
@@ -333,6 +346,44 @@ class ConnectionServiceTest {
     assertThat(result.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
     assertThat(result.getUpdatedBy(), is(admin));
     assertThat(result.getRequestTime(), is(requestTime));
+  }
+
+  @Test
+  void shouldSendAllPagesAndSyncEndMessage() {
+    // given
+    int pageSize = 2;
+    int totalLogs = 3;
+    ConnectionLog log1 = new ConnectionLog();
+    ConnectionLog log2 = new ConnectionLog();
+    ConnectionLog log3 = new ConnectionLog();
+
+    Page<ConnectionLog> page0 = new PageImpl<>(List.of(log1, log2),
+        org.springframework.data.domain.PageRequest.of(0, pageSize), totalLogs);
+    Page<ConnectionLog> page1 = new PageImpl<>(List.of(log3),
+        org.springframework.data.domain.PageRequest.of(1, pageSize), totalLogs);
+
+    when(connectionLogCustomRepository.getLatestLogsWithPaging(0, pageSize)).thenReturn(page0);
+    when(connectionLogCustomRepository.getLatestLogsWithPaging(1, pageSize)).thenReturn(page1);
+
+    // when
+    connectionService.sendConnectionLogsForSync(pageSize);
+
+    // then
+    verify(connectionLogCustomRepository).getLatestLogsWithPaging(0, pageSize);
+    verify(connectionLogCustomRepository).getLatestLogsWithPaging(1, pageSize);
+
+    verify(connectionLogMapper).toDtoList(page0.toList());
+    verify(connectionLogMapper).toDtoList(page1.toList());
+
+    verify(rabbitTemplate, times(3)).convertAndSend(anyString(), anyString(),
+        indexSyncMessageCaptor.capture());
+
+    List<IndexSyncMessage<List<ConnectionLogDto>>> sentMessages =
+        indexSyncMessageCaptor.getAllValues();
+    assertFalse(sentMessages.get(0).getSyncEnd());
+    assertFalse(sentMessages.get(1).getSyncEnd());
+    assertTrue(sentMessages.get(2).getSyncEnd());
+    assertTrue(sentMessages.get(2).getPayload().isEmpty());
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

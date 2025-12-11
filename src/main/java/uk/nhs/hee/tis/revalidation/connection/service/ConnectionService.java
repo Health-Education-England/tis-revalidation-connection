@@ -310,8 +310,6 @@ public class ConnectionService {
   }
 
   public void sendConnectionLogsForSync(int pageSize) {
-//    long start = System.currentTimeMillis();
-
     int currentPage = 0;
     Page<ConnectionLog> connectionLogs;
 
@@ -324,10 +322,6 @@ public class ConnectionService {
       rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncDataPayload);
       currentPage++;
     } while (currentPage < connectionLogs.getTotalPages());
-
-//    long end = System.currentTimeMillis();
-//    long duration = end - start;
-//    log.info("Time taken to fetch {} connection logs for sync: {} ms ({} seconds)", pageSize, duration, duration / 1000.0);
 
     log.info("Total pages to process for connection logs sync: {}", connectionLogs.getTotalPages());
 

@@ -38,7 +38,7 @@ app:
       routingKey:
         gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
         connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
-        connectionlog.essyncdata: ${CONNECTIONLOG_ESSYNCDATA_ROUTING_KEY:reval.routingkey.connectionlog.essyncdata}
+        connectionlog.essyncdata: ${CONNECTION_LOG_ESSYNCDATA_ROUTING_KEY:reval.routingkey.connectionlog.essyncdata}
       queue:
         connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
         connectionlog.essyncstart: ${CONNECTION_LOG_ESSYNCSTART_QUEUE:reval.queue.connectionlog.essyncstart.connection}

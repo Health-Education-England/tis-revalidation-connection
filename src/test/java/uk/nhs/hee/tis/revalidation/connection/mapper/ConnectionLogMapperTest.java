@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
-public class ConnectionLogMapperTest {
+class ConnectionLogMapperTest {
 
   private static final Faker faker = Faker.instance();
 
@@ -54,4 +54,23 @@ public class ConnectionLogMapperTest {
     assertThat(result.getRequestTime(), is(EVENT_DATETIME));
   }
 
+  @Test
+  void shouldMapConnectionLogsToDtoList() {
+    ConnectionLog connectionLog = ConnectionLog.builder().gmcId(GMC_ID)
+        .newDesignatedBodyCode(NEW_DBC)
+        .previousDesignatedBodyCode(OLD_DBC).updatedBy(UPDATED_BY).requestTime(EVENT_DATETIME)
+        .build();
+
+    var result = mapper.toDtoList(
+        java.util.List.of(connectionLog, connectionLog));
+
+    assertThat(result.size(), is(2));
+    for (ConnectionLogDto dto : result) {
+      assertThat(dto.getGmcId(), is(GMC_ID));
+      assertThat(dto.getNewDesignatedBodyCode(), is(NEW_DBC));
+      assertThat(dto.getPreviousDesignatedBodyCode(), is(OLD_DBC));
+      assertThat(dto.getUpdatedBy(), is(UPDATED_BY));
+      assertThat(dto.getEventDateTime(), is(EVENT_DATETIME));
+    }
+  }
 }

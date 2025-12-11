@@ -40,17 +40,43 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
+/**
+ * Custom repository for ConnectionLog with aggregation queries.
+ */
 @Slf4j
 @Repository
 public class ConnectionLogCustomRepository {
 
-  private static final String COLLECTION_NAME = "connectionLogs";
+  protected static final String COLLECTION_NAME = "connectionLogs";
   private final MongoTemplate mongoTemplate;
 
+  /**
+   * Constructor for ConnectionLogCustomRepository.
+   *
+   * @param mongoTemplate the MongoTemplate to interact with MongoDB
+   */
   public ConnectionLogCustomRepository(MongoTemplate mongoTemplate) {
     this.mongoTemplate = mongoTemplate;
   }
 
+  /**
+   * Retrieves the latest connection logs for each unique gmcId with pagination.
+   * Only logs with responseCode "0" or missing responseCode are considered.
+   * The pipeline includes filtering, sorting, grouping, and pagination stages as below:
+   * [
+   *   { "$match": { "$or": [{ "responseCode": "0" }, { "responseCode": { "$exists": false } }] } },
+   *   { "$sort": { "gmcId": 1, "requestTime": -1 } },
+   *   { "$group": { "_id": "$gmcId",
+   * 				"latestRecord": { "$first": "$$ROOT" } } },
+   *   { "$replaceRoot": { "newRoot": "$latestRecord" } },
+   *   { "$skip": page * pageSize },
+   *   { "$limit": pageSize }
+   * ]
+   *
+   * @param page     the page number (0-based)
+   * @param pageSize the number of records per page
+   * @return a Page of ConnectionLog containing the latest logs
+   */
   public Page<ConnectionLog> getLatestLogsWithPaging(int page, int pageSize) {
     // $match stage to filter logs with responseCode "0" or missing responseCode
     MatchOperation match = Aggregation.match(

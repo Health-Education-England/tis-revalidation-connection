@@ -47,6 +47,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 @Repository
 public class ConnectionLogCustomRepository {
 
+  private static final String GMC_ID_FIELD = "gmcId";
   protected static final String COLLECTION_NAME = "connectionLogs";
   private final MongoTemplate mongoTemplate;
 
@@ -66,8 +67,7 @@ public class ConnectionLogCustomRepository {
    * [
    *   { "$match": { "$or": [{ "responseCode": "0" }, { "responseCode": { "$exists": false } }] } },
    *   { "$sort": { "gmcId": 1, "requestTime": -1 } },
-   *   { "$group": { "_id": "$gmcId",
-   * 				"latestRecord": { "$first": "$$ROOT" } } },
+   *   { "$group": { "_id": "$gmcId", "latestRecord": { "$first": "$$ROOT" } } },
    *   { "$replaceRoot": { "newRoot": "$latestRecord" } },
    *   { "$skip": page * pageSize },
    *   { "$limit": pageSize }
@@ -88,11 +88,11 @@ public class ConnectionLogCustomRepository {
 
     // $sort stage to sort by gmcId ascending and requestTime descending
     SortOperation sort = Aggregation.sort(
-        Sort.by(Sort.Order.asc("gmcId"), Sort.Order.desc("requestTime"))
+        Sort.by(Sort.Order.asc(GMC_ID_FIELD), Sort.Order.desc("requestTime"))
     );
 
     // $group stage to group by gmcId and get the first document (latest log)
-    GroupOperation group = Aggregation.group("gmcId")
+    GroupOperation group = Aggregation.group(GMC_ID_FIELD)
         .first(Aggregation.ROOT).as("latestLog");
 
     // $replaceRoot stage to replace the root with the latestLog document
@@ -103,7 +103,7 @@ public class ConnectionLogCustomRepository {
     LimitOperation limit = Aggregation.limit(pageSize);
 
     // Get the total count of records after grouping
-    GroupOperation countGroup = Aggregation.group("gmcId");
+    GroupOperation countGroup = Aggregation.group(GMC_ID_FIELD);
     Aggregation countAggregation = Aggregation.newAggregation(match, countGroup,
         Aggregation.count().as("total"));
 

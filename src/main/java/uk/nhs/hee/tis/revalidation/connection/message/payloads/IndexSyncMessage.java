@@ -28,7 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Message wrapper for index sync messages
+ * Message wrapper for index sync messages.
  */
 @Data
 @AllArgsConstructor

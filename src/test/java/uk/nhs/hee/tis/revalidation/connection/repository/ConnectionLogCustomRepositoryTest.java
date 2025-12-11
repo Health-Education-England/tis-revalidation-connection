@@ -21,18 +21,21 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository.COLLECTION_NAME;
 
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -69,8 +72,8 @@ class ConnectionLogCustomRepositoryTest {
     ConnectionLog log1 = new ConnectionLog();
     ConnectionLog log2 = new ConnectionLog();
     when(logResults.getMappedResults()).thenReturn(List.of(log1, log2));
-    when(mongoTemplate.aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(ConnectionLog.class)))
-        .thenReturn(logResults);
+    when(mongoTemplate.aggregate(any(Aggregation.class), eq(COLLECTION_NAME),
+        eq(ConnectionLog.class))).thenReturn(logResults);
 
     // when
     Page<ConnectionLog> pageResult = repository.getLatestLogsWithPaging(PAGE_NUMBER, PAGE_SIZE);
@@ -81,7 +84,8 @@ class ConnectionLogCustomRepositoryTest {
     assertEquals(PAGE_SIZE, pageResult.getSize());
 
     verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(Map.class));
-    verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(ConnectionLog.class));
+    verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME),
+        eq(ConnectionLog.class));
   }
 
   @Test
@@ -93,8 +97,8 @@ class ConnectionLogCustomRepositoryTest {
         .thenReturn(countResults);
 
     when(logResults.getMappedResults()).thenReturn(List.of());
-    when(mongoTemplate.aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(ConnectionLog.class)))
-        .thenReturn(logResults);
+    when(mongoTemplate.aggregate(any(Aggregation.class), eq(COLLECTION_NAME),
+        eq(ConnectionLog.class))).thenReturn(logResults);
     // when
     Page<ConnectionLog> pageResult = repository.getLatestLogsWithPaging(PAGE_NUMBER, PAGE_SIZE);
     // then
@@ -102,6 +106,7 @@ class ConnectionLogCustomRepositoryTest {
     assertTrue(pageResult.getContent().isEmpty());
 
     verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(Map.class));
-    verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME), eq(ConnectionLog.class));
+    verify(mongoTemplate).aggregate(any(Aggregation.class), eq(COLLECTION_NAME),
+        eq(ConnectionLog.class));
   }
 }

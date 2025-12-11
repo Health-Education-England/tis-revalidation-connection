@@ -309,6 +309,11 @@ public class ConnectionService {
     hideRepository.deleteById(gmcId);
   }
 
+  /**
+   * Send connection logs to rabbit for elasticsearch sync in pages.
+   *
+   * @param pageSize the size of each page
+   */
   public void sendConnectionLogsForSync(int pageSize) {
     int currentPage = 0;
     Page<ConnectionLog> connectionLogs;

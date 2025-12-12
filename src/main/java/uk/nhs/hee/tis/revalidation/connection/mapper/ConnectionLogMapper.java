@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.mapper;
 
+import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,4 +14,6 @@ public interface ConnectionLogMapper {
 
   @Mapping(source = "requestTime", target = "eventDateTime")
   ConnectionLogDto toDto(ConnectionLog connectionLog);
+
+  List<ConnectionLogDto> toDtoList(List<ConnectionLog> connectionLogs);
 }

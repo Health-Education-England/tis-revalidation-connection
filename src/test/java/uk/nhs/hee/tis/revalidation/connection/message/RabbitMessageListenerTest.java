@@ -3,6 +3,7 @@ package uk.nhs.hee.tis.revalidation.connection.message;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 
 @ExtendWith(MockitoExtension.class)
-public class RabbitMessageListenerTest {
+class RabbitMessageListenerTest {
 
   private static final Faker faker = Faker.instance();
 
@@ -55,4 +56,17 @@ public class RabbitMessageListenerTest {
     assertThat(result.getEventDateTime(), is(EVENT_DATETIME));
   }
 
+  @Test
+  void shouldStartConnectionLogEsSync() {
+    rabbitMessageListener.connectionLogEsSync(
+        RabbitMessageListener.CONNECTION_LOG_SYNC_START_MESSAGE);
+    verify(connectionService).sendConnectionLogsForSync(rabbitMessageListener.batchSize);
+  }
+
+  @Test
+  void shouldNotStartConnectionLogEsSyncForInvalidMessage() {
+    String invalidMessage = "invalidMessage";
+    rabbitMessageListener.connectionLogEsSync(invalidMessage);
+    verifyNoInteractions(connectionService);
+  }
 }

@@ -23,6 +23,7 @@ package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -51,5 +52,5 @@ public class ConnectionInfoDto {
   LocalDate programmeMembershipEndDate;
   String exceptionReason;
   String updatedBy;
-  LocalDate lastConnectionDateTime;
+  LocalDateTime lastConnectionDateTime;
 }

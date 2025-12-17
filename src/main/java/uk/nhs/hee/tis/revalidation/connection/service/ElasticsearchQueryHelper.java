@@ -29,7 +29,7 @@ public final class ElasticsearchQueryHelper {
 
   private static final List<String> KEYWORD_SORT_FIELDS = List.of("designatedBody",
       "tcsDesignatedBody",
-      "programmeOwner", "membershipType");
+      "programmeOwner", "membershipType", "updatedBy");
 
   private ElasticsearchQueryHelper() {
     throw new UnsupportedOperationException("Utility class");

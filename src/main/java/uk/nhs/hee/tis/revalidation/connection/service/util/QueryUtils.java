@@ -32,7 +32,7 @@ public final class QueryUtils {
   }
 
   /**
-   * A common method that adds a range filter to the root query
+   * A common method that adds a range filter to the root query.
    *
    * @param rootQuery         root query
    * @param field             field to be filtered

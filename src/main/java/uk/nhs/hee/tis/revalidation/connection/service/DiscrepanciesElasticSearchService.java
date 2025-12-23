@@ -25,13 +25,11 @@ import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 import java.time.LocalDate;
 import java.util.List;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -48,6 +46,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.service.util.QueryUtils;
 
 @Service
 public class DiscrepanciesElasticSearchService {
@@ -63,6 +62,7 @@ public class DiscrepanciesElasticSearchService {
   private static final String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
   private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
+  private static final String GMC_SUBMISSION_DATE_FIELD = "gmcSubmissionDate";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -87,6 +87,8 @@ public class DiscrepanciesElasticSearchService {
       String programmeName,
       LocalDate membershipEndDateFrom,
       LocalDate membershipEndDateTo,
+      LocalDate gmcSubmissionDateFrom,
+      LocalDate gmcSubmissionDateTo,
       Pageable pageable)
       throws ConnectionQueryException {
 
@@ -126,16 +128,15 @@ public class DiscrepanciesElasticSearchService {
         rootQuery.filter(searchSubQuery);
       }
 
-      if (membershipEndDateFrom != null || membershipEndDateTo != null) {
-        RangeQueryBuilder dateRange = rangeQuery(PROGRAMME_MEMBERSHIP_END_DATE_FIELD);
-        if (membershipEndDateFrom != null) {
-          dateRange.gte(membershipEndDateFrom.toString());
-        }
-        if (membershipEndDateTo != null) {
-          dateRange.lte(membershipEndDateTo.toString());
-        }
-        rootQuery.filter(dateRange);
-      }
+      QueryUtils.addDateRangeFilter(rootQuery,
+          PROGRAMME_MEMBERSHIP_END_DATE_FIELD,
+          membershipEndDateFrom != null ? membershipEndDateFrom.toString() : null,
+          membershipEndDateTo != null ? membershipEndDateTo.toString() : null);
+
+      QueryUtils.addDateRangeFilter(rootQuery,
+          GMC_SUBMISSION_DATE_FIELD,
+          gmcSubmissionDateFrom != null ? gmcSubmissionDateFrom.toString() : null,
+          gmcSubmissionDateTo != null ? gmcSubmissionDateTo.toString() : null);
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

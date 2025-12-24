@@ -46,7 +46,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
-import uk.nhs.hee.tis.revalidation.connection.service.util.QueryUtils;
+import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils;
 
 @Service
 public class ConnectedElasticSearchService {
@@ -119,12 +119,12 @@ public class ConnectedElasticSearchService {
         rootQuery.filter(searchSubQuery);
       }
 
-      QueryUtils.addDateRangeFilter(rootQuery,
+      EsQueryUtils.addDateRangeFilter(rootQuery,
           PROGRAMME_MEMBERSHIP_END_DATE_FIELD,
           membershipEndDateFrom != null ? membershipEndDateFrom.toString() : null,
           membershipEndDateTo != null ? membershipEndDateTo.toString() : null);
 
-      QueryUtils.addDateRangeFilter(rootQuery,
+      EsQueryUtils.addDateRangeFilter(rootQuery,
           GMC_SUBMISSION_DATE_FIELD,
           gmcSubmissionDateFrom != null ? gmcSubmissionDateFrom.toString() : null,
           gmcSubmissionDateTo != null ? gmcSubmissionDateTo.toString() : null);

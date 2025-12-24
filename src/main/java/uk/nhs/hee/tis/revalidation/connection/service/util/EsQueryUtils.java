@@ -26,9 +26,9 @@ import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 
-public final class QueryUtils {
+public final class EsQueryUtils {
 
-  private QueryUtils() {
+  private EsQueryUtils() {
   }
 
   /**

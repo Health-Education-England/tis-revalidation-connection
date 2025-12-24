@@ -38,7 +38,7 @@ class QueryUtilsTest {
     final BoolQueryBuilder rootQuery = boolQuery();
     final String before = rootQuery.toString();
 
-    QueryUtils.addDateRangeFilter(rootQuery, FIELD, null, null);
+    EsQueryUtils.addDateRangeFilter(rootQuery, FIELD, null, null);
 
     final String after = rootQuery.toString();
     assertThat(after, is(before));
@@ -49,7 +49,7 @@ class QueryUtilsTest {
     final BoolQueryBuilder rootQuery = boolQuery();
     final String from = "2024-01-01";
 
-    QueryUtils.addDateRangeFilter(rootQuery, FIELD, from, null);
+    EsQueryUtils.addDateRangeFilter(rootQuery, FIELD, from, null);
 
     final String after = rootQuery.toString();
     assertThat(after, containsString(FIELD));
@@ -62,7 +62,7 @@ class QueryUtilsTest {
     final BoolQueryBuilder rootQuery = boolQuery();
     final String to = "2024-12-31";
 
-    QueryUtils.addDateRangeFilter(rootQuery, FIELD, null, to);
+    EsQueryUtils.addDateRangeFilter(rootQuery, FIELD, null, to);
 
     final String after = rootQuery.toString();
     assertThat(after, containsString(FIELD));
@@ -76,7 +76,7 @@ class QueryUtilsTest {
     final String from = "2024-01-01";
     final String to = "2024-12-31";
 
-    QueryUtils.addDateRangeFilter(rootQuery, FIELD, from, to);
+    EsQueryUtils.addDateRangeFilter(rootQuery, FIELD, from, to);
 
     final String after = rootQuery.toString();
     assertThat(after, containsString(FIELD));
@@ -91,7 +91,7 @@ class QueryUtilsTest {
     final String from = "2021-01-01";
     final String to = "2021-12-31";
 
-    QueryUtils.addDateRangeFilter(rootQuery, customField, from, to);
+    EsQueryUtils.addDateRangeFilter(rootQuery, customField, from, to);
 
     String after = rootQuery.toString();
     assertThat(after, containsString("\"" + customField + "\" : "));

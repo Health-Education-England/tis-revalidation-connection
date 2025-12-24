@@ -143,7 +143,7 @@ class ConnectedElasticSearchServiceTest {
 
     ConnectionSummaryDto result = connectedElasticSearchService
         .searchForConnectionPageWithFilters(
-            searchQuery, dbcs, programmeName, from, to, pageable);
+            searchQuery, dbcs, programmeName, from, to, from, to, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), is(1L));
@@ -172,6 +172,6 @@ class ConnectedElasticSearchServiceTest {
 
     assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForConnectionPageWithFilters(
-            searchQuery, dbcs, programmeName, from, to, pageable));
+            searchQuery, dbcs, programmeName, from, to, from, to, pageable));
   }
 }

@@ -273,7 +273,7 @@ class ConnectionControllerTest {
         by(ASC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
-        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
+        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -310,7 +310,7 @@ class ConnectionControllerTest {
         by(DESC, "gmcReferenceNumber"));
     when(discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), List.of(designatedBody1, designatedBody2),
-        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
+        EMPTY_STRING, EMPTY_DATE, EMPTY_DATE, EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/discrepancies")
@@ -333,7 +333,7 @@ class ConnectionControllerTest {
         by(ASC, "gmcReferenceNumber"));
     when(connectedElasticSearchService.searchForConnectionPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), EMPTY_STRING, EMPTY_DATE, EMPTY_DATE,
-        pageableAndSortable))
+        EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
     this.mockMvc.perform(get("/api/connections/connected")
@@ -367,7 +367,7 @@ class ConnectionControllerTest {
         by(DESC, "gmcReferenceNumber"));
     when(connectedElasticSearchService.searchForConnectionPageWithFilters(EMPTY_STRING,
         List.of(designatedBody1, designatedBody2), EMPTY_STRING, EMPTY_DATE, EMPTY_DATE,
-        pageableAndSortable))
+        EMPTY_DATE, EMPTY_DATE, pageableAndSortable))
         .thenReturn(connectionSummary);
     this.mockMvc.perform(get("/api/connections/connected")
             .param(SORT_ORDER, "desc")

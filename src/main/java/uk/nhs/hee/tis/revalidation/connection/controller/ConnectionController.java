@@ -73,6 +73,8 @@ public class ConnectionController {
   private static final String PROGRAMME_NAME = "programmeName";
   private static final String MEMBERSHIP_END_DATE_FROM = "membershipEndDateFrom";
   private static final String MEMBERSHIP_END_DATE_TO = "membershipEndDateTo";
+  private static final String GMC_SUBMISSION_DATE_FROM = "submissionDateFrom";
+  private static final String GMC_SUBMISSION_DATE_TO = "submissionDateTo";
 
   @Autowired
   private ConnectionService connectionService;
@@ -235,7 +237,13 @@ public class ConnectionController {
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate membershipEndDateTo) throws ConnectionQueryException {
+      LocalDate membershipEndDateTo,
+      @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate submissionDateFrom,
+      @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate submissionDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -246,13 +254,15 @@ public class ConnectionController {
 
     final ConnectionSummaryDto connectionSummaryDto =
         discrepanciesElasticSearchService.searchForDiscrepanciesPageWithFilters(
-              searchQueryES,
-              dbcs,
-              tisDbcs,
-              programmeName,
-              membershipEndDateFrom,
-              membershipEndDateTo,
-              pageableAndSortable
+            searchQueryES,
+            dbcs,
+            tisDbcs,
+            programmeName,
+            membershipEndDateFrom,
+            membershipEndDateTo,
+            submissionDateFrom,
+            submissionDateTo,
+            pageableAndSortable
           );
 
     return ResponseEntity.ok(connectionSummaryDto);
@@ -287,7 +297,13 @@ public class ConnectionController {
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate membershipEndDateTo) throws ConnectionQueryException {
+      LocalDate membershipEndDateTo,
+      @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate submissionDateFrom,
+      @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate submissionDateTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -298,12 +314,14 @@ public class ConnectionController {
 
     final ConnectionSummaryDto connectionSummaryDto =
         connectedElasticSearchService.searchForConnectionPageWithFilters(
-              searchQueryES,
-              dbcs,
-              programmeName,
-              membershipEndDateFrom,
-              membershipEndDateTo,
-              pageableAndSortable
+            searchQueryES,
+            dbcs,
+            programmeName,
+            membershipEndDateFrom,
+            membershipEndDateTo,
+            submissionDateFrom,
+            submissionDateTo,
+            pageableAndSortable
           );
 
     return ResponseEntity.ok(connectionSummaryDto);

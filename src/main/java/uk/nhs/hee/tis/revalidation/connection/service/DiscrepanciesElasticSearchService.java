@@ -26,8 +26,8 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
-import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DATE_RANGE_QUERY_TYPE.FROM;
-import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DATE_RANGE_QUERY_TYPE.TO;
+import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.FROM;
+import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.TO;
 
 import java.time.LocalDate;
 import java.util.List;

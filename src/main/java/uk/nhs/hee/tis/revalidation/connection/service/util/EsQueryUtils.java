@@ -62,13 +62,13 @@ public final class EsQueryUtils {
   }
 
   /**
-   * A method to format front-end range queries from date pickers into required datetime format
+   * A method to format front-end range queries from date pickers into required datetime format.
    *
    * @param localDate simple date provided by front-end
    * @param type      type of date query, e.g. from or to
    */
-  public static String getDateTimeQueryFromRange(LocalDate localDate, DATE_RANGE_QUERY_TYPE type) {
-    if (type.equals(DATE_RANGE_QUERY_TYPE.TO)) {
+  public static String getDateTimeQueryFromRange(LocalDate localDate, DateRangeQueryType type) {
+    if (type.equals(DateRangeQueryType.TO)) {
       return LocalDateTime.of(localDate, LocalTime.of(23, 59, 59))
           .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
     } else {
@@ -77,7 +77,7 @@ public final class EsQueryUtils {
     }
   }
 
-  public enum DATE_RANGE_QUERY_TYPE {
+  public enum DateRangeQueryType {
     FROM,
     TO
   }

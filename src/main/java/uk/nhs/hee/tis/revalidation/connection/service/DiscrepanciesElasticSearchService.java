@@ -74,11 +74,11 @@ public class DiscrepanciesElasticSearchService {
    * Get trainees with discrepancies from discrepancies elasticsearch index when pm end date values
    * are there for filtering.
    *
-   * @param searchQuery           query to run
-   * @param pageable              pagination information
-   * @param dbcs                  designated body
-   * @param tisDbcs               tis designated body
-   * @param programmeName         programme name
+   * @param searchQuery                query to run
+   * @param pageable                   pagination information
+   * @param dbcs                       designated body
+   * @param tisDbcs                    tis designated body
+   * @param programmeName              programme name
    * @param membershipEndDateFrom      range of membership end date from
    * @param membershipEndDateTo        range of membership end date to
    * @param gmcSubmissionDateFrom      range of gmc submission date from

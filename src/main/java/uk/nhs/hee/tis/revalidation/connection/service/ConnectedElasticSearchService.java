@@ -26,6 +26,8 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
+import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DATE_RANGE_QUERY_TYPE.FROM;
+import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DATE_RANGE_QUERY_TYPE.TO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -138,8 +140,10 @@ public class ConnectedElasticSearchService {
 
       EsQueryUtils.addDateRangeFilter(rootQuery,
           CONNECTION_LAST_UPDATED_DATE_FIELD,
-          lastConnectionDateTimeFrom != null ? lastConnectionDateTimeFrom.toString() : null,
-          lastConnectionDateTimeTo != null ? lastConnectionDateTimeTo.toString() : null);
+          lastConnectionDateTimeFrom != null ? EsQueryUtils.getDateTimeQueryFromRange(
+              lastConnectionDateTimeFrom, FROM) : null,
+          lastConnectionDateTimeTo != null ? EsQueryUtils.getDateTimeQueryFromRange(
+              lastConnectionDateTimeFrom, TO) : null);
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

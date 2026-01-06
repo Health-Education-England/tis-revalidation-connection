@@ -26,8 +26,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.jupiter.api.Test;
+import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DATE_RANGE_QUERY_TYPE;
 
 class QueryUtilsTest {
 
@@ -95,5 +98,23 @@ class QueryUtilsTest {
 
     String after = rootQuery.toString();
     assertThat(after, containsString("\"" + customField + "\" : "));
+  }
+
+  @Test
+  void shouldFormatDateFromQuery() {
+    LocalDate localDate = LocalDate.of(2026,1,1);
+
+    String result = EsQueryUtils.getDateTimeQueryFromRange(localDate, DATE_RANGE_QUERY_TYPE.FROM);
+
+    assertThat(result, is("2026-01-01T00:00:00.000"));
+  }
+
+  @Test
+  void shouldFormatDateToQuery() {
+    LocalDate localDate = LocalDate.of(2026,1,1);
+
+    String result = EsQueryUtils.getDateTimeQueryFromRange(localDate, DATE_RANGE_QUERY_TYPE.TO);
+
+    assertThat(result, is("2026-01-01T23:59:59.000"));
   }
 }

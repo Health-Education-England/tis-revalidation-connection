@@ -23,6 +23,10 @@ package uk.nhs.hee.tis.revalidation.connection.service.util;
 
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 
@@ -55,5 +59,26 @@ public final class EsQueryUtils {
       dateRange.lte(toDateInclusive);
     }
     rootQuery.filter(dateRange);
+  }
+
+  /**
+   * A method to format front-end range queries from date pickers into required datetime format
+   *
+   * @param localDate simple date provided by front-end
+   * @param type      type of date query, e.g. from or to
+   */
+  public static String getDateTimeQueryFromRange(LocalDate localDate, DATE_RANGE_QUERY_TYPE type) {
+    if (type.equals(DATE_RANGE_QUERY_TYPE.TO)) {
+      return LocalDateTime.of(localDate, LocalTime.of(23, 59, 59))
+          .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
+    } else {
+      return LocalDateTime.of(localDate, LocalTime.of(0, 0, 0))
+          .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
+    }
+  }
+
+  public enum DATE_RANGE_QUERY_TYPE {
+    FROM,
+    TO
   }
 }

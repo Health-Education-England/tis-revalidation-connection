@@ -62,7 +62,7 @@ public class DiscrepanciesElasticSearchService {
   private static final String EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES = "279";
   private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
-  private static final String GMC_SUBMISSION_DATE_FIELD = "gmcSubmissionDate";
+  private static final String GMC_SUBMISSION_DATE_FIELD = "submissionDate";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;

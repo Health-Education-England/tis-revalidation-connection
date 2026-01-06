@@ -90,6 +90,7 @@ class ConnectedElasticSearchServiceTest {
   private LocalDate lastConnectionFrom;
   private LocalDate lastConnectionTo;
   private Pageable pageable;
+  private String updatedBy;
 
   /**
    * Set up data for testing.
@@ -115,6 +116,7 @@ class ConnectedElasticSearchServiceTest {
     lastConnectionFrom = LocalDate.of(2024, 1, 3);
     lastConnectionTo = LocalDate.of(2024, 12, 29);
     pageable = PageRequest.of(0, 20);
+    updatedBy = "admin";
 
     currentConnectionsView = CurrentConnectionsView.builder()
         .tcsPersonId((long) 111)
@@ -126,6 +128,7 @@ class ConnectedElasticSearchServiceTest {
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner)
         .exceptionReason(exceptionReason)
+        .updatedBy(updatedBy)
         .build();
   }
 
@@ -154,7 +157,7 @@ class ConnectedElasticSearchServiceTest {
     ConnectionSummaryDto result = connectedElasticSearchService
         .searchForConnectionPageWithFilters(
             searchQuery, dbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
-            submissionTo, lastConnectionFrom, lastConnectionTo, pageable);
+            submissionTo, lastConnectionFrom, lastConnectionTo, updatedBy, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), is(1L));
@@ -209,7 +212,7 @@ class ConnectedElasticSearchServiceTest {
             searchQuery, dbcs, programmeName,
             null, null,
             null, null,
-            null, null, pageable);
+            null, null, updatedBy, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));
@@ -231,6 +234,50 @@ class ConnectedElasticSearchServiceTest {
   }
 
   @Test
+  void shouldNotSearchForUpdatedByIfNotProvided()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<CurrentConnectionsView> hit =
+        (SearchHit<CurrentConnectionsView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(currentConnectionsView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<CurrentConnectionsView> hits =
+        (SearchHits<CurrentConnectionsView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(CurrentConnectionsView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = connectedElasticSearchService
+        .searchForConnectionPageWithFilters(
+            searchQuery, dbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
+            submissionTo, lastConnectionFrom, lastConnectionTo, "", pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), is(1L));
+    assertThat(result.getTotalPages(), is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(CurrentConnectionsView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, not(containsString("updatedBy")));
+  }
+
+  @Test
   void shouldThrowRuntimeExceptionWhenSearchForConnectionsPage() {
 
     when(elasticsearchOperations.search((Query) any(), eq(CurrentConnectionsView.class)))
@@ -239,6 +286,6 @@ class ConnectedElasticSearchServiceTest {
     assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForConnectionPageWithFilters(
             searchQuery, dbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
-            submissionTo, lastConnectionFrom, lastConnectionTo, pageable));
+            submissionTo, lastConnectionFrom, lastConnectionTo, updatedBy, pageable));
   }
 }

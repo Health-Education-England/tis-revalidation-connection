@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "uk.nhs.hee.tis.revalidation"
-version = "0.2.4"
+version = "0.3.0"
 sourceCompatibility = "11"
 
 configurations {

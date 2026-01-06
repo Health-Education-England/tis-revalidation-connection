@@ -62,6 +62,7 @@ public class ConnectedElasticSearchService {
   private static final String EXCLUDED_MEMBERSHIP_TYPE = "MILITARY";
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
   private static final String GMC_SUBMISSION_DATE_FIELD = "submissionDate";
+  private static final String CONNECTION_LAST_UPDATED_DATE_FIELD = "lastConnectionDateTime";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -72,12 +73,16 @@ public class ConnectedElasticSearchService {
    * Get connected trainees from Connected elasticsearch index when pm end date values are there for
    * filtering.
    *
-   * @param searchQuery           query to run
-   * @param pageable              pagination information
-   * @param dbcs                  designated body
-   * @param programmeName         programme name
-   * @param membershipEndDateFrom range of date from
-   * @param membershipEndDateTo   range of date to
+   * @param searchQuery                query to run
+   * @param pageable                   pagination information
+   * @param dbcs                       designated body
+   * @param programmeName              programme name
+   * @param membershipEndDateFrom      range of membership end date from
+   * @param membershipEndDateTo        range of membership end date to
+   * @param gmcSubmissionDateFrom      range of gmc submission date from
+   * @param gmcSubmissionDateTo        range of gmc submission date to
+   * @param lastConnectionDateTimeFrom range of connection last updated date from
+   * @param lastConnectionDateTimeTo   range of connection last updated date to
    */
   public ConnectionSummaryDto searchForConnectionPageWithFilters(String searchQuery,
       List<String> dbcs,
@@ -86,6 +91,8 @@ public class ConnectedElasticSearchService {
       LocalDate membershipEndDateTo,
       LocalDate gmcSubmissionDateFrom,
       LocalDate gmcSubmissionDateTo,
+      LocalDate lastConnectionDateTimeFrom,
+      LocalDate lastConnectionDateTimeTo,
       Pageable pageable)
       throws ConnectionQueryException {
 
@@ -128,6 +135,11 @@ public class ConnectedElasticSearchService {
           GMC_SUBMISSION_DATE_FIELD,
           gmcSubmissionDateFrom != null ? gmcSubmissionDateFrom.toString() : null,
           gmcSubmissionDateTo != null ? gmcSubmissionDateTo.toString() : null);
+
+      EsQueryUtils.addDateRangeFilter(rootQuery,
+          CONNECTION_LAST_UPDATED_DATE_FIELD,
+          lastConnectionDateTimeFrom != null ? lastConnectionDateTimeFrom.toString() : null,
+          lastConnectionDateTimeTo != null ? lastConnectionDateTimeTo.toString() : null);
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

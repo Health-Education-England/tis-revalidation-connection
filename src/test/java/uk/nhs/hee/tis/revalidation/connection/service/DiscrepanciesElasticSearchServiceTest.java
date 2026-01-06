@@ -145,7 +145,7 @@ class DiscrepanciesElasticSearchServiceTest {
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
-            searchQuery, dbcs, tisDbcs, programmeName, from, to, from, to, pageable);
+            searchQuery, dbcs, tisDbcs, programmeName, from, to, from, to, from, to, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));
@@ -174,6 +174,6 @@ class DiscrepanciesElasticSearchServiceTest {
 
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
-            searchQuery, dbcs, tisDbcs, programmeName, from, to, from, to, pageable));
+            searchQuery, dbcs, tisDbcs, programmeName, from, to, from, to, from, to, pageable));
   }
 }

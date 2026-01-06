@@ -75,6 +75,8 @@ public class ConnectionController {
   private static final String MEMBERSHIP_END_DATE_TO = "membershipEndDateTo";
   private static final String GMC_SUBMISSION_DATE_FROM = "submissionDateFrom";
   private static final String GMC_SUBMISSION_DATE_TO = "submissionDateTo";
+  private static final String CONNECTION_LAST_UPDATED_DATE_FROM = "lastConnectionDateTimeFrom";
+  private static final String CONNECTION_LAST_UPDATED_DATE_TO = "lastConnectionDateTimeTo";
 
   @Autowired
   private ConnectionService connectionService;
@@ -243,7 +245,13 @@ public class ConnectionController {
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate submissionDateTo) throws ConnectionQueryException {
+      LocalDate submissionDateTo,
+      @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate lastConnectionDateTimeFrom,
+      @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate lastConnectionDateTimeTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -262,6 +270,8 @@ public class ConnectionController {
             membershipEndDateTo,
             submissionDateFrom,
             submissionDateTo,
+            lastConnectionDateTimeFrom,
+            lastConnectionDateTimeTo,
             pageableAndSortable
           );
 
@@ -303,7 +313,13 @@ public class ConnectionController {
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate submissionDateTo) throws ConnectionQueryException {
+      LocalDate submissionDateTo,
+      @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate lastConnectionDateTimeFrom,
+      @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate lastConnectionDateTimeTo) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -321,6 +337,8 @@ public class ConnectionController {
             membershipEndDateTo,
             submissionDateFrom,
             submissionDateTo,
+            lastConnectionDateTimeFrom,
+            lastConnectionDateTimeTo,
             pageableAndSortable
           );
 

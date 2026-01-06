@@ -26,6 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +40,7 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.util.List;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,8 +83,12 @@ class ConnectedElasticSearchServiceTest {
   private CurrentConnectionsView currentConnectionsView;
   private String searchQuery;
   private List<String> dbcs;
-  private LocalDate from;
-  private LocalDate to;
+  private LocalDate membershipFrom;
+  private LocalDate membershipTo;
+  private LocalDate submissionFrom;
+  private LocalDate submissionTo;
+  private LocalDate lastConnectionFrom;
+  private LocalDate lastConnectionTo;
   private Pageable pageable;
 
   /**
@@ -102,8 +108,12 @@ class ConnectedElasticSearchServiceTest {
     exceptionReason = faker.lorem().characters(20);
     searchQuery = "smith";
     dbcs = List.of(designatedBody1, designatedBody2);
-    from = LocalDate.of(2024, 1, 1);
-    to = LocalDate.of(2024, 12, 31);
+    membershipFrom = LocalDate.of(2024, 1, 1);
+    membershipTo = LocalDate.of(2024, 12, 31);
+    submissionFrom = LocalDate.of(2024, 1, 2);
+    submissionTo = LocalDate.of(2024, 12, 30);
+    lastConnectionFrom = LocalDate.of(2024, 1, 3);
+    lastConnectionTo = LocalDate.of(2024, 12, 29);
     pageable = PageRequest.of(0, 20);
 
     currentConnectionsView = CurrentConnectionsView.builder()
@@ -143,7 +153,8 @@ class ConnectedElasticSearchServiceTest {
 
     ConnectionSummaryDto result = connectedElasticSearchService
         .searchForConnectionPageWithFilters(
-            searchQuery, dbcs, programmeName, from, to, from, to, pageable);
+            searchQuery, dbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
+            submissionTo, lastConnectionFrom, lastConnectionTo, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), is(1L));
@@ -160,8 +171,62 @@ class ConnectedElasticSearchServiceTest {
     String queryString = qb.toString();
 
     assertThat(queryString, containsString("membershipEndDate"));
-    assertThat(queryString, containsString(from.toString()));
-    assertThat(queryString, containsString(to.toString()));
+    assertThat(queryString, containsString("submissionDate"));
+    assertThat(queryString, containsString("lastConnectionDateTime"));
+    assertThat(queryString, containsString(membershipFrom.toString()));
+    assertThat(queryString, containsString(membershipTo.toString()));
+    assertThat(queryString, containsString(submissionFrom.toString()));
+    assertThat(queryString, containsString(submissionTo.toString()));
+    assertThat(queryString, containsString(lastConnectionFrom.toString()));
+    assertThat(queryString, containsString(lastConnectionTo.toString()));
+  }
+
+  @Test
+  void shouldSearchForPageWithNoDatesProvidedAndReturnConnectionsSummary()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<CurrentConnectionsView> hit =
+        (SearchHit<CurrentConnectionsView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(currentConnectionsView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<CurrentConnectionsView> hits =
+        (SearchHits<CurrentConnectionsView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(CurrentConnectionsView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.currentConnectionsToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = connectedElasticSearchService
+        .searchForConnectionPageWithFilters(
+            searchQuery, dbcs, programmeName,
+            null, null,
+            null, null,
+            null, null, pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(CurrentConnectionsView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, not(containsString("membershipEndDate")));
+    assertThat(queryString, not(containsString("submissionDate")));
+    assertThat(queryString, not(containsString("lastConnectionDateTime")));
   }
 
   @Test
@@ -172,6 +237,7 @@ class ConnectedElasticSearchServiceTest {
 
     assertThrows(ConnectionQueryException.class, () -> connectedElasticSearchService
         .searchForConnectionPageWithFilters(
-            searchQuery, dbcs, programmeName, from, to, from, to, pageable));
+            searchQuery, dbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
+            submissionTo, lastConnectionFrom, lastConnectionTo, pageable));
   }
 }

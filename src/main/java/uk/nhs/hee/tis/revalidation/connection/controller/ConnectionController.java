@@ -75,7 +75,7 @@ public class ConnectionController {
   private static final String MEMBERSHIP_END_DATE_TO = "membershipEndDateTo";
   private static final String GMC_SUBMISSION_DATE_FROM = "submissionDateFrom";
   private static final String GMC_SUBMISSION_DATE_TO = "submissionDateTo";
-  private static final String CONNECTION_LAST_UPDATED_DATE_FROM = "lastConnectionDateTimeFrom ";
+  private static final String CONNECTION_LAST_UPDATED_DATE_FROM = "lastConnectionDateTimeFrom";
   private static final String CONNECTION_LAST_UPDATED_DATE_TO = "lastConnectionDateTimeTo";
 
   @Autowired

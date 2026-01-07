@@ -152,7 +152,7 @@ public class DiscrepanciesElasticSearchService {
           lastConnectionDateTimeFrom != null ? EsQueryUtils.getDateTimeQueryFromRange(
               lastConnectionDateTimeFrom, FROM) : null,
           lastConnectionDateTimeTo != null ? EsQueryUtils.getDateTimeQueryFromRange(
-              lastConnectionDateTimeFrom, TO) : null);
+              lastConnectionDateTimeTo, TO) : null);
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

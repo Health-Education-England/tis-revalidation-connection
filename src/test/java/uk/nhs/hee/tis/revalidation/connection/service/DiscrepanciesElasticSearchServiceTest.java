@@ -180,7 +180,7 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThat(queryString, containsString(submissionTo.toString()));
     // check for formatted datetimes from esutils for lastConnectionDateTime
     assertThat(queryString, containsString("2024-01-03T00:00:00.000"));
-    assertThat(queryString, containsString("2024-01-03T23:59:59.000"));
+    assertThat(queryString, containsString("2024-12-29T23:59:59.000"));
   }
 
   @Test

@@ -90,6 +90,7 @@ class DiscrepanciesElasticSearchServiceTest {
   private LocalDate lastConnectionFrom;
   private LocalDate lastConnectionTo;
   private Pageable pageable;
+  private String upddatedBy;
 
   /**
    * Set up data for testing.
@@ -116,6 +117,7 @@ class DiscrepanciesElasticSearchServiceTest {
     lastConnectionFrom = LocalDate.of(2024, 1, 3);
     lastConnectionTo = LocalDate.of(2024, 12, 29);
     pageable = PageRequest.of(0, 20);
+    upddatedBy = "admin";
 
     discrepanciesView = DiscrepanciesView.builder()
         .tcsPersonId((long) 111)
@@ -127,6 +129,7 @@ class DiscrepanciesElasticSearchServiceTest {
         .designatedBody(designatedBody1)
         .programmeOwner(programmeOwner)
         .exceptionReason(exceptionReason)
+        .updatedBy(upddatedBy)
         .build();
   }
 
@@ -155,7 +158,8 @@ class DiscrepanciesElasticSearchServiceTest {
     ConnectionSummaryDto result = discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
             searchQuery, dbcs, tisDbcs, programmeName, membershipTo, membershipFrom,
-            submissionFrom, submissionTo, lastConnectionFrom, lastConnectionTo, pageable);
+            submissionFrom, submissionTo, lastConnectionFrom, lastConnectionTo, upddatedBy,
+            pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));
@@ -210,7 +214,7 @@ class DiscrepanciesElasticSearchServiceTest {
             searchQuery, dbcs, tisDbcs, programmeName, null,
             null, null,
             null, null,
-            null, pageable);
+            null, upddatedBy, pageable);
 
     assertThat(result, notNullValue());
     assertThat(result.getTotalResults(), Matchers.is(1L));
@@ -232,6 +236,51 @@ class DiscrepanciesElasticSearchServiceTest {
   }
 
   @Test
+  void shouldNotSearchForUpdatedByIfNotProvided()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<DiscrepanciesView> hit =
+        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(discrepanciesView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<DiscrepanciesView> hits =
+        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForDiscrepanciesPageWithFilters(
+            searchQuery, dbcs, tisDbcs, programmeName, membershipTo, membershipFrom,
+            submissionFrom, submissionTo, lastConnectionFrom, lastConnectionTo, "",
+            pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, not(containsString("updatedBy")));
+  }
+
+  @Test
   void shouldThrowRuntimeExceptionWhenSearchForDiscrepanciesPage() {
 
     when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
@@ -240,6 +289,6 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
             searchQuery, dbcs, tisDbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
-            submissionTo, lastConnectionFrom, lastConnectionTo, pageable));
+            submissionTo, lastConnectionFrom, lastConnectionTo, upddatedBy, pageable));
   }
 }

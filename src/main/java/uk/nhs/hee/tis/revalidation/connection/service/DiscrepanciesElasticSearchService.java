@@ -66,6 +66,7 @@ public class DiscrepanciesElasticSearchService {
   private static final String PROGRAMME_MEMBERSHIP_END_DATE_FIELD = "membershipEndDate";
   private static final String GMC_SUBMISSION_DATE_FIELD = "submissionDate";
   private static final String CONNECTION_LAST_UPDATED_DATE_FIELD = "lastConnectionDateTime";
+  private static final String UPDATED_BY_FIELD = "updatedBy";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -87,6 +88,7 @@ public class DiscrepanciesElasticSearchService {
    * @param gmcSubmissionDateTo        range of gmc submission date to
    * @param lastConnectionDateTimeFrom range of connection last updated date from
    * @param lastConnectionDateTimeTo   range of connection last updated date to
+   * @param updatedBy                  updated by
    */
   public ConnectionSummaryDto searchForDiscrepanciesPageWithFilters(String searchQuery,
       List<String> dbcs,
@@ -98,6 +100,7 @@ public class DiscrepanciesElasticSearchService {
       LocalDate gmcSubmissionDateTo,
       LocalDate lastConnectionDateTimeFrom,
       LocalDate lastConnectionDateTimeTo,
+      String updatedBy,
       Pageable pageable)
       throws ConnectionQueryException {
 
@@ -153,6 +156,12 @@ public class DiscrepanciesElasticSearchService {
               lastConnectionDateTimeFrom, FROM) : null,
           lastConnectionDateTimeTo != null ? EsQueryUtils.getDateTimeQueryFromRange(
               lastConnectionDateTimeTo, TO) : null);
+
+      if (StringUtils.hasText(updatedBy)) {
+        rootQuery.filter(
+            matchPhraseQuery(UPDATED_BY_FIELD, updatedBy).zeroTermsQuery(
+                ZeroTermsQuery.ALL));
+      }
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

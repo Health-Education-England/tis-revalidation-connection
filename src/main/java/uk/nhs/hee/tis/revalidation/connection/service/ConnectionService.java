@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
@@ -264,9 +265,20 @@ public class ConnectionService {
           .submissionDate(submissionDate)
           .gmcLastUpdatedDateTime(now())
           .build();
-      log.info("Sending message to rabbit to remove designated body code");
+      log.info("Sending message to rabbit to update designated body code");
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
+      if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
+        // publish change to connection, but also record exception
+        final var connectionMessage = ConnectionMessage.builder()
+            .gmcId(gmcId)
+            .designatedBodyCode(designatedBodyCode)
+            .submissionDate(submissionDate)
+            .gmcLastUpdatedDateTime(now())
+            .build();
+        log.info("Sending message to rabbit for externally made connection");
+        rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
+      }
       exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
     }
   }

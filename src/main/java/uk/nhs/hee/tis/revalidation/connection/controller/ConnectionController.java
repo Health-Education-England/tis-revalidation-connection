@@ -77,6 +77,7 @@ public class ConnectionController {
   private static final String GMC_SUBMISSION_DATE_TO = "submissionDateTo";
   private static final String CONNECTION_LAST_UPDATED_DATE_FROM = "lastConnectionDateTimeFrom";
   private static final String CONNECTION_LAST_UPDATED_DATE_TO = "lastConnectionDateTimeTo";
+  private static final String UPDATED_BY = "updatedBy";
 
   @Autowired
   private ConnectionService connectionService;
@@ -251,7 +252,9 @@ public class ConnectionController {
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate lastConnectionDateTimeTo) throws ConnectionQueryException {
+      LocalDate lastConnectionDateTimeTo,
+      @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
+      String updatedBy) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -272,6 +275,7 @@ public class ConnectionController {
             submissionDateTo,
             lastConnectionDateTimeFrom,
             lastConnectionDateTimeTo,
+            updatedBy,
             pageableAndSortable
           );
 
@@ -319,7 +323,9 @@ public class ConnectionController {
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-      LocalDate lastConnectionDateTimeTo) throws ConnectionQueryException {
+      LocalDate lastConnectionDateTimeTo,
+      @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
+      String updatedBy) throws ConnectionQueryException {
     final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
     final var pageableAndSortable = of(pageNumber, 20,
         by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
@@ -339,6 +345,7 @@ public class ConnectionController {
             submissionDateTo,
             lastConnectionDateTimeFrom,
             lastConnectionDateTimeTo,
+            updatedBy,
             pageableAndSortable
           );
 

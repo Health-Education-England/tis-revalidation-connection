@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -93,7 +94,7 @@ class ConnectionServiceTest {
   private RabbitTemplate rabbitTemplate;
 
   @Mock
-  private GmcConnectionResponseDto gmcConnectionResponseDto;
+  private GmcConnectionResponseDto gmcConnectionResponseDtoMock;
 
   @Mock
   private ExceptionLogService exceptionService;
@@ -174,10 +175,10 @@ class ConnectionServiceTest {
         .build();
 
     when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
-    when(gmcConnectionResponseDto.getSubmissionDate()).thenReturn(submissionDate);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
 
     connectionService.addDoctor(addDoctorDto);
 
@@ -211,9 +212,9 @@ class ConnectionServiceTest {
         .build();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
@@ -271,9 +272,9 @@ class ConnectionServiceTest {
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
@@ -384,6 +385,44 @@ class ConnectionServiceTest {
     assertFalse(sentMessages.get(1).getSyncEnd());
     assertTrue(sentMessages.get(2).getSyncEnd());
     assertTrue(sentMessages.get(2).getPayload().isEmpty());
+  }
+
+  @Test
+  void shouldUpdateConnectionOnGmc100Response() {
+    final var addDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(designatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenReturn(gmcConnectionResponseDtoMock);
+
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(
+        DOCTOR_ALREADY_ASSOCIATED.getCode());
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+
+    connectionService.addDoctor(addDoctorDto);
+
+    verify(rabbitTemplate, times(1)).convertAndSend(eq("esExchange"),
+        eq("routingKey"), connectionMessageArgCaptor.capture());
+    verify(exceptionService, times(1)).createExceptionLog(
+        gmcId, DOCTOR_ALREADY_ASSOCIATED.getMessage(), admin
+    );
+
+    List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
+    assertEquals(1, connectionMessageList.size());
+
+    ConnectionMessage connectionMessage1 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage1.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
+    assertEquals(submissionDate, connectionMessage1.getSubmissionDate());
+    assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

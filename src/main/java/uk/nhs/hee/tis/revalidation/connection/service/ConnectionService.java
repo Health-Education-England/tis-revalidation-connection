@@ -87,6 +87,8 @@ public class ConnectionService {
   @Value("${app.rabbit.reval.routingKey.connectionlog.essyncdata}")
   private String esSyncDataRoutingKey;
 
+  private static final String UPDATED_BY_GMC = "Updated by GMC";
+
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
       ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
       HideConnectionRepository hideRepository, RabbitTemplate rabbitTemplate,
@@ -237,6 +239,19 @@ public class ConnectionService {
         .requestTime(now())
         .updatedBy(admin)
         .build();
+
+    // Save additional "External" log if doctor has already been added to this DB
+    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(gmcResponse.getReturnCode())) {
+      repository.save(
+          ConnectionRequestLog.builder()
+              .gmcId(gmcId)
+              .newDesignatedBodyCode(designatedBodyCode)
+              .previousDesignatedBodyCode(currentDesignatedBodyCode)
+              .updatedBy(UPDATED_BY_GMC)
+              .requestTime(now())
+              .build()
+      );
+    }
 
     //save connection info to mongodb
     repository.save(connectionRequestLog);

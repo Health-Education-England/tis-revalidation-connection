@@ -74,6 +74,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepositor
 class ConnectionServiceTest {
 
   private final Faker faker = new Faker();
+  private static final String UPDATED_BY_GMC = "Updated by GMC";
 
   @InjectMocks
   private ConnectionService connectionService;
@@ -106,6 +107,8 @@ class ConnectionServiceTest {
   private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
   @Captor
   private ArgumentCaptor<ConnectionLog> connectionLogArgCaptor;
+  @Captor
+  private ArgumentCaptor<ConnectionRequestLog> connectionRequestLogArgumentCaptor;
   @Captor
   private ArgumentCaptor<IndexSyncMessage<List<ConnectionLogDto>>> indexSyncMessageCaptor;
 
@@ -393,7 +396,7 @@ class ConnectionServiceTest {
         .changeReason(changeReason)
         .designatedBodyCode(designatedBodyCode)
         .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
-            .currentDesignatedBodyCode(designatedBodyCode)
+            .currentDesignatedBodyCode(previousDesignatedBodyCode)
             .programmeOwnerDesignatedBodyCode(designatedBodyCode)
             .build()))
         .admin(admin)
@@ -409,11 +412,28 @@ class ConnectionServiceTest {
 
     connectionService.addDoctor(addDoctorDto);
 
+    verify(repository, times(2)).save(connectionRequestLogArgumentCaptor.capture());
     verify(rabbitTemplate, times(1)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
     verify(exceptionService, times(1)).createExceptionLog(
         gmcId, DOCTOR_ALREADY_ASSOCIATED.getMessage(), admin
     );
+
+    List<ConnectionRequestLog> connectionLogs = connectionRequestLogArgumentCaptor.getAllValues();
+
+    assertEquals(gmcId, connectionLogs.get(1).getGmcId());
+    assertEquals(designatedBodyCode, connectionLogs.get(1).getNewDesignatedBodyCode());
+    assertEquals(previousDesignatedBodyCode, connectionLogs.get(1).getPreviousDesignatedBodyCode());
+    assertEquals(admin, connectionLogs.get(1).getUpdatedBy());
+    assertEquals(changeReason, connectionLogs.get(1).getReason());
+    assertEquals("100", connectionLogs.get(1).getResponseCode());
+
+    assertEquals(gmcId, connectionLogs.get(0).getGmcId());
+    assertEquals(designatedBodyCode, connectionLogs.get(0).getNewDesignatedBodyCode());
+    assertEquals(previousDesignatedBodyCode, connectionLogs.get(0).getPreviousDesignatedBodyCode());
+    assertEquals(UPDATED_BY_GMC, connectionLogs.get(0).getUpdatedBy());
+    assertNull(connectionLogs.get(0).getReason());
+    assertNull(connectionLogs.get(0).getResponseCode());
 
     List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
     assertEquals(1, connectionMessageList.size());

@@ -227,19 +227,6 @@ public class ConnectionService {
       final ConnectionRequestType connectionRequestType,
       final String admin) {
 
-    final var connectionRequestLog = ConnectionRequestLog.builder()
-        .id(UUID.randomUUID().toString())
-        .gmcId(gmcId)
-        .gmcClientId(gmcResponse.getGmcRequestId())
-        .newDesignatedBodyCode(designatedBodyCode)
-        .previousDesignatedBodyCode(currentDesignatedBodyCode)
-        .reason(changeReason)
-        .requestType(connectionRequestType)
-        .responseCode(gmcResponse.getReturnCode())
-        .requestTime(now())
-        .updatedBy(admin)
-        .build();
-
     // Save additional "External" log if doctor has already been added to this DB
     if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(gmcResponse.getReturnCode())) {
       repository.save(
@@ -252,6 +239,19 @@ public class ConnectionService {
               .build()
       );
     }
+
+    final var connectionRequestLog = ConnectionRequestLog.builder()
+        .id(UUID.randomUUID().toString())
+        .gmcId(gmcId)
+        .gmcClientId(gmcResponse.getGmcRequestId())
+        .newDesignatedBodyCode(designatedBodyCode)
+        .previousDesignatedBodyCode(currentDesignatedBodyCode)
+        .reason(changeReason)
+        .requestType(connectionRequestType)
+        .responseCode(gmcResponse.getReturnCode())
+        .requestTime(now())
+        .updatedBy(admin)
+        .build();
 
     //save connection info to mongodb
     repository.save(connectionRequestLog);

@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
@@ -73,6 +74,7 @@ import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepositor
 class ConnectionServiceTest {
 
   private final Faker faker = new Faker();
+  private static final String UPDATED_BY_GMC = "Updated by GMC";
 
   @InjectMocks
   private ConnectionService connectionService;
@@ -93,7 +95,7 @@ class ConnectionServiceTest {
   private RabbitTemplate rabbitTemplate;
 
   @Mock
-  private GmcConnectionResponseDto gmcConnectionResponseDto;
+  private GmcConnectionResponseDto gmcConnectionResponseDtoMock;
 
   @Mock
   private ExceptionLogService exceptionService;
@@ -105,6 +107,8 @@ class ConnectionServiceTest {
   private ArgumentCaptor<ConnectionMessage> connectionMessageArgCaptor;
   @Captor
   private ArgumentCaptor<ConnectionLog> connectionLogArgCaptor;
+  @Captor
+  private ArgumentCaptor<ConnectionRequestLog> connectionRequestLogArgumentCaptor;
   @Captor
   private ArgumentCaptor<IndexSyncMessage<List<ConnectionLogDto>>> indexSyncMessageCaptor;
 
@@ -174,10 +178,10 @@ class ConnectionServiceTest {
         .build();
 
     when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
-    when(gmcConnectionResponseDto.getSubmissionDate()).thenReturn(submissionDate);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
 
     connectionService.addDoctor(addDoctorDto);
 
@@ -211,9 +215,9 @@ class ConnectionServiceTest {
         .build();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
@@ -271,9 +275,9 @@ class ConnectionServiceTest {
     final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
-        .thenReturn(gmcConnectionResponseDto);
-    when(gmcConnectionResponseDto.getGmcRequestId()).thenReturn(gmcRequestId);
-    when(gmcConnectionResponseDto.getReturnCode()).thenReturn(returnCode);
+        .thenReturn(gmcConnectionResponseDtoMock);
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
@@ -384,6 +388,61 @@ class ConnectionServiceTest {
     assertFalse(sentMessages.get(1).getSyncEnd());
     assertTrue(sentMessages.get(2).getSyncEnd());
     assertTrue(sentMessages.get(2).getPayload().isEmpty());
+  }
+
+  @Test
+  void shouldUpdateConnectionOnGmc100Response() {
+    final var addDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(previousDesignatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenReturn(gmcConnectionResponseDtoMock);
+
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(
+        DOCTOR_ALREADY_ASSOCIATED.getCode());
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+
+    connectionService.addDoctor(addDoctorDto);
+
+    verify(repository, times(2)).save(connectionRequestLogArgumentCaptor.capture());
+    verify(rabbitTemplate, times(1)).convertAndSend(eq("esExchange"),
+        eq("routingKey"), connectionMessageArgCaptor.capture());
+    verify(exceptionService, times(1)).createExceptionLog(
+        gmcId, DOCTOR_ALREADY_ASSOCIATED.getMessage(), admin
+    );
+
+    List<ConnectionRequestLog> connectionLogs = connectionRequestLogArgumentCaptor.getAllValues();
+
+    assertEquals(gmcId, connectionLogs.get(1).getGmcId());
+    assertEquals(designatedBodyCode, connectionLogs.get(1).getNewDesignatedBodyCode());
+    assertEquals(previousDesignatedBodyCode, connectionLogs.get(1).getPreviousDesignatedBodyCode());
+    assertEquals(admin, connectionLogs.get(1).getUpdatedBy());
+    assertEquals(changeReason, connectionLogs.get(1).getReason());
+    assertEquals("100", connectionLogs.get(1).getResponseCode());
+
+    assertEquals(gmcId, connectionLogs.get(0).getGmcId());
+    assertEquals(designatedBodyCode, connectionLogs.get(0).getNewDesignatedBodyCode());
+    assertEquals(previousDesignatedBodyCode, connectionLogs.get(0).getPreviousDesignatedBodyCode());
+    assertEquals(UPDATED_BY_GMC, connectionLogs.get(0).getUpdatedBy());
+    assertNull(connectionLogs.get(0).getReason());
+    assertNull(connectionLogs.get(0).getResponseCode());
+
+    List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
+    assertEquals(1, connectionMessageList.size());
+
+    ConnectionMessage connectionMessage1 = connectionMessageList.get(0);
+    assertEquals(gmcId, connectionMessage1.getGmcId());
+    assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
+    assertEquals(submissionDate, connectionMessage1.getSubmissionDate());
+    assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
+import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.fromCode;
 
@@ -85,6 +86,8 @@ public class ConnectionService {
 
   @Value("${app.rabbit.reval.routingKey.connectionlog.essyncdata}")
   private String esSyncDataRoutingKey;
+
+  private static final String UPDATED_BY_GMC = "Updated by GMC";
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
       ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
@@ -237,6 +240,19 @@ public class ConnectionService {
         .updatedBy(admin)
         .build();
 
+    // Save additional "External" log if doctor has already been added to this DB
+    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(gmcResponse.getReturnCode())) {
+      repository.save(
+          ConnectionRequestLog.builder()
+              .gmcId(gmcId)
+              .newDesignatedBodyCode(designatedBodyCode)
+              .previousDesignatedBodyCode(currentDesignatedBodyCode)
+              .updatedBy(UPDATED_BY_GMC)
+              .requestTime(now())
+              .build()
+      );
+    }
+
     //save connection info to mongodb
     repository.save(connectionRequestLog);
 
@@ -264,9 +280,20 @@ public class ConnectionService {
           .submissionDate(submissionDate)
           .gmcLastUpdatedDateTime(now())
           .build();
-      log.info("Sending message to rabbit to remove designated body code");
+      log.info("Sending message to rabbit to update designated body code");
       rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
     } else {
+      if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
+        // publish change to connection, but also record exception
+        final var connectionMessage = ConnectionMessage.builder()
+            .gmcId(gmcId)
+            .designatedBodyCode(designatedBodyCode)
+            .submissionDate(submissionDate)
+            .gmcLastUpdatedDateTime(now())
+            .build();
+        log.info("Sending message to rabbit for externally made connection");
+        rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
+      }
       exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
     }
   }

@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -55,6 +56,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
+import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 @Slf4j
 @RestController
@@ -90,6 +92,9 @@ public class ConnectionController {
 
   @Autowired
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
+
+  @Autowired
+  private HiddenDiscrepancyService hiddenDiscrepancyService;
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -385,5 +390,12 @@ public class ConnectionController {
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
+  }
+
+  @PostMapping("/discrepancies/hidden")
+  public void hideDiscrepancies(@RequestBody final HideDiscrepancyDto hideDiscrepancyDto) {
+    log.info("Request received to hide discrepancies: {}", hideDiscrepancyDto.getDoctorGmcIds());
+    // todo: validate if the admin user has permission to hide discrepancies on the doctors & this dbc
+    hiddenDiscrepancyService.hideDiscrepancies(hideDiscrepancyDto);
   }
 }

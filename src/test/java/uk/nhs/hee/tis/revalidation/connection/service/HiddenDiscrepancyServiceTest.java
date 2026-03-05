@@ -184,13 +184,6 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldContinueAndReturnListsComputedFromDbWhenSaveAllThrowsException() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .doctors(List.of(doc("GMC1"), doc("GMC2")))
-        .build();
-
     when(hiddenDiscrepancyRepository
         .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
         .thenReturn(List.of())                // alreadyHidden
@@ -198,6 +191,13 @@ class HiddenDiscrepancyServiceTest {
 
     mockMapperToReturnRealEntity();
     doThrow(new RuntimeException("db down")).when(hiddenDiscrepancyRepository).saveAll(anyList());
+
+    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+        .hiddenForDesignatedBodyCode(DBC)
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .doctors(List.of(doc("GMC1"), doc("GMC2")))
+        .build();
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
@@ -231,7 +231,7 @@ class HiddenDiscrepancyServiceTest {
   }
 
   @Test
-  void shouldDeduplicateRequestedGmcIdsAndReturnListsWithoutDuplicatesWhenInputContainsDuplicates() {
+  void shouldDedupRequestedGmcIdsAndReturnListsWithoutDuplicatesWhenInputContainsDuplicates() {
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)

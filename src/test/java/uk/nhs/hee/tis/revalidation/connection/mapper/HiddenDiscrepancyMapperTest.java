@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
@@ -63,7 +62,8 @@ class HiddenDiscrepancyMapperTest {
 
     // mapped fields
     assertThat(entity.getGmcReferenceNumber()).isEqualTo(GMC_ID);
-    assertThat(entity.getHiddenForDesignatedBodyCode()).isEqualTo(dto.getHiddenForDesignatedBodyCode());
+    assertThat(entity.getHiddenForDesignatedBodyCode()).isEqualTo(
+        dto.getHiddenForDesignatedBodyCode());
     assertThat(entity.getHiddenBy()).isEqualTo(dto.getHiddenBy());
     assertThat(entity.getReason()).isEqualTo(dto.getReason());
     assertThat(entity.getHiddenDateTime()).isEqualTo(BATCH_TIME);

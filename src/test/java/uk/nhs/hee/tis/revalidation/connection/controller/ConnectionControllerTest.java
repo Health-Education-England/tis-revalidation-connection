@@ -25,6 +25,7 @@ import static java.time.LocalDate.now;
 import static java.util.List.of;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -40,8 +41,12 @@ import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -53,6 +58,8 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -60,7 +67,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchServ
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
-
+import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 @WebMvcTest(ConnectionController.class)
 class ConnectionControllerTest {
@@ -76,6 +83,7 @@ class ConnectionControllerTest {
   private static final String EMPTY_STRING = "";
   private static final LocalDate EMPTY_DATE = null;
   private static final String PROGRAMME_NAME = "programmeName";
+  private static final String ADMIN_NAME = "admin";
   private final Faker faker = new Faker();
   @Autowired
   private MockMvc mockMvc;
@@ -89,6 +97,8 @@ class ConnectionControllerTest {
   private ConnectedElasticSearchService connectedElasticSearchService;
   @MockBean
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
+  @MockBean
+  private HiddenDiscrepancyService hiddenDiscrepancyService;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -432,6 +442,101 @@ class ConnectionControllerTest {
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
+  }
+
+  static Stream<Arguments> invalidHideDiscrepancyRequests() {
+    var validDoctors = List.of(DoctorInfoDto.builder().build());
+    return Stream.of(
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode(null)
+                .hiddenBy(ADMIN_NAME)
+                .doctors(validDoctors)
+                .build(),
+            "hiddenForDesignatedBodyCode is null"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode("")
+                .hiddenBy(ADMIN_NAME)
+                .doctors(validDoctors)
+                .build(),
+            "hiddenForDesignatedBodyCode is blank"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .hiddenBy(ADMIN_NAME)
+                .doctors(null)
+                .build(),
+            "doctors is null"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .hiddenBy(ADMIN_NAME)
+                .doctors(List.of())
+                .build(),
+            "doctors is empty"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .hiddenBy(null)
+                .doctors(validDoctors)
+                .build(),
+            "hiddenBy is null"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
+                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .hiddenBy(" ")
+                .doctors(validDoctors)
+                .build(),
+            "hiddenBy is blank"
+        )
+    );
+  }
+
+  @Test
+  void shouldHideDiscrepancies() throws Exception {
+    // given
+    DoctorInfoDto doctor = DoctorInfoDto.builder().gmcId(gmcId)
+        .currentDesignatedBodyCode(designatedBodyCode).build();
+    final var hideDiscrepancyDto = HideDiscrepancyDto.builder()
+        .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+        .doctors(List.of(doctor)).hiddenBy(ADMIN_NAME).build();
+
+    final var response = HideDiscrepancyResponseDto.builder()
+        .hiddenForDesignatedBodyCode(designatedBodyCode)
+        .requestedCount(1).failedCount(0).successfulCount(1).existingHiddenCount(0)
+        .successfulHiddenGmcIds(List.of(gmcId))
+        .build();
+
+    when(hiddenDiscrepancyService.hideDiscrepancies(any(HideDiscrepancyDto.class)))
+        .thenReturn(response);
+
+    // when & then
+    this.mockMvc.perform(post("/api/connections/discrepancies/hidden")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(hideDiscrepancyDto)))
+        .andExpect(status().isOk())
+        .andExpect(content().json(objectMapper.writeValueAsString(response)));
+  }
+
+  @ParameterizedTest(name = "invalid request: {1}")
+  @MethodSource("invalidHideDiscrepancyRequests")
+  void shouldReturnBadRequestForInvalidHideDiscrepancyRequests(
+      HideDiscrepancyDto request, String description) throws Exception {
+
+    this.mockMvc.perform(post("/api/connections/discrepancies/hidden")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsBytes(request)))
+        .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(hiddenDiscrepancyService);
   }
 
   private ConnectionDto prepareConnectionDto() {

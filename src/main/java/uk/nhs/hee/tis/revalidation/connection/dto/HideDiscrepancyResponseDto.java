@@ -19,30 +19,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.ArrayList;
 import java.util.List;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Repository interface for managing HiddenDiscrepancy entities in MongoDB.
+ * A DTO class that has all fields for the response of hiding discrepancies.
  */
-@Repository
-public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscrepancy, ObjectId> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class HideDiscrepancyResponseDto {
 
-  /**
-   * Finds hidden discrepancies by GMC reference numbers and designated body code.
-   *
-   * @param gmcReferenceNumbers         the list of GMC reference numbers to search for
-   * @param hiddenForDesignatedBodyCode the designated body code for which the discrepancies are
-   *                                    hidden
-   * @return a list of HiddenDiscrepancy entities matching the criteria
-   */
-  List<HiddenDiscrepancy> findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(
-      List<String> gmcReferenceNumbers,
-      String hiddenForDesignatedBodyCode
-  );
+  private String hiddenForDesignatedBodyCode;
+
+  private int requestedCount;
+  private int existingHiddenCount;
+  private int successfulCount;
+  private int failedCount;
+
+  @Builder.Default
+  private List<String> successfulHiddenGmcIds = new ArrayList<>();
+  @Builder.Default
+  private List<String> failedToHideGmcIds = new ArrayList<>();
+  @Builder.Default
+  private List<String> existingHiddenGmcIds = new ArrayList<>();
 }

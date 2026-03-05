@@ -21,9 +21,10 @@
 
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,8 +40,11 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HideDiscrepancyDto {
 
-  private List<String> doctorGmcIds;
+  @NotBlank(message = "Hidden For Designated body code must not be blank")
   private String hiddenForDesignatedBodyCode;
+  @NotEmpty
+  private List<DoctorInfoDto> doctors;
+  @NotBlank
   private String hiddenBy;
   private String reason;
 }

@@ -34,6 +34,7 @@ import io.swagger.annotations.ApiResponses;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -48,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -392,10 +394,19 @@ public class ConnectionController {
     return ResponseEntity.ok(connectionSummaryDto);
   }
 
+  /**
+   * POST  /discrepancies/hidden : Hide discrepancies for a list of GMC IDs.
+   *
+   * @param hideDiscrepancyDto the details of discrepancies to hide
+   * @return the ResponseEntity with status 200 (OK) and details of hidden discrepancies in body
+   */
   @PostMapping("/discrepancies/hidden")
-  public void hideDiscrepancies(@RequestBody final HideDiscrepancyDto hideDiscrepancyDto) {
-    log.info("Request received to hide discrepancies: {}", hideDiscrepancyDto.getDoctorGmcIds());
-    // todo: validate if the admin user has permission to hide discrepancies on the doctors & this dbc
-    hiddenDiscrepancyService.hideDiscrepancies(hideDiscrepancyDto);
+  public ResponseEntity<HideDiscrepancyResponseDto> hideDiscrepancies(
+      @Valid @RequestBody final HideDiscrepancyDto hideDiscrepancyDto) {
+    log.info("Request received to hide discrepancies: {}", hideDiscrepancyDto);
+
+    HideDiscrepancyResponseDto responseDto =
+        hiddenDiscrepancyService.hideDiscrepancies(hideDiscrepancyDto);
+    return ResponseEntity.ok(responseDto);
   }
 }

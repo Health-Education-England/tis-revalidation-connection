@@ -41,7 +41,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class HiddenDiscrepancy {
   @Id
   private ObjectId id;
-  private String gmcReferenceNumber;
+  private String gmcId;
   private String hiddenForDesignatedBodyCode;
   private String hiddenBy;
   private String reason;

@@ -103,8 +103,8 @@ public class HiddenDiscrepancyService {
 
   private Set<String> findHiddenGmcIds(List<String> gmcIds, String hiddenForDbc) {
     return hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(gmcIds, hiddenForDbc).stream()
-        .map(HiddenDiscrepancy::getGmcReferenceNumber)
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(gmcIds, hiddenForDbc).stream()
+        .map(HiddenDiscrepancy::getGmcId)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }

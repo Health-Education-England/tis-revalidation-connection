@@ -43,7 +43,6 @@ public interface HiddenDiscrepancyMapper {
    * @return a HiddenDiscrepancy entity populated with data from the DTO and additional parameters
    */
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "gmcReferenceNumber", source = "gmcId")
   @Mapping(target = "hiddenDateTime", source = "batchTime")
   HiddenDiscrepancy toEntity(HideDiscrepancyDto dto, String gmcId, LocalDateTime batchTime);
 }

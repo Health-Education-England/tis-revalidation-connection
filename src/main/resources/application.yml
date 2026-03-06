@@ -30,7 +30,8 @@ app:
     limit.retries: true
 
   reval:
-    essync.batchsize: ${ESSYNC_BATCH_SIZE:5000}
+    essync.connectionlog.batchsize: ${CONNECTION_LOG_ESSYNC_BATCH_SIZE:5000}
+    essync.hiddendiscrepancy.batchsize: ${HIDDEN_DISCREPANCY_ESSYNC_BATCH_SIZE:5000}
 
   rabbit:
     reval:
@@ -39,9 +40,11 @@ app:
         gmcsync: ${REVAL_RABBIT_GMCSYNC_ROUTING_KEY:reval.gmcsync}
         connection.manualupdate: ${CONNECTION_ROUTING_KEY:reval.connection.manualupdate}
         connectionlog.essyncdata: ${CONNECTION_LOG_ESSYNCDATA_ROUTING_KEY:reval.routingkey.connectionlog.essyncdata}
+        hiddendiscrepancy.essyncdata: ${HIDDEN_DISCREPANCY_ESSYNCDATA_ROUTING_KEY:reval.routingkey.hiddendiscrepancy.essyncdata}
       queue:
         connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
         connectionlog.essyncstart: ${CONNECTION_LOG_ESSYNCSTART_QUEUE:reval.queue.connectionlog.essyncstart.connection}
+        hiddendiscrepancy.essyncstart: ${HIDDEN_DISCREPANCY_ESSYNCSTART_QUEUE:reval.queue.hiddendiscrepancy.essyncstart.connection}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

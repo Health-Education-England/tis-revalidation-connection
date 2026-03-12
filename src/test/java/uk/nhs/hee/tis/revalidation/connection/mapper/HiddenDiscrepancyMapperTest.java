@@ -61,7 +61,7 @@ class HiddenDiscrepancyMapperTest {
     assertThat(entity.getId()).isNull();
 
     // mapped fields
-    assertThat(entity.getGmcReferenceNumber()).isEqualTo(GMC_ID);
+    assertThat(entity.getGmcId()).isEqualTo(GMC_ID);
     assertThat(entity.getHiddenForDesignatedBodyCode()).isEqualTo(
         dto.getHiddenForDesignatedBodyCode());
     assertThat(entity.getHiddenBy()).isEqualTo(dto.getHiddenBy());

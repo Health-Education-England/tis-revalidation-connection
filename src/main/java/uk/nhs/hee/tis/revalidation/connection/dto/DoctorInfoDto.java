@@ -22,6 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +35,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DoctorInfoDto {
 
+  @NotBlank
   private String gmcId;
   private String currentDesignatedBodyCode;
   private String programmeOwnerDesignatedBodyCode;

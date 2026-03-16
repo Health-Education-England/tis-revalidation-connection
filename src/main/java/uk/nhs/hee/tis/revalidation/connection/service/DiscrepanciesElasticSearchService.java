@@ -22,9 +22,11 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.FROM;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.TO;
@@ -67,6 +69,8 @@ public class DiscrepanciesElasticSearchService {
   private static final String GMC_SUBMISSION_DATE_FIELD = "submissionDate";
   private static final String CONNECTION_LAST_UPDATED_DATE_FIELD = "lastConnectionDateTime";
   private static final String UPDATED_BY_FIELD = "updatedBy";
+  private static final String HIDDEN_DISCREPANCY_DBC_PATH = "hiddenDiscrepancies";
+  private static final String HIDDEN_DISCREPANCY_DBC_FIELD = "hiddenDiscrepancies.hiddenForDesignatedBodyCode";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -162,6 +166,12 @@ public class DiscrepanciesElasticSearchService {
             matchPhraseQuery(UPDATED_BY_FIELD, updatedBy).zeroTermsQuery(
                 ZeroTermsQuery.ALL));
       }
+
+      // Combine DBC lists without duplicates
+      String allDbcs = formattedDbcs + " " + formattedTisDbcs;
+      rootQuery.filter(boolQuery().mustNot(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
+          boolQuery().must(matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", allDbcs))),
+          None)));
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

@@ -291,4 +291,51 @@ class DiscrepanciesElasticSearchServiceTest {
             searchQuery, dbcs, tisDbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
             submissionTo, lastConnectionFrom, lastConnectionTo, upddatedBy, pageable));
   }
+
+  @Test
+  void shouldSearchForPageAndExcludeHiddenDiscrepancies()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<DiscrepanciesView> hit =
+        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(discrepanciesView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<DiscrepanciesView> hits =
+        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForDiscrepanciesPageWithFilters(
+            searchQuery, dbcs, tisDbcs, programmeName, null,
+            null, null,
+            null, null,
+            null, upddatedBy, pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode"));
+    assertThat(queryString, containsString("1rsspz7 1rssq1b"));
+  }
 }

@@ -166,10 +166,10 @@ class HiddenDiscrepancyServiceTest {
         .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
         .thenReturn(List.of());
     when(hiddenDiscrepancyRepository.saveAll(saveCaptor.capture()))
-        .thenReturn(List.of(entity("GMC1"))); // nowHidden only has GMC1
+        .thenReturn(List.of(entity("GMC1"))).thenThrow(new RuntimeException("db down"));
+    // nowHidden only has GMC1
 
     mockMapperToReturnRealEntity();
-    doThrow(new RuntimeException("db down")).when(hiddenDiscrepancyRepository).saveAll(anyList());
 
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)

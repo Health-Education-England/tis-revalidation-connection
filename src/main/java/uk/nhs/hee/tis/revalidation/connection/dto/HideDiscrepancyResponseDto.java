@@ -41,11 +41,6 @@ public class HideDiscrepancyResponseDto {
 
   private String hiddenForDesignatedBodyCode;
 
-  private int requestedCount;
-  private int existingHiddenCount;
-  private int successfulCount;
-  private int failedCount;
-
   @Builder.Default
   private List<String> successfulHiddenGmcIds = new ArrayList<>();
   @Builder.Default

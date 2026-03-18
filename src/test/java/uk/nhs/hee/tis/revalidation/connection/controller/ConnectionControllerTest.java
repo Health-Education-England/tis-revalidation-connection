@@ -509,7 +509,6 @@ class ConnectionControllerTest {
 
     final var response = HideDiscrepancyResponseDto.builder()
         .hiddenForDesignatedBodyCode(designatedBodyCode)
-        .requestedCount(1).failedCount(0).successfulCount(1).existingHiddenCount(0)
         .successfulHiddenGmcIds(List.of(gmcId))
         .build();
 

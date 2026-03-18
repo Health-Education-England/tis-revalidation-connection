@@ -40,8 +40,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -72,59 +75,34 @@ class HiddenDiscrepancyServiceTest {
   @InjectMocks
   private HiddenDiscrepancyService service;
 
-  @Test
-  void shouldReturnEmptyResponseWhenDoctorsIsNull() {
+  @ParameterizedTest
+  @MethodSource("invalidDoctorDtosSupplier")
+  void shouldReturnEmptyResponseWhenDoctorsInvalid(List<DoctorInfoDto> doctors) {
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
-        .doctors(null)
+        .doctors(doctors)
         .build();
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 0, 0, 0, 0);
+    assertResponseListCounts(response, 0, 0, 0);
     assertResponseLists(response, List.of(), List.of(), List.of());
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hiddenDiscrepancyMapper);
   }
 
-  @Test
-  void shouldReturnEmptyResponseWhenDoctorsIsEmpty() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .doctors(List.of())
-        .build();
-
-    HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
-
-    assertResponseListCounts(response, 0, 0, 0, 0);
-    assertResponseLists(response, List.of(), List.of(), List.of());
-
-    verifyNoInteractions(hiddenDiscrepancyRepository);
-    verifyNoInteractions(hiddenDiscrepancyMapper);
+  private static Stream<List<DoctorInfoDto>> invalidDoctorDtosSupplier() {
+    return Stream.of(
+        null,
+        List.of(),
+        List.of(doc(null)),
+        List.of(doc(null), doc(null))
+    );
   }
 
-  @Test
-  void shouldReturnEmptyResponseWhenAllDoctorsHaveNullGmcId() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .doctors(List.of(doc(null), doc(null)))
-        .build();
-
-    HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
-
-    assertResponseListCounts(response, 0, 0, 0, 0);
-    assertResponseLists(response, List.of(), List.of(), List.of());
-
-    verifyNoInteractions(hiddenDiscrepancyRepository);
-    verifyNoInteractions(hiddenDiscrepancyMapper);
-  }
 
   @Test
   void shouldNotSaveAndShouldReturnExistingHiddenWhenAllRequestedAreAlreadyHidden() {
@@ -136,13 +114,13 @@ class HiddenDiscrepancyServiceTest {
         .build();
 
     when(hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
         .thenReturn(List.of(entity("GMC1"), entity("GMC2"))) // alreadyHidden
         .thenReturn(List.of(entity("GMC1"), entity("GMC2"))); // nowHidden
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 2, 2, 0, 0);
+    assertResponseListCounts(response, 2, 0, 0);
     assertResponseLists(response, List.of(), List.of(), List.of("GMC1", "GMC2"));
 
     verify(hiddenDiscrepancyRepository, never()).saveAll(anyList());
@@ -159,16 +137,16 @@ class HiddenDiscrepancyServiceTest {
         .build();
 
     when(hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
-        .thenReturn(List.of(entity("GMC1"))) // alreadyHidden
-        .thenReturn(List.of(entity("GMC1"), entity("GMC2"), entity("GMC3"))); // nowHidden
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
+        .thenReturn(List.of(entity("GMC1")));
+    when(hiddenDiscrepancyRepository.saveAll(anyList()))
+        .thenReturn(List.of(entity("GMC2"), entity("GMC3"))); // nowHidden
 
     mockMapperToReturnRealEntity();
 
-    // capture saveAll payload
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 3, 1, 2, 0);
+    assertResponseListCounts(response, 1, 2, 0);
     assertResponseLists(response, List.of("GMC2", "GMC3"), List.of(), List.of("GMC1"));
 
     verify(hiddenDiscrepancyRepository).saveAll(saveCaptor.capture());
@@ -185,8 +163,9 @@ class HiddenDiscrepancyServiceTest {
   @Test
   void shouldContinueAndReturnListsComputedFromDbWhenSaveAllThrowsException() {
     when(hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
-        .thenReturn(List.of())                // alreadyHidden
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
+        .thenReturn(List.of());
+    when(hiddenDiscrepancyRepository.saveAll(saveCaptor.capture()))
         .thenReturn(List.of(entity("GMC1"))); // nowHidden only has GMC1
 
     mockMapperToReturnRealEntity();
@@ -201,10 +180,11 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 2, 0, 1, 1);
+    assertResponseListCounts(response, 0, 1, 1);
     assertResponseLists(response, List.of("GMC1"), List.of("GMC2"), List.of());
 
-    verify(hiddenDiscrepancyRepository).saveAll(anyList());
+    verify(hiddenDiscrepancyRepository).saveAll(saveCaptor.capture());
+    assertSavedEntities(saveCaptor.getValue(), Set.of("GMC1", "GMC2"), dto);
   }
 
   @Test
@@ -217,15 +197,16 @@ class HiddenDiscrepancyServiceTest {
         .build();
 
     when(hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
-        .thenReturn(List.of()) // alreadyHidden
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
+        .thenReturn(List.of());
+    when(hiddenDiscrepancyRepository.saveAll(anyList()))
         .thenReturn(List.of(entity("GMC1"), entity("GMC2"))); // nowHidden missing GMC3
 
     mockMapperToReturnRealEntity();
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 3, 0, 2, 1);
+    assertResponseListCounts(response, 0, 2, 1);
     assertResponseLists(response, List.of("GMC1", "GMC2"), List.of("GMC3"), List.of()
     );
   }
@@ -241,23 +222,26 @@ class HiddenDiscrepancyServiceTest {
 
     // capture the gmcIds list passed into repository (to ensure distinct() is applied)
     when(hiddenDiscrepancyRepository
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
-        .thenReturn(List.of()) // alreadyHidden
-        .thenReturn(List.of(entity("GMC1"), entity("GMC2"))); // nowHidden
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
+        .thenReturn(List.of());
+
+    when(hiddenDiscrepancyRepository.saveAll(anyList()))
+        .thenReturn(List.of(entity("GMC1"), entity("GMC2")));
 
     mockMapperToReturnRealEntity();
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 2, 0, 2, 0);
+    assertResponseListCounts(response, 0, 2, 0);
     assertResponseLists(response, List.of("GMC1", "GMC2"), List.of(), List.of());
 
-    verify(hiddenDiscrepancyRepository, times(2))
-        .findByGmcReferenceNumberInAndHiddenForDesignatedBodyCode(gmcIdsCaptor.capture(), eq(DBC));
-
-    List<String> requestedGmcsAtFirstQuery = gmcIdsCaptor.getAllValues().get(0);
-    assertEquals(2, requestedGmcsAtFirstQuery.size());
+    verify(hiddenDiscrepancyRepository)
+        .findByGmcIdInAndHiddenForDesignatedBodyCode(gmcIdsCaptor.capture(), eq(DBC));
+    List<String> requestedGmcsAtFirstQuery = gmcIdsCaptor.getValue();
     assertListContainsExactlyIgnoringOrder(requestedGmcsAtFirstQuery, List.of("GMC1", "GMC2"));
+
+    verify(hiddenDiscrepancyRepository).saveAll(saveCaptor.capture());
+    assertSavedEntities(saveCaptor.getValue(), Set.of("GMC1", "GMC2"), dto);
 
     verify(hiddenDiscrepancyMapper, times(1)).toEntity(eq(dto), eq("GMC1"),
         any(LocalDateTime.class));
@@ -267,15 +251,20 @@ class HiddenDiscrepancyServiceTest {
 
   // -------------------- Helpers --------------------
 
-  private DoctorInfoDto doc(String gmc) {
+  private static DoctorInfoDto doc(String gmc) {
     DoctorInfoDto d = mock(DoctorInfoDto.class);
     when(d.getGmcId()).thenReturn(gmc);
     return d;
   }
 
-  // Simple entity builder for repository return values (only gmc is relevant for service logic)
-  private HiddenDiscrepancy entity(String gmc) {
-    return HiddenDiscrepancy.builder().gmcReferenceNumber(gmc).build();
+  /**
+   * Simple entity builder for repository return values (only gmcId is relevant for service logic)
+   *
+   * @param gmcId The GMC Number for the returned object
+   * @return The HiddenDiscrepancy
+   */
+  private HiddenDiscrepancy entity(String gmcId) {
+    return HiddenDiscrepancy.builder().gmcId(gmcId).build();
   }
 
   // Mock mapper to return a real entity based on the input dto and gmcId
@@ -288,7 +277,7 @@ class HiddenDiscrepancyServiceTest {
           LocalDateTime batchTime = inv.getArgument(2, LocalDateTime.class);
 
           return HiddenDiscrepancy.builder()
-              .gmcReferenceNumber(gmcId)
+              .gmcId(gmcId)
               .hiddenForDesignatedBodyCode(dto.getHiddenForDesignatedBodyCode())
               .hiddenBy(dto.getHiddenBy())
               .reason(dto.getReason())
@@ -297,28 +286,36 @@ class HiddenDiscrepancyServiceTest {
         });
   }
 
-  // Assert the counts in the response and that the lists are non-null (but not their contents)
-  private void assertResponseListCounts(
-      HideDiscrepancyResponseDto response,
-      int expectedRequested,
-      int expectedExisting,
-      int expectedSuccessful,
-      int expectedFailed) {
-
+  /**
+   * Assert the counts in the response and that the lists are non-null (but not their contents)
+   *
+   * @param response
+   * @param expectedExisting
+   * @param expectedSuccessful
+   * @param expectedFailed
+   */
+  private void assertResponseListCounts(HideDiscrepancyResponseDto response, int expectedExisting,
+      int expectedSuccessful, int expectedFailed) {
     assertNotNull(response);
-    assertEquals(HiddenDiscrepancyServiceTest.DBC, response.getHiddenForDesignatedBodyCode());
-
-    assertEquals(expectedRequested, response.getRequestedCount());
-    assertEquals(expectedExisting, response.getExistingHiddenCount());
-    assertEquals(expectedSuccessful, response.getSuccessfulCount());
-    assertEquals(expectedFailed, response.getFailedCount());
-
     assertNotNull(response.getSuccessfulHiddenGmcIds());
     assertNotNull(response.getFailedToHideGmcIds());
     assertNotNull(response.getExistingHiddenGmcIds());
+    assertEquals(HiddenDiscrepancyServiceTest.DBC, response.getHiddenForDesignatedBodyCode());
+
+    assertEquals(expectedExisting, response.getExistingHiddenGmcIds().size());
+    assertEquals(expectedSuccessful, response.getSuccessfulHiddenGmcIds().size());
+    assertEquals(expectedFailed, response.getFailedToHideGmcIds().size());
+
   }
 
-  // Assert the contents of the three lists in the response (ignoring order)
+  /**
+   * Assert the contents of the three lists in the response (ignoring order)
+   *
+   * @param response
+   * @param expectedSuccessful
+   * @param expectedFailed
+   * @param expectedExisting
+   */
   private void assertResponseLists(HideDiscrepancyResponseDto response,
       List<String> expectedSuccessful,
       List<String> expectedFailed,
@@ -337,15 +334,21 @@ class HiddenDiscrepancyServiceTest {
     assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
   }
 
-  // Assert that the saved entities have the expected GMCs, correct mapping from dto,
-  // and consistent batchTime
+  /**
+   * Assert that the saved entities have the expected GMCs, correct mapping from dto and consistent
+   * batchTime
+   *
+   * @param saved
+   * @param expectedGmcs
+   * @param dto
+   */
   private void assertSavedEntities(List<HiddenDiscrepancy> saved, Set<String> expectedGmcs,
       HideDiscrepancyDto dto) {
     assertNotNull(saved);
     assertEquals(expectedGmcs.size(), saved.size());
 
     Set<String> savedGmcs = saved.stream()
-        .map(HiddenDiscrepancy::getGmcReferenceNumber)
+        .map(HiddenDiscrepancy::getGmcId)
         .collect(Collectors.toSet());
     assertEquals(expectedGmcs, savedGmcs);
 

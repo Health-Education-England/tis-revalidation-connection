@@ -28,6 +28,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -38,9 +39,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @Builder
 @Document(collection = "hiddenDiscrepancy")
+@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}", name = "gmc_dbc_idx", unique = true)
 public class HiddenDiscrepancy {
+
   @Id
-  private ObjectId id;
+  private String id;
   private String gmcId;
   private String hiddenForDesignatedBodyCode;
   private String hiddenBy;

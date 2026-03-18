@@ -83,20 +83,32 @@ public class ConnectionController {
   private static final String CONNECTION_LAST_UPDATED_DATE_TO = "lastConnectionDateTimeTo";
   private static final String UPDATED_BY = "updatedBy";
 
-  @Autowired
   private ConnectionService connectionService;
-
-  @Autowired
   private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
-
-  @Autowired
   private ConnectedElasticSearchService connectedElasticSearchService;
-
-  @Autowired
   private DisconnectedElasticSearchService disconnectedElasticSearchService;
-
-  @Autowired
   private HiddenDiscrepancyService hiddenDiscrepancyService;
+
+  /**
+   * Constructs a new ConnectionController with the specified services.
+   *
+   * @param connectionService                 the service for managing connections
+   * @param discrepanciesElasticSearchService the service for retrieving doctor discrepancies
+   * @param connectedElasticSearchService     the service for retrieving connected doctors
+   * @param disconnectedElasticSearchService  the service for retrieving disconnected doctors
+   * @param hiddenDiscrepancyService          the service for managing hidden discrepancies
+   */
+  public ConnectionController(ConnectionService connectionService,
+      DiscrepanciesElasticSearchService discrepanciesElasticSearchService,
+      ConnectedElasticSearchService connectedElasticSearchService,
+      DisconnectedElasticSearchService disconnectedElasticSearchService,
+      HiddenDiscrepancyService hiddenDiscrepancyService) {
+    this.connectionService = connectionService;
+    this.discrepanciesElasticSearchService = discrepanciesElasticSearchService;
+    this.connectedElasticSearchService = connectedElasticSearchService;
+    this.disconnectedElasticSearchService = disconnectedElasticSearchService;
+    this.hiddenDiscrepancyService = hiddenDiscrepancyService;
+  }
 
   /**
    * POST  /connections/add : Add a new connection.
@@ -284,7 +296,7 @@ public class ConnectionController {
             lastConnectionDateTimeTo,
             updatedBy,
             pageableAndSortable
-          );
+        );
 
     return ResponseEntity.ok(connectionSummaryDto);
   }
@@ -354,7 +366,7 @@ public class ConnectionController {
             lastConnectionDateTimeTo,
             updatedBy,
             pageableAndSortable
-          );
+        );
 
     return ResponseEntity.ok(connectionSummaryDto);
   }

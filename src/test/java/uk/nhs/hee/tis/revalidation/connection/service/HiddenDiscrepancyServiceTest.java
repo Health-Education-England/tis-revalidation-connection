@@ -28,7 +28,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -129,7 +128,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldSaveOnlyNewGmcIdsAndReturnSuccessfulAndExistingListsWhenSomeAreNew() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
@@ -171,7 +170,7 @@ class HiddenDiscrepancyServiceTest {
 
     mockMapperToReturnRealEntity();
 
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
@@ -189,7 +188,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldReturnFailedListWhenDbDoesNotReturnAllAsHiddenAfterSaveAttempt() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
@@ -213,7 +212,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldDedupRequestedGmcIdsAndReturnListsWithoutDuplicatesWhenInputContainsDuplicates() {
-    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
@@ -287,12 +286,12 @@ class HiddenDiscrepancyServiceTest {
   }
 
   /**
-   * Assert the counts in the response and that the lists are non-null (but not their contents)
+   * Assert the counts in the response and that the lists are non-null (but not their contents).
    *
-   * @param response
-   * @param expectedExisting
-   * @param expectedSuccessful
-   * @param expectedFailed
+   * @param response           the service response containing details of hidden discrepancies
+   * @param expectedExisting   the expected number of existing discrepancies
+   * @param expectedSuccessful the expected number of hide discrepancy updates to succeed
+   * @param expectedFailed     the expected number of hide discrepancy updates to succeed
    */
   private void assertResponseListCounts(HideDiscrepancyResponseDto response, int expectedExisting,
       int expectedSuccessful, int expectedFailed) {
@@ -309,12 +308,12 @@ class HiddenDiscrepancyServiceTest {
   }
 
   /**
-   * Assert the contents of the three lists in the response (ignoring order)
+   * Assert the contents of the three lists in the response (ignoring order).
    *
-   * @param response
-   * @param expectedSuccessful
-   * @param expectedFailed
-   * @param expectedExisting
+   * @param response           the service response containing details of hidden discrepancies
+   * @param expectedExisting   the expected number of existing discrepancies
+   * @param expectedSuccessful the expected number of hide discrepancy updates to succeed
+   * @param expectedFailed     the expected number of hide discrepancy updates to succeed
    */
   private void assertResponseLists(HideDiscrepancyResponseDto response,
       List<String> expectedSuccessful,
@@ -336,11 +335,11 @@ class HiddenDiscrepancyServiceTest {
 
   /**
    * Assert that the saved entities have the expected GMCs, correct mapping from dto and consistent
-   * batchTime
+   * batchTime.
    *
-   * @param saved
-   * @param expectedGmcs
-   * @param dto
+   * @param saved        the entities saved
+   * @param expectedGmcs the expected GMC numbers to have been saved
+   * @param dto          the dto to verify
    */
   private void assertSavedEntities(List<HiddenDiscrepancy> saved, Set<String> expectedGmcs,
       HideDiscrepancyDto dto) {

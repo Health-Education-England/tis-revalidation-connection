@@ -257,7 +257,7 @@ class HiddenDiscrepancyServiceTest {
   }
 
   /**
-   * Simple entity builder for repository return values (only gmcId is relevant for service logic)
+   * Simple entity builder for repository return values (only gmcId is relevant for service logic).
    *
    * @param gmcId The GMC Number for the returned object
    * @return The HiddenDiscrepancy

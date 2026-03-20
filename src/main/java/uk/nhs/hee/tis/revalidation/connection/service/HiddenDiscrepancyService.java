@@ -86,13 +86,9 @@ public class HiddenDiscrepancyService {
           .map(gmcId -> hiddenDiscrepancyMapper.toEntity(dto, gmcId, batchTime))
           .collect(Collectors.toList());
 
-      try {
-        savedGmcIds.addAll(hiddenDiscrepancyRepository.saveAll(newEntities).stream()
-            .map(HiddenDiscrepancy::getGmcId)
-            .collect(Collectors.toList()));
-      } catch (Exception e) {
-        log.error("Error saving hidden discrepancies to the db", e);
-      }
+      savedGmcIds.addAll(hiddenDiscrepancyRepository.saveAll(newEntities).stream()
+          .map(HiddenDiscrepancy::getGmcId)
+          .collect(Collectors.toList()));
     }
 
     final List<String> failedToHide = newGmcIdsToHide.stream()
@@ -118,7 +114,6 @@ public class HiddenDiscrepancyService {
     return hiddenDiscrepancyRepository
         .findByGmcIdInAndHiddenForDesignatedBodyCode(gmcIds, hiddenForDbc).stream()
         .map(HiddenDiscrepancy::getGmcId)
-        .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }
 }

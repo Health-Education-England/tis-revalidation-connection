@@ -160,33 +160,6 @@ class HiddenDiscrepancyServiceTest {
   }
 
   @Test
-  void shouldContinueAndReturnListsComputedFromDbWhenSaveAllThrowsException() {
-    when(hiddenDiscrepancyRepository
-        .findByGmcIdInAndHiddenForDesignatedBodyCode(anyList(), eq(DBC)))
-        .thenReturn(List.of());
-    when(hiddenDiscrepancyRepository.saveAll(saveCaptor.capture()))
-        .thenReturn(List.of(entity("GMC1"))).thenThrow(new RuntimeException("db down"));
-    // nowHidden only has GMC1
-
-    mockMapperToReturnRealEntity();
-
-    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .doctors(List.of(doc("GMC1"), doc("GMC2")))
-        .build();
-
-    HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
-
-    assertResponseListCounts(response, 0, 1, 1);
-    assertResponseLists(response, List.of("GMC1"), List.of("GMC2"), List.of());
-
-    verify(hiddenDiscrepancyRepository).saveAll(saveCaptor.capture());
-    assertSavedEntities(saveCaptor.getValue(), Set.of("GMC1", "GMC2"), dto);
-  }
-
-  @Test
   void shouldReturnFailedListWhenDbDoesNotReturnAllAsHiddenAfterSaveAttempt() {
     final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenForDesignatedBodyCode(DBC)

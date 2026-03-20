@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright 2021 Crown Copyright (Health Education England)
+ * Copyright 2026 Crown Copyright (NHS England)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,24 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.dto;
+package uk.nhs.hee.tis.revalidation.connection.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import javax.validation.constraints.NotBlank;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * A data class to handle hidden discrepancy status.
+ */
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DoctorInfoDto {
+@NoArgsConstructor
+@Builder
+@Document(collection = "hiddenDiscrepancy")
+@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
+    name = "gmc_dbc_idx",
+    unique = true)
+public class HiddenDiscrepancy {
 
-  @NotBlank
+  @Id
+  private String id;
   private String gmcId;
-  private String currentDesignatedBodyCode;
-  private String programmeOwnerDesignatedBodyCode;
+  private String hiddenForDesignatedBodyCode;
+  private String hiddenBy;
+  private String reason;
+  private LocalDateTime hiddenDateTime;
 }

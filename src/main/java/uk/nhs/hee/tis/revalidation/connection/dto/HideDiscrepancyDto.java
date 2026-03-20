@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright 2021 Crown Copyright (Health Education England)
+ * Copyright 2026 Crown Copyright (NHS England)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -22,21 +22,29 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * A DTO class that has all fields for hiding a discrepancy.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DoctorInfoDto {
+public class HideDiscrepancyDto {
 
-  @NotBlank
-  private String gmcId;
-  private String currentDesignatedBodyCode;
-  private String programmeOwnerDesignatedBodyCode;
+  @NotBlank(message = "Hidden For Designated Body Code must not be blank")
+  private String hiddenForDesignatedBodyCode;
+  @NotEmpty
+  private List<DoctorInfoDto> doctors;
+  @NotBlank(message = "The user hiding discrepancies must be provided.")
+  private String hiddenBy;
+  private String reason;
 }

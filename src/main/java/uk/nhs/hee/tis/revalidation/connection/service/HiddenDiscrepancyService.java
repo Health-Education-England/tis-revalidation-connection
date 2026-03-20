@@ -78,6 +78,10 @@ public class HiddenDiscrepancyService {
     final List<String> newGmcIdsToHide = requestedGmcIds.stream()
         .filter(not(alreadyHidden::contains))
         .collect(Collectors.toList());
+    if (!alreadyHidden.isEmpty()) {
+      log.warn("Discrepancies for the following GMC IDs are already hidden for {}: {}",
+          hiddenForDbc, alreadyHidden);
+    }
     final List<String> savedGmcIds = new ArrayList<>();
 
     if (!newGmcIdsToHide.isEmpty()) {

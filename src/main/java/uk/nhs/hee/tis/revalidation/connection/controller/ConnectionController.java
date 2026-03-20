@@ -152,44 +152,6 @@ public class ConnectionController {
   }
 
   /**
-   * POST  /connections/hide : Hide a connection.
-   *
-   * @param hideConnectionDto the connection to hide
-   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
-   */
-  @ApiOperation(value = "Hide connection", notes =
-      "It will hide connections manually", response = String.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Hiding connections is successful",
-          response = String.class)})
-  @PostMapping("/hide")
-  public ResponseEntity<UpdateConnectionResponseDto> hideConnection(
-      @RequestBody final UpdateConnectionDto hideConnectionDto) {
-    log.info("Request receive to hide doctor connection: {}", hideConnectionDto);
-    final var message = connectionService.hideConnection(hideConnectionDto);
-    return ResponseEntity.ok(message);
-  }
-
-  /**
-   * POST  /connections/unhide : Unhide a connection.
-   *
-   * @param unhideConnectionDto the connection to unhide
-   * @return the ResponseEntity with status 200 (OK) and update connection response message in body
-   */
-  @ApiOperation(value = "Unhide connection", notes =
-      "It will unhide connections manually", response = String.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Unhiding connections is successful",
-          response = String.class)})
-  @PostMapping("/unhide")
-  public ResponseEntity<UpdateConnectionResponseDto> unhideConnection(
-      @RequestBody final UpdateConnectionDto unhideConnectionDto) {
-    log.info("Request receive to unhide doctor connection: {}", unhideConnectionDto);
-    final var message = connectionService.unhideConnection(unhideConnectionDto);
-    return ResponseEntity.ok(message);
-  }
-
-  /**
    * GET  /connections/{gmcId} : get connection details of the gmcId.
    *
    * @param gmcId the connection details to get
@@ -208,22 +170,6 @@ public class ConnectionController {
       return ResponseEntity.ok().body(connections);
     }
     return ResponseEntity.ok().body((ConnectionDto) of());
-  }
-
-  /**
-   * GET  /connections/hidden : get all gmcIds of hidden connections.
-   *
-   * @return the ResponseEntity with status 200(OK) and list of gmcIds of hidden connections in body
-   */
-  @ApiOperation(value = "Get detailed connections of a trainee", notes =
-      "It will return trainee's connections details", response = List.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Trainee connection details", response = List.class)})
-  @GetMapping("/hidden")
-  public ResponseEntity<List<String>> getDetailedConnections() {
-    log.info("Fetch all gmcIds of hidden connections");
-    final var connections = connectionService.getAllHiddenConnections();
-    return ResponseEntity.ok().body(connections);
   }
 
   /**

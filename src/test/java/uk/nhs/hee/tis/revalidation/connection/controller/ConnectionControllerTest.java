@@ -200,34 +200,6 @@ class ConnectionControllerTest {
   }
 
   @Test
-  void shouldHideDoctorConnection() throws Exception {
-    final var hideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
-        .doctors(buildDoctorsList()).build();
-    final var response = UpdateConnectionResponseDto.builder().message(message).build();
-    when(connectionService.hideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
-    this.mockMvc.perform(post("/api/connections/hide")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(hideDoctorDto)))
-        .andExpect(content().json(objectMapper.writeValueAsString(response)))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void shouldUnhideDoctorConnection() throws Exception {
-    final var unhideDoctorDto = UpdateConnectionDto.builder().changeReason(changeReason)
-        .doctors(buildDoctorsList()).build();
-    final var response = UpdateConnectionResponseDto.builder().message(message).build();
-    when(connectionService.unhideConnection(any(UpdateConnectionDto.class))).thenReturn(response);
-    this.mockMvc.perform(post("/api/connections/unhide")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(unhideDoctorDto)))
-        .andExpect(content().json(objectMapper.writeValueAsString(response)))
-        .andExpect(status().isOk());
-  }
-
-  @Test
   void shouldReturnAllConnectionsForADoctor() throws Exception {
     final var connectionDto = prepareConnectionDto();
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(connectionDto);
@@ -255,23 +227,6 @@ class ConnectionControllerTest {
   void shouldNotFailWhenThereIsNoConnectionsForADoctor() throws Exception {
     when(connectionService.getTraineeConnectionInfo(gmcId)).thenReturn(new ConnectionDto());
     this.mockMvc.perform(get("/api/connections/{gmcId}", gmcId))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void shouldReturnAllHiddenConnections() throws Exception {
-    final var gmcIds = List.of(gmcId);
-    when(connectionService.getAllHiddenConnections()).thenReturn(gmcIds);
-    this.mockMvc.perform(get("/api/connections/hidden"))
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.[*]").value(hasItem(gmcId)));
-  }
-
-  @Test
-  void shouldNotFailWhenThereIsNoHiddenConnections() throws Exception {
-    when(connectionService.getAllHiddenConnections()).thenReturn(List.of());
-    this.mockMvc.perform(get("/api/connections/hidden"))
         .andExpect(status().isOk());
   }
 

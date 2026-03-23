@@ -61,14 +61,12 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
-import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
-import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ConnectionServiceTest {
@@ -87,9 +85,6 @@ class ConnectionServiceTest {
 
   @Mock
   private ConnectionLogCustomRepository connectionLogCustomRepository;
-
-  @Mock
-  private HideConnectionRepository hideRepository;
 
   @Mock
   private RabbitTemplate rabbitTemplate;
@@ -114,7 +109,6 @@ class ConnectionServiceTest {
 
   private String changeReason;
   private String designatedBodyCode;
-  private String programmeOwnerDesignatedBodyCode;
   private String gmcId;
   private String gmcRequestId;
   private String returnCode;
@@ -132,8 +126,6 @@ class ConnectionServiceTest {
   private ConnectionRequestType requestTypeRemove;
   private LocalDateTime requestTime;
   private String responseCode;
-  private String reasonHide;
-  private ConnectionRequestType requestTypeHide;
   private String admin;
 
   @BeforeEach
@@ -157,11 +149,7 @@ class ConnectionServiceTest {
     reasonMessageRemove = "Doctor has retired";
     requestTime = LocalDateTime.now().minusDays(-1);
     responseCode = faker.number().digits(5);
-    reasonHide = "2";
-    requestTypeHide = ConnectionRequestType.HIDE;
     admin = "admin";
-
-    programmeOwnerDesignatedBodyCode = faker.number().digits(8);
 
     setField(connectionService, "exchange", "esExchange");
     setField(connectionService, "routingKey", "routingKey");
@@ -244,26 +232,6 @@ class ConnectionServiceTest {
   }
 
   @Test
-  void shouldHideADoctorConnection() {
-    final var hideDoctorDto = UpdateConnectionDto.builder()
-        .changeReason(changeReason)
-        .doctors(buildDoctorsList())
-        .build();
-    connectionService.hideConnection(hideDoctorDto);
-    verify(hideRepository, times(2)).save(any(HideConnectionLog.class));
-  }
-
-  @Test
-  void shouldUnhideADoctorConnection() {
-    final var unhideDoctorDto = UpdateConnectionDto.builder()
-        .changeReason(changeReason)
-        .doctors(buildDoctorsList())
-        .build();
-    connectionService.unhideConnection(unhideDoctorDto);
-    verify(hideRepository, times(2)).deleteById(any(String.class));
-  }
-
-  @Test
   void shouldAddToExceptionWhenRemoveADoctorFails() {
     returnCode = "90";
     final var removeDoctorDto = UpdateConnectionDto.builder()
@@ -314,23 +282,6 @@ class ConnectionServiceTest {
     var connectionDto = connectionService.getTraineeConnectionInfo(gmcId);
     var connections = connectionDto.getConnectionHistory();
     assertThat(connections.size(), is(0));
-  }
-
-  @Test
-  void shouldReturnAllHiddenConnections() throws Exception {
-    final var hiddenConnection = prepareHiddenConnection();
-    when(hideRepository.findAll()).thenReturn(List.of(hiddenConnection));
-    var hiddenGmcIds = connectionService.getAllHiddenConnections();
-    assertThat(hiddenGmcIds.size(), is(1));
-    final var hiddenGmcId = hiddenGmcIds.get(0);
-    assertThat(hiddenGmcId, is(gmcId));
-  }
-
-  @Test
-  void shouldNotFailWhenThereIsNoHiddenConnection() throws Exception {
-    when(hideRepository.findAll()).thenReturn(List.of());
-    var hiddenGmcIds = connectionService.getAllHiddenConnections();
-    assertThat(hiddenGmcIds.size(), is(0));
   }
 
   @Test
@@ -483,14 +434,5 @@ class ConnectionServiceTest {
         .programmeOwnerDesignatedBodyCode(designatedBodyCode)
         .build();
     return List.of(doc1, doc2);
-  }
-
-  private HideConnectionLog prepareHiddenConnection() {
-    return HideConnectionLog.builder()
-        .gmcId(gmcId)
-        .reason(reasonHide)
-        .requestType(requestTypeHide)
-        .requestTime(requestTime)
-        .build();
   }
 }

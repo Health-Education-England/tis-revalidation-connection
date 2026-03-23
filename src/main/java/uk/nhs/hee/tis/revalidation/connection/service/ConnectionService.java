@@ -24,7 +24,6 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
-import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.HIDE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
@@ -51,14 +50,12 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
-import uk.nhs.hee.tis.revalidation.connection.entity.HideConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionLogCustomRepository;
 import uk.nhs.hee.tis.revalidation.connection.repository.ConnectionRepository;
-import uk.nhs.hee.tis.revalidation.connection.repository.HideConnectionRepository;
 
 @Slf4j
 @Service
@@ -71,8 +68,6 @@ public class ConnectionService {
   private final ConnectionRepository repository;
 
   private final ConnectionLogCustomRepository connectionLogCustomRepository;
-
-  private final HideConnectionRepository hideRepository;
 
   private final RabbitTemplate rabbitTemplate;
 
@@ -91,13 +86,12 @@ public class ConnectionService {
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
       ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
-      HideConnectionRepository hideRepository, RabbitTemplate rabbitTemplate,
+      RabbitTemplate rabbitTemplate,
       ConnectionLogMapper connectionLogMapper) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
     this.connectionLogCustomRepository = connectionLogCustomRepository;
-    this.hideRepository = hideRepository;
     this.rabbitTemplate = rabbitTemplate;
     this.connectionLogMapper = connectionLogMapper;
   }
@@ -108,15 +102,6 @@ public class ConnectionService {
 
   public UpdateConnectionResponseDto removeDoctor(final UpdateConnectionDto removeDoctorDto) {
     return processConnectionRequest(removeDoctorDto, REMOVE);
-  }
-
-  public UpdateConnectionResponseDto hideConnection(final UpdateConnectionDto hideConnectionDto) {
-    return processHideConnection(hideConnectionDto, HIDE);
-  }
-
-  public UpdateConnectionResponseDto unhideConnection(
-      final UpdateConnectionDto unhideConnectionDto) {
-    return processUnhideConnection(unhideConnectionDto);
   }
 
   /**
@@ -156,16 +141,6 @@ public class ConnectionService {
     connectionDto.setConnectionHistory(allConnectionsForTrainee);
 
     return connectionDto;
-  }
-
-  /**
-   * Get gmcId of hidden connections.
-   *
-   * @return list of gmcId of hidden connections
-   */
-  public List<String> getAllHiddenConnections() {
-    final var allConnections = hideRepository.findAll();
-    return allConnections.stream().map(HideConnectionLog::getGmcId).collect(toList());
   }
 
   /**
@@ -304,36 +279,6 @@ public class ConnectionService {
       return "Some changes have failed with GMC, please check the failed GMC updates list";
     }
     return message;
-  }
-
-  private UpdateConnectionResponseDto processHideConnection(
-      final UpdateConnectionDto hideConnectionDto,
-      final ConnectionRequestType connectionRequestType) {
-    final var changeReason = hideConnectionDto.getChangeReason();
-    hideConnectionDto.getDoctors().forEach(
-        doctor -> addHideConnectionLog(doctor.getGmcId(), changeReason, connectionRequestType));
-    return UpdateConnectionResponseDto.builder().message("Record has been hidden").build();
-  }
-
-  private UpdateConnectionResponseDto processUnhideConnection(
-      final UpdateConnectionDto unhideConnectionDto) {
-    unhideConnectionDto.getDoctors().forEach(doctor -> removeHideConnectionLog(doctor.getGmcId()));
-    return UpdateConnectionResponseDto.builder().message("Record has been unhidden").build();
-  }
-
-  private void addHideConnectionLog(final String gmcId, final String changeReason,
-      final ConnectionRequestType connectionRequestType) {
-    final var hideConnectionLog = HideConnectionLog.builder()
-        .gmcId(gmcId)
-        .reason(changeReason)
-        .requestType(connectionRequestType)
-        .requestTime(now())
-        .build();
-    hideRepository.save(hideConnectionLog);
-  }
-
-  private void removeHideConnectionLog(final String gmcId) {
-    hideRepository.deleteById(gmcId);
   }
 
   /**

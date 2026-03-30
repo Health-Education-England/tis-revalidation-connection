@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
+import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 @ExtendWith(MockitoExtension.class)
 class RabbitMessageListenerTest {
@@ -33,6 +34,9 @@ class RabbitMessageListenerTest {
 
   @Mock
   ConnectionService connectionService;
+
+  @Mock
+  HiddenDiscrepancyService hiddenDiscrepancyService;
 
   @Captor
   ArgumentCaptor<ConnectionLogDto> connectionLogDtoArgumentCaptor;
@@ -60,7 +64,8 @@ class RabbitMessageListenerTest {
   void shouldStartConnectionLogEsSync() {
     rabbitMessageListener.connectionLogEsSync(
         RabbitMessageListener.CONNECTION_LOG_SYNC_START_MESSAGE);
-    verify(connectionService).sendConnectionLogsForSync(rabbitMessageListener.batchSize);
+    verify(connectionService)
+        .sendConnectionLogsForSync(rabbitMessageListener.connectionLogBatchSize);
   }
 
   @Test
@@ -68,5 +73,20 @@ class RabbitMessageListenerTest {
     String invalidMessage = "invalidMessage";
     rabbitMessageListener.connectionLogEsSync(invalidMessage);
     verifyNoInteractions(connectionService);
+  }
+
+  @Test
+  void shouldStartHiddenDiscrepancyEsSync() {
+    rabbitMessageListener.hiddenDiscrepancyEsSync(
+        RabbitMessageListener.HIDDEN_DISCREPANCY_SYNC_START_MESSAGE);
+    verify(hiddenDiscrepancyService)
+        .sendHiddenDiscrepanciesForSync(rabbitMessageListener.hiddenDiscrepancyBatchSize);
+  }
+
+  @Test
+  void shouldNotStartHiddenDiscrepancyEsSyncForInvalidMessage() {
+    String invalidMessage = "invalidMessage";
+    rabbitMessageListener.hiddenDiscrepancyEsSync(invalidMessage);
+    verifyNoInteractions(hiddenDiscrepancyService);
   }
 }

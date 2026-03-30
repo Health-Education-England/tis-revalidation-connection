@@ -22,6 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.function.Predicate.not;
+import static org.springframework.data.domain.PageRequest.of;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,12 +31,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
+import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.HiddenDiscrepancyRepository;
 
 /*
@@ -45,6 +50,13 @@ import uk.nhs.hee.tis.revalidation.connection.repository.HiddenDiscrepancyReposi
 @Service
 public class HiddenDiscrepancyService {
 
+  @Value("${app.rabbit.reval.exchange}")
+  private String exchange;
+
+  @Value("${app.rabbit.reval.routingKey.hiddendiscrepancy.essyncdata}")
+  private String esSyncDataRoutingKey;
+
+  private final RabbitTemplate rabbitTemplate;
   private final HiddenDiscrepancyRepository hiddenDiscrepancyRepository;
   private final HiddenDiscrepancyMapper hiddenDiscrepancyMapper;
 
@@ -53,9 +65,11 @@ public class HiddenDiscrepancyService {
    *
    * @param hiddenDiscrepancyRepository the repository for managing hidden discrepancies
    * @param hiddenDiscrepancyMapper     the mapper for converting between DTOs and entities
+   * @param rabbitTemplate              the template for sending rabbitmq messages
    */
   public HiddenDiscrepancyService(HiddenDiscrepancyRepository hiddenDiscrepancyRepository,
-      HiddenDiscrepancyMapper hiddenDiscrepancyMapper) {
+      HiddenDiscrepancyMapper hiddenDiscrepancyMapper, RabbitTemplate rabbitTemplate) {
+    this.rabbitTemplate = rabbitTemplate;
     this.hiddenDiscrepancyRepository = hiddenDiscrepancyRepository;
     this.hiddenDiscrepancyMapper = hiddenDiscrepancyMapper;
   }
@@ -119,5 +133,29 @@ public class HiddenDiscrepancyService {
         .findByGmcIdInAndHiddenForDesignatedBodyCode(gmcIds, hiddenForDbc).stream()
         .map(HiddenDiscrepancy::getGmcId)
         .collect(Collectors.toSet());
+  }
+
+  /**
+   * Send hidden discrepancies to rabbit for elasticsearch sync in pages.
+   *
+   * @param pageSize the size of each page
+   */
+  public void sendHiddenDiscrepanciesForSync(int pageSize) {
+    Page<HiddenDiscrepancy> hiddenDiscrepancies = hiddenDiscrepancyRepository.findAll(
+        of(0, pageSize));
+    log.info("Total pages to process for hidden discrepancies sync: {}",
+        hiddenDiscrepancies.getTotalPages());
+
+    int currentPage = 0;
+    do {
+      var payload = IndexSyncMessage.builder().payload(hiddenDiscrepancies.toList()).syncEnd(false)
+          .build();
+      rabbitTemplate.convertAndSend(exchange,esSyncDataRoutingKey,payload);
+      currentPage++;
+    } while (currentPage < hiddenDiscrepancies.getTotalPages());
+
+    var syncEndPayload = IndexSyncMessage.builder().payload(List.of()).syncEnd(true)
+        .build();
+    rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
 }

@@ -58,11 +58,14 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
+import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
@@ -131,6 +134,8 @@ class ConnectionControllerTest {
   private String exceptionReason1;
   private String exceptionReason2;
   private String updatedBy;
+  private String hiddenBy;
+  private String hiidenReason;
 
   @BeforeEach
   public void setup() {
@@ -167,6 +172,8 @@ class ConnectionControllerTest {
     exceptionReason1 = faker.lorem().characters(20);
     exceptionReason2 = faker.lorem().characters(20);
     updatedBy = faker.lorem().characters(8);
+    hiddenBy = faker.lorem().characters(8);
+    hiidenReason = faker.lorem().characters(8);
   }
 
   @Test
@@ -491,6 +498,65 @@ class ConnectionControllerTest {
         .andExpect(status().isBadRequest());
 
     verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldReturnHiddenDiscrepancies() throws Exception {
+    List<HiddenDiscrepancy> hiddenDiscrepancyList = List.of(
+        HiddenDiscrepancy.builder()
+            .id(gmcId + designatedBody1)
+            .gmcId(gmcId)
+            .hiddenForDesignatedBodyCode(designatedBody1)
+            .hiddenBy(hiddenBy)
+            .reason(hiidenReason)
+            .build()
+    );
+
+    HiddenDiscrepancyInfoDto hiddenDiscrepancyInfoDto = HiddenDiscrepancyInfoDto.builder()
+        .hiddenDiscrepancies(hiddenDiscrepancyList)
+        .gmcReferenceNumber(gmcId)
+        .designatedBody(designatedBody1)
+        .tcsDesignatedBody(designatedBody2)
+        .programmeName(programmeName1)
+        .doctorFirstName(firstName1)
+        .doctorLastName(lastName1)
+        .build();
+
+    HiddenDiscrepancySummaryDto hiddenDiscrepancySummaryDto = HiddenDiscrepancySummaryDto.builder()
+        .hiddenDiscrepancies(List.of(hiddenDiscrepancyInfoDto))
+        .totalResults(1)
+        .build();
+
+    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
+        by(ASC, "gmcReferenceNumber"));
+    when(discrepanciesElasticSearchService.searchForHiddenDiscrepanciesPageWithFilters(EMPTY_STRING,
+        List.of(designatedBody1, designatedBody2),
+        programmeName1, pageableAndSortable))
+        .thenReturn(hiddenDiscrepancySummaryDto);
+
+    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
+    this.mockMvc.perform(get("/api/connections/discrepancies/hidden")
+            .param(SORT_ORDER, "asc")
+            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
+            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
+            .param(SEARCH_QUERY, EMPTY_STRING)
+            .param(PROGRAMME_NAME, programmeName1)
+            .param(DESIGNATED_BODY_CODES, dbcString)
+            .param(TIS_DESIGNATED_BODY_CODES, dbcString))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies[*].gmcReferenceNumber").value(hasItem(gmcId)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].doctorFirstName").value(hasItem(firstName1)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].doctorLastName").value(hasItem(lastName1)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].programmeName").value(hasItem(programmeName1)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].designatedBody").value(hasItem(designatedBody1)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].tcsDesignatedBody")
+                .value(hasItem(designatedBody2)));
   }
 
   private ConnectionDto prepareConnectionDto() {

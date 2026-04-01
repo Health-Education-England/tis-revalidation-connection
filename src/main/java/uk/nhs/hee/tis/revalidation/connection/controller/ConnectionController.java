@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
@@ -350,6 +350,53 @@ public class ConnectionController {
         .searchForPage(searchQueryES, pageableAndSortable);
 
     return ResponseEntity.ok(connectionSummaryDto);
+  }
+
+  /**
+   * GET  /discrepancies : get discrepancies summary.
+   *
+   * @param sortColumn    column to be sorted
+   * @param sortOrder     sorting order (ASC or DESC)
+   * @param pageNumber    page number of data to get
+   * @param dbcs          gmc designated body code of the user
+   * @param tisDbcs       tis designated body code of the user
+   * @param programmeName programme name to filter by
+   * @param searchQuery   search query of data to get
+   * @return the ResponseEntity with status 200 (OK) and discrepancies summary in body
+   */
+  @GetMapping(value = {"/discrepancies/hidden"})
+  public ResponseEntity<HiddenDiscrepancySummaryDto> getSummaryHiddenDiscrepancies(
+      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
+          required = false) final String sortColumn,
+      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
+          required = false) final String sortOrder,
+      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
+          required = false) final int pageNumber,
+      @RequestParam(name = DESIGNATED_BODY_CODES,
+          required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
+      @RequestParam(name = TIS_DESIGNATED_BODY_CODES,
+          required = false, defaultValue = EMPTY_STRING) final List<String> tisDbcs,
+      @RequestParam(name = PROGRAMME_NAME,
+          required = false, defaultValue = EMPTY_STRING) final String programmeName,
+      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
+      String searchQuery) throws ConnectionQueryException {
+    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
+    final var pageableAndSortable = of(pageNumber, 20,
+        by(direction, ElasticsearchQueryHelper.formatSortFieldForElasticsearchQuery(sortColumn)));
+
+    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
+    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
+        .toString().toLowerCase();
+
+    final HiddenDiscrepancySummaryDto hiddenDiscrepancies =
+        discrepanciesElasticSearchService.searchForHiddenDiscrepanciesPageWithFilters(
+            searchQueryES,
+            dbcs,
+            programmeName,
+            pageableAndSortable
+        );
+
+    return ResponseEntity.ok(hiddenDiscrepancies);
   }
 
   /**

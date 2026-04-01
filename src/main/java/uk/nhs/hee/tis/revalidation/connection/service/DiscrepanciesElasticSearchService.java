@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -50,9 +49,11 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils;
 
 @Service
@@ -76,10 +77,28 @@ public class DiscrepanciesElasticSearchService {
   private static final String HIDDEN_DISCREPANCY_DBC_FIELD =
       "hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword";
 
-  @Autowired
   ConnectionInfoMapper connectionInfoMapper;
-  @Autowired
-  private ElasticsearchOperations elasticsearchOperations;
+
+  HiddenDiscrepancyInfoMapper hiddenDiscrepancyInfoMapper;
+
+  private final ElasticsearchOperations elasticsearchOperations;
+
+  /**
+   * Constructs a new DiscrepanciesElasticSearchService with the specified services and mappers.
+   *
+   * @param elasticsearchOperations     the helper class for executing queries
+   * @param hiddenDiscrepancyInfoMapper a mapper for converting between search results and dto for
+   *                                    hidden discrepancies
+   * @param connectionInfoMapper        a mapper for converting between search results and dto for
+   *                                    connection/discrepancy details
+   */
+  public DiscrepanciesElasticSearchService(ElasticsearchOperations elasticsearchOperations,
+      HiddenDiscrepancyInfoMapper hiddenDiscrepancyInfoMapper,
+      ConnectionInfoMapper connectionInfoMapper) {
+    this.elasticsearchOperations = elasticsearchOperations;
+    this.hiddenDiscrepancyInfoMapper = hiddenDiscrepancyInfoMapper;
+    this.connectionInfoMapper = connectionInfoMapper;
+  }
 
   /**
    * Get trainees with discrepancies from discrepancies elasticsearch index when pm end date values
@@ -207,6 +226,83 @@ public class DiscrepanciesElasticSearchService {
 
     } catch (RuntimeException re) {
       throw new ConnectionQueryException("discrepancies", searchQuery, re);
+    }
+  }
+
+  /**
+   * Get a list of hidden discrepancies from discrepancies elasticsearch index.
+   *
+   * @param searchQuery   query to run
+   * @param dbcs          designated bodies
+   * @param programmeName programme name
+   * @param pageable      pagination information
+   */
+  public HiddenDiscrepancySummaryDto searchForHiddenDiscrepanciesPageWithFilters(
+      String searchQuery,
+      List<String> dbcs,
+      String programmeName,
+      Pageable pageable)
+      throws ConnectionQueryException {
+    try {
+      BoolQueryBuilder rootQuery = boolQuery();
+
+      rootQuery.filter(
+          boolQuery().mustNot(matchQuery(MEMBERSHIP_TYPE_DISCREPANCIES, EXCLUDED_MEMBERSHIP_TYPE)));
+
+      rootQuery.filter(boolQuery().mustNot(
+          matchQuery(PLACEMENT_GRADE_DISCREPANCIES, EXCLUDED_PLACEMENT_GRADE_DISCREPANCIES)));
+
+      String formattedDbcs =
+          ElasticsearchQueryHelper.formatDesignatedBodyCodesForElasticsearchQuery(dbcs);
+
+      if (StringUtils.hasText(searchQuery)) {
+        BoolQueryBuilder searchSubQuery = boolQuery()
+            .should(wildcardQuery(DOCTOR_FIRST_NAME_DISCREPANCIES, searchQuery + "*"))
+            .should(wildcardQuery(DOCTOR_LAST_NAME_DISCREPANCIES, searchQuery + "*"))
+            .should(
+                wildcardQuery(GMC_REFERENCE_NUMBER_DISCREPANCIES, searchQuery + "*"))
+            .minimumShouldMatch(1);
+
+        rootQuery.filter(searchSubQuery);
+      }
+
+      if (StringUtils.hasText(programmeName)) {
+        rootQuery.filter(
+            matchPhraseQuery(PROGRAMME_NAME_DISCREPANCIES, programmeName).zeroTermsQuery(
+                ZeroTermsQuery.ALL));
+      }
+
+      rootQuery.filter(boolQuery().must(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
+          boolQuery().must(
+              matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", formattedDbcs))),
+          None)));
+
+      NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
+          .withQuery(rootQuery)
+          .withPageable(pageable)
+          .build();
+
+      SearchHits<MasterDoctorView> searchHits =
+          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class);
+
+      List<MasterDoctorView> contentList = searchHits.getSearchHits()
+          .stream()
+          .map(SearchHit::getContent)
+          .collect(toList());
+
+      Page<MasterDoctorView> page =
+          new PageImpl<>(contentList, pageable, searchHits.getTotalHits());
+
+      final var hiddenDiscrepancies = page.get().collect(toList());
+
+      return HiddenDiscrepancySummaryDto.builder()
+          .totalPages(page.getTotalPages())
+          .totalResults(page.getTotalElements())
+          .hiddenDiscrepancies(
+              hiddenDiscrepancyInfoMapper.toHiddenDiscrepancyInfoDtoList(hiddenDiscrepancies))
+          .build();
+    } catch (RuntimeException re) {
+      throw new ConnectionQueryException("hidden discrepancies", searchQuery, re);
     }
   }
 }

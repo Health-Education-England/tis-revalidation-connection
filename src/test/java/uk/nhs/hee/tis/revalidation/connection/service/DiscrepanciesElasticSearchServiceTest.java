@@ -56,9 +56,12 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyInfoMapper;
 
 @ExtendWith(MockitoExtension.class)
 class DiscrepanciesElasticSearchServiceTest {
@@ -68,6 +71,8 @@ class DiscrepanciesElasticSearchServiceTest {
   private ElasticsearchOperations elasticsearchOperations;
   @Mock
   ConnectionInfoMapper connectionInfoMapper;
+  @Mock
+  HiddenDiscrepancyInfoMapper hiddenDiscrepancyInfoMapper;
   @InjectMocks
   DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   private String gmcRef;
@@ -338,5 +343,55 @@ class DiscrepanciesElasticSearchServiceTest {
     assertThat(queryString,
         containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword"));
     assertThat(queryString.replaceAll("\\s+",""), containsString("[\"1-1RSSQ1B\",\"1-1RSSPZ7\"]"));
+  }
+
+  @Test
+  void shouldSearchForPageOfHiddenDiscrepancies()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<MasterDoctorView> hit =
+        (SearchHit<MasterDoctorView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(discrepanciesView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<MasterDoctorView> hits =
+        (SearchHits<MasterDoctorView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+        .thenReturn(hits);
+
+    List<HiddenDiscrepancyInfoDto> mappedDtos = List.of(new HiddenDiscrepancyInfoDto());
+    when(hiddenDiscrepancyInfoMapper.toHiddenDiscrepancyInfoDtoList(anyList()))
+        .thenReturn(mappedDtos);
+
+    HiddenDiscrepancySummaryDto result = discrepanciesElasticSearchService
+        .searchForHiddenDiscrepanciesPageWithFilters(
+            searchQuery, dbcs, programmeName,
+            pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getHiddenDiscrepancies(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString, containsString("programmeName"));
+    assertThat(queryString, containsString("doctorFirstName"));
+    assertThat(queryString, containsString("doctorLastName"));
+    assertThat(queryString, containsString("gmcReferenceNumber"));
+    assertThat(queryString, containsString(
+        "hiddenDiscrepancies.hiddenForDesignatedBodyCode"));
+    assertThat(queryString, containsString("1rsspz7 1rssq1b"));
   }
 }

@@ -6,19 +6,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
+import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 @Slf4j
 @Component
 public class RabbitMessageListener {
 
   protected static final String CONNECTION_LOG_SYNC_START_MESSAGE = "connectionLogSyncStart";
+  protected static final String HIDDEN_DISCREPANCY_SYNC_START_MESSAGE
+      = "hiddenDiscrepancySyncStart";
   private final ConnectionService connectionService;
+  private final HiddenDiscrepancyService hiddenDiscrepancyService;
 
-  @Value("${app.reval.essync.batchsize}")
-  protected int batchSize;
+  @Value("${app.reval.essync.connectionlog.batchsize}")
+  protected int connectionLogBatchSize;
+  @Value("${app.reval.essync.hiddendiscrepancy.batchsize}")
+  protected int hiddenDiscrepancyBatchSize;
 
-  public RabbitMessageListener(ConnectionService connectionService) {
+  public RabbitMessageListener(ConnectionService connectionService,
+      HiddenDiscrepancyService hiddenDiscrepancyService) {
     this.connectionService = connectionService;
+    this.hiddenDiscrepancyService = hiddenDiscrepancyService;
   }
 
   @RabbitListener(queues = "${app.rabbit.reval.queue.connection.connectionlog}")
@@ -40,6 +48,24 @@ public class RabbitMessageListener {
       log.warn("Received invalid message to start connectionLog ES sync.");
       return;
     }
-    connectionService.sendConnectionLogsForSync(batchSize);
+    connectionService.sendConnectionLogsForSync(connectionLogBatchSize);
+  }
+
+  /**
+   * Listens to messages from integration service to start hiddenDiscrepancy data sync to ES.
+   *
+   * @param esSyncStart the message to start hiddenDiscrepancy data sync
+   */
+  @RabbitListener(queues = "${app.rabbit.reval.queue.hiddendiscrepancy.essyncstart}",
+      ackMode = "NONE")
+  public void hiddenDiscrepancyEsSync(final String esSyncStart) {
+    log.info("Message from integration service to start hiddenDiscrepancy data sync: {}",
+        esSyncStart);
+
+    if (!HIDDEN_DISCREPANCY_SYNC_START_MESSAGE.equals(esSyncStart)) {
+      log.warn("Received invalid message to start hiddenDiscreapancy ES sync.");
+      return;
+    }
+    hiddenDiscrepancyService.sendHiddenDiscrepanciesForSync(hiddenDiscrepancyBatchSize);
   }
 }

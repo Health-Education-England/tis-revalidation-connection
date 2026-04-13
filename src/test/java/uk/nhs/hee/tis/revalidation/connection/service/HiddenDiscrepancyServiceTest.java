@@ -319,7 +319,7 @@ class HiddenDiscrepancyServiceTest {
   void shouldSendSyncEndMessageOnlyIfNoDataAvailable() {
 
     Page<HiddenDiscrepancy> emptyPage =
-        new PageImpl<>(List.of(), PageRequest.of(0, 1), 0);
+        Page.empty();
 
     when(hiddenDiscrepancyRepository.findAll(any(PageRequest.class)))
         .thenReturn(emptyPage);

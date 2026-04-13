@@ -145,6 +145,13 @@ public class HiddenDiscrepancyService {
     Page<HiddenDiscrepancy> hiddenDiscrepancies;
     do {
       hiddenDiscrepancies = hiddenDiscrepancyRepository.findAll(of(currentPage, pageSize));
+      int totalPages = hiddenDiscrepancies.getTotalPages();
+      if (totalPages == 0) {
+        log.info("No hidden discrepancies to sync.");
+        break;
+      }
+      log.info("Sending page {} of hidden discrepancies for sync. Total pages: {}",
+          currentPage, totalPages);
       var payload = IndexSyncMessage.builder()
           .payload(hiddenDiscrepancies.toList())
           .syncEnd(false)
@@ -152,7 +159,7 @@ public class HiddenDiscrepancyService {
       rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, payload);
       currentPage++;
     } while (currentPage < hiddenDiscrepancies.getTotalPages());
-    var syncEndPayload = IndexSyncMessage.builder().payload(List.of()).syncEnd(true).build();
+    var syncEndPayload = IndexSyncMessage.builder().syncEnd(true).build();
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
 }

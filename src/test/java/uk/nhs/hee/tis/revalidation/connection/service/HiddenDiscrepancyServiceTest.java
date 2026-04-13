@@ -268,7 +268,7 @@ class HiddenDiscrepancyServiceTest {
     assertThat(message1.getPayload()).containsExactly(hiddenDiscrepancy);
     assertThat(message1.getSyncEnd()).isFalse();
 
-    assertThat(message2.getPayload()).isEmpty();
+    assertThat(message2.getPayload()).isNull();
     assertThat(message2.getSyncEnd()).isTrue();
   }
 
@@ -311,8 +311,30 @@ class HiddenDiscrepancyServiceTest {
     assertThat(msg2.getSyncEnd()).isFalse();
 
     IndexSyncMessage<List<HiddenDiscrepancy>> msg3 = messages.get(2);
-    assertThat(msg3.getPayload()).isEmpty();
+    assertThat(msg3.getPayload()).isNull();
     assertThat(msg3.getSyncEnd()).isTrue();
+  }
+
+  @Test
+  void shouldSendSyncEndMessageOnlyIfNoDataAvailable() {
+
+    Page<HiddenDiscrepancy> emptyPage =
+        new PageImpl<>(List.of(), PageRequest.of(0, 1), 0);
+
+    when(hiddenDiscrepancyRepository.findAll(any(PageRequest.class)))
+        .thenReturn(emptyPage);
+
+    service.sendHiddenDiscrepanciesForSync(1);
+
+    verify(rabbitTemplate, times(1))
+        .convertAndSend(eq(EXCHANGE), eq(ES_SYNC_DATA_ROUTING_KEY), syncMessageCaptor.capture());
+
+    var messages = syncMessageCaptor.getAllValues();
+    assertThat(messages).hasSize(1);
+
+    IndexSyncMessage<List<HiddenDiscrepancy>> msg = messages.get(0);
+    assertThat(msg.getPayload()).isNull();
+    assertThat(msg.getSyncEnd()).isTrue();
   }
 
   // -------------------- Helpers --------------------

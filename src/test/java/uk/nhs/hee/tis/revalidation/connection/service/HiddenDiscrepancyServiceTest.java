@@ -326,7 +326,7 @@ class HiddenDiscrepancyServiceTest {
 
     service.sendHiddenDiscrepanciesForSync(1);
 
-    verify(rabbitTemplate, times(1))
+    verify(rabbitTemplate)
         .convertAndSend(eq(EXCHANGE), eq(ES_SYNC_DATA_ROUTING_KEY), syncMessageCaptor.capture());
 
     var messages = syncMessageCaptor.getAllValues();

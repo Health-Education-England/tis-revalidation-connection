@@ -141,21 +141,25 @@ public class HiddenDiscrepancyService {
    * @param pageSize the size of each page
    */
   public void sendHiddenDiscrepanciesForSync(int pageSize) {
-    Page<HiddenDiscrepancy> hiddenDiscrepancies = hiddenDiscrepancyRepository.findAll(
-        of(0, pageSize));
-    log.info("Total pages to process for hidden discrepancies sync: {}",
-        hiddenDiscrepancies.getTotalPages());
-
     int currentPage = 0;
+    Page<HiddenDiscrepancy> hiddenDiscrepancies;
     do {
-      var payload = IndexSyncMessage.builder().payload(hiddenDiscrepancies.toList()).syncEnd(false)
+      hiddenDiscrepancies = hiddenDiscrepancyRepository.findAll(of(currentPage, pageSize));
+      int totalPages = hiddenDiscrepancies.getTotalPages();
+      if (totalPages == 0) {
+        log.info("No hidden discrepancies to sync.");
+        break;
+      }
+      log.info("Sending page {} of hidden discrepancies for sync. Total pages: {}",
+          currentPage, totalPages);
+      var payload = IndexSyncMessage.builder()
+          .payload(hiddenDiscrepancies.toList())
+          .syncEnd(false)
           .build();
-      rabbitTemplate.convertAndSend(exchange,esSyncDataRoutingKey,payload);
+      rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, payload);
       currentPage++;
     } while (currentPage < hiddenDiscrepancies.getTotalPages());
-
-    var syncEndPayload = IndexSyncMessage.builder().payload(List.of()).syncEnd(true)
-        .build();
+    var syncEndPayload = IndexSyncMessage.builder().syncEnd(true).build();
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
 }

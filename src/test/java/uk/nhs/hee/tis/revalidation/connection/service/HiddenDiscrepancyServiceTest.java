@@ -268,8 +268,73 @@ class HiddenDiscrepancyServiceTest {
     assertThat(message1.getPayload()).containsExactly(hiddenDiscrepancy);
     assertThat(message1.getSyncEnd()).isFalse();
 
-    assertThat(message2.getPayload()).isEmpty();
+    assertThat(message2.getPayload()).isNull();
     assertThat(message2.getSyncEnd()).isTrue();
+  }
+
+  @Test
+  void shouldPaginateHiddenDiscrepanciesForSync() {
+    HiddenDiscrepancy hd1 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(DBC)
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .build();
+    HiddenDiscrepancy hd2 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_2)
+        .hiddenForDesignatedBodyCode(DBC)
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .build();
+
+    Page<HiddenDiscrepancy> page1 = new PageImpl<>(List.of(hd1), PageRequest.of(0, 1), 2);
+    Page<HiddenDiscrepancy> page2 = new PageImpl<>(List.of(hd2), PageRequest.of(1, 1), 2);
+
+    when(hiddenDiscrepancyRepository.findAll(any(PageRequest.class)))
+        .thenReturn(page1)
+        .thenReturn(page2);
+
+    service.sendHiddenDiscrepanciesForSync(1);
+
+    verify(rabbitTemplate, times(3))
+        .convertAndSend(eq(EXCHANGE), eq(ES_SYNC_DATA_ROUTING_KEY), syncMessageCaptor.capture());
+
+    var messages = syncMessageCaptor.getAllValues();
+    assertThat(messages).hasSize(3);
+
+    IndexSyncMessage<List<HiddenDiscrepancy>> msg1 = messages.get(0);
+    assertThat(msg1.getPayload()).containsExactly(hd1);
+    assertThat(msg1.getSyncEnd()).isFalse();
+
+    IndexSyncMessage<List<HiddenDiscrepancy>> msg2 = messages.get(1);
+    assertThat(msg2.getPayload()).containsExactly(hd2);
+    assertThat(msg2.getSyncEnd()).isFalse();
+
+    IndexSyncMessage<List<HiddenDiscrepancy>> msg3 = messages.get(2);
+    assertThat(msg3.getPayload()).isNull();
+    assertThat(msg3.getSyncEnd()).isTrue();
+  }
+
+  @Test
+  void shouldSendSyncEndMessageOnlyIfNoDataAvailable() {
+
+    Page<HiddenDiscrepancy> emptyPage =
+        new PageImpl<>(List.of(), PageRequest.of(0, 1), 0);
+
+    when(hiddenDiscrepancyRepository.findAll(any(PageRequest.class)))
+        .thenReturn(emptyPage);
+
+    service.sendHiddenDiscrepanciesForSync(1);
+
+    verify(rabbitTemplate)
+        .convertAndSend(eq(EXCHANGE), eq(ES_SYNC_DATA_ROUTING_KEY), syncMessageCaptor.capture());
+
+    var messages = syncMessageCaptor.getAllValues();
+    assertThat(messages).hasSize(1);
+
+    IndexSyncMessage<List<HiddenDiscrepancy>> msg = messages.get(0);
+    assertThat(msg.getPayload()).isNull();
+    assertThat(msg.getSyncEnd()).isTrue();
   }
 
   // -------------------- Helpers --------------------

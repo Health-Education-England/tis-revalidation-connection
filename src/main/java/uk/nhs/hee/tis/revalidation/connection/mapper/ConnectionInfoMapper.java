@@ -27,18 +27,10 @@ import org.mapstruct.Mapping;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
 import uk.nhs.hee.tis.revalidation.connection.entity.DisconnectedView;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
 import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
 @Mapper(componentModel = "spring")
 public interface ConnectionInfoMapper {
-  @Mapping(target = "programmeMembershipType", source = "membershipType")
-  @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")
-  @Mapping(target = "programmeMembershipEndDate", source = "membershipEndDate")
-  @Mapping(target = "dataSource", ignore = true)
-  ConnectionInfoDto discrepancyToConnectionInfoDto(DiscrepanciesView userType);
-
-  List<ConnectionInfoDto> discrepancyToConnectionInfoDtos(List<DiscrepanciesView> userTypes);
 
   @Mapping(target = "programmeMembershipType", source = "membershipType")
   @Mapping(target = "programmeMembershipStartDate", source = "membershipStartDate")

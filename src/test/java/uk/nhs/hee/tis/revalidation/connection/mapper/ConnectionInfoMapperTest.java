@@ -30,7 +30,7 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.CurrentConnectionsView;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 
 class ConnectionInfoMapperTest {
 
@@ -81,9 +81,9 @@ class ConnectionInfoMapperTest {
   }
 
   @Test
-  void shouldMapDiscrepanciesViewListToConnectionInfoDtoList() {
+  void shouldMapMasterDoctorViewListToConnectionInfoDtoList() {
 
-    DiscrepanciesView discrepanciesView = DiscrepanciesView.builder()
+    MasterDoctorView discrepanciesView = MasterDoctorView.builder()
         .gmcReferenceNumber(GMC_NUMBER)
         .doctorFirstName(DOCTOR_FIRST_NAME)
         .doctorLastName(DOCTOR_LAST_NAME)
@@ -97,7 +97,7 @@ class ConnectionInfoMapperTest {
         .build();
 
     List<ConnectionInfoDto> connectionInfoDtos =
-        testObj.discrepancyToConnectionInfoDtos(Lists.list(discrepanciesView));
+        testObj.masterToDtos(Lists.list(discrepanciesView));
 
     assertThat(connectionInfoDtos.size(), is(1));
     ConnectionInfoDto dto = connectionInfoDtos.get(0);

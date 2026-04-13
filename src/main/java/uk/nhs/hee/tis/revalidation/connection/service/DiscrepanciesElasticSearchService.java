@@ -47,7 +47,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils;
@@ -70,7 +70,8 @@ public class DiscrepanciesElasticSearchService {
   private static final String CONNECTION_LAST_UPDATED_DATE_FIELD = "lastConnectionDateTime";
   private static final String UPDATED_BY_FIELD = "updatedBy";
   private static final String HIDDEN_DISCREPANCY_DBC_PATH = "hiddenDiscrepancies";
-  private static final String HIDDEN_DISCREPANCY_DBC_FIELD = "hiddenDiscrepancies.hiddenForDesignatedBodyCode";
+  private static final String HIDDEN_DISCREPANCY_DBC_FIELD =
+      "hiddenDiscrepancies.hiddenForDesignatedBodyCode";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -167,7 +168,6 @@ public class DiscrepanciesElasticSearchService {
                 ZeroTermsQuery.ALL));
       }
 
-      // Combine DBC lists without duplicates
       String allDbcs = formattedDbcs + " " + formattedTisDbcs;
       rootQuery.filter(boolQuery().mustNot(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
           boolQuery().must(matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", allDbcs))),
@@ -178,15 +178,15 @@ public class DiscrepanciesElasticSearchService {
           .withPageable(pageable)
           .build();
 
-      SearchHits<DiscrepanciesView> searchHits =
-          elasticsearchOperations.search(searchQueryEsResult, DiscrepanciesView.class);
+      SearchHits<MasterDoctorView> searchHits =
+          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class);
 
-      List<DiscrepanciesView> contentList = searchHits.getSearchHits()
+      List<MasterDoctorView> contentList = searchHits.getSearchHits()
           .stream()
           .map(SearchHit::getContent)
           .collect(toList());
 
-      Page<DiscrepanciesView> page =
+      Page<MasterDoctorView> page =
           new PageImpl<>(contentList, pageable, searchHits.getTotalHits());
 
       final var discrepanciesTrainees = page.get().collect(toList());
@@ -195,7 +195,7 @@ public class DiscrepanciesElasticSearchService {
           .totalPages(page.getTotalPages())
           .totalResults(page.getTotalElements())
           .connections(
-              connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepanciesTrainees))
+              connectionInfoMapper.masterToDtos(discrepanciesTrainees))
           .build();
 
     } catch (RuntimeException re) {

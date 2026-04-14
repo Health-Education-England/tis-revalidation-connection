@@ -337,9 +337,6 @@ class DiscrepanciesElasticSearchServiceTest {
 
     assertThat(queryString,
         containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword"));
-    assertThat(queryString, containsString("[\n"
-        + "                            \"1-1RSSQ1B\",\n"
-        + "                            \"1-1RSSPZ7\"\n"
-        + "                          ]"));
+    assertThat(queryString.replaceAll("\\s+",""), containsString("[\"1-1RSSQ1B\",\"1-1RSSPZ7\"]"));
   }
 }

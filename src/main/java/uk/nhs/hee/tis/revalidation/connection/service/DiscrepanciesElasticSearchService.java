@@ -22,15 +22,20 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.FROM;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.TO;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +50,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils;
@@ -67,6 +72,9 @@ public class DiscrepanciesElasticSearchService {
   private static final String GMC_SUBMISSION_DATE_FIELD = "submissionDate";
   private static final String CONNECTION_LAST_UPDATED_DATE_FIELD = "lastConnectionDateTime";
   private static final String UPDATED_BY_FIELD = "updatedBy";
+  private static final String HIDDEN_DISCREPANCY_DBC_PATH = "hiddenDiscrepancies";
+  private static final String HIDDEN_DISCREPANCY_DBC_FIELD =
+      "hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -163,20 +171,29 @@ public class DiscrepanciesElasticSearchService {
                 ZeroTermsQuery.ALL));
       }
 
+      //combine dbcs without duplicates
+      Set<String> joinedSet = new HashSet<>();
+      joinedSet.addAll(dbcs);
+      joinedSet.addAll(tisDbcs);
+
+      rootQuery.filter(boolQuery().mustNot(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
+          boolQuery().must(termsQuery(HIDDEN_DISCREPANCY_DBC_FIELD, joinedSet)),
+          None).ignoreUnmapped(true)));
+
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)
           .withPageable(pageable)
           .build();
 
-      SearchHits<DiscrepanciesView> searchHits =
-          elasticsearchOperations.search(searchQueryEsResult, DiscrepanciesView.class);
+      SearchHits<MasterDoctorView> searchHits =
+          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class);
 
-      List<DiscrepanciesView> contentList = searchHits.getSearchHits()
+      List<MasterDoctorView> contentList = searchHits.getSearchHits()
           .stream()
           .map(SearchHit::getContent)
           .collect(toList());
 
-      Page<DiscrepanciesView> page =
+      Page<MasterDoctorView> page =
           new PageImpl<>(contentList, pageable, searchHits.getTotalHits());
 
       final var discrepanciesTrainees = page.get().collect(toList());
@@ -185,7 +202,7 @@ public class DiscrepanciesElasticSearchService {
           .totalPages(page.getTotalPages())
           .totalResults(page.getTotalElements())
           .connections(
-              connectionInfoMapper.discrepancyToConnectionInfoDtos(discrepanciesTrainees))
+              connectionInfoMapper.masterToDtos(discrepanciesTrainees))
           .build();
 
     } catch (RuntimeException re) {

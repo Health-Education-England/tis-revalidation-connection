@@ -56,7 +56,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.DiscrepanciesView;
+import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionInfoMapper;
 
@@ -79,7 +79,7 @@ class DiscrepanciesElasticSearchServiceTest {
   private String programmeName;
   private String programmeOwner;
   private String exceptionReason;
-  private DiscrepanciesView discrepanciesView;
+  private MasterDoctorView discrepanciesView;
   private String searchQuery;
   private List<String> dbcs;
   private List<String> tisDbcs;
@@ -119,7 +119,7 @@ class DiscrepanciesElasticSearchServiceTest {
     pageable = PageRequest.of(0, 20);
     upddatedBy = "admin";
 
-    discrepanciesView = DiscrepanciesView.builder()
+    discrepanciesView = MasterDoctorView.builder()
         .tcsPersonId((long) 111)
         .gmcReferenceNumber(gmcRef)
         .doctorFirstName(firstName)
@@ -138,21 +138,21 @@ class DiscrepanciesElasticSearchServiceTest {
       throws Exception {
 
     @SuppressWarnings("unchecked")
-    SearchHit<DiscrepanciesView> hit =
-        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    SearchHit<MasterDoctorView> hit =
+        (SearchHit<MasterDoctorView>) mock(SearchHit.class);
     when(hit.getContent()).thenReturn(discrepanciesView);
 
     @SuppressWarnings("unchecked")
-    SearchHits<DiscrepanciesView> hits =
-        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    SearchHits<MasterDoctorView> hits =
+        (SearchHits<MasterDoctorView>) mock(SearchHits.class);
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
-    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+    when(connectionInfoMapper.masterToDtos(anyList()))
         .thenReturn(mappedDtos);
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
@@ -170,7 +170,7 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -192,21 +192,21 @@ class DiscrepanciesElasticSearchServiceTest {
       throws Exception {
 
     @SuppressWarnings("unchecked")
-    SearchHit<DiscrepanciesView> hit =
-        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    SearchHit<MasterDoctorView> hit =
+        (SearchHit<MasterDoctorView>) mock(SearchHit.class);
     when(hit.getContent()).thenReturn(discrepanciesView);
 
     @SuppressWarnings("unchecked")
-    SearchHits<DiscrepanciesView> hits =
-        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    SearchHits<MasterDoctorView> hits =
+        (SearchHits<MasterDoctorView>) mock(SearchHits.class);
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
-    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+    when(connectionInfoMapper.masterToDtos(anyList()))
         .thenReturn(mappedDtos);
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
@@ -225,7 +225,7 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -240,21 +240,21 @@ class DiscrepanciesElasticSearchServiceTest {
       throws Exception {
 
     @SuppressWarnings("unchecked")
-    SearchHit<DiscrepanciesView> hit =
-        (SearchHit<DiscrepanciesView>) mock(SearchHit.class);
+    SearchHit<MasterDoctorView> hit =
+        (SearchHit<MasterDoctorView>) mock(SearchHit.class);
     when(hit.getContent()).thenReturn(discrepanciesView);
 
     @SuppressWarnings("unchecked")
-    SearchHits<DiscrepanciesView> hits =
-        (SearchHits<DiscrepanciesView>) mock(SearchHits.class);
+    SearchHits<MasterDoctorView> hits =
+        (SearchHits<MasterDoctorView>) mock(SearchHits.class);
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
-    when(connectionInfoMapper.discrepancyToConnectionInfoDtos(anyList()))
+    when(connectionInfoMapper.masterToDtos(anyList()))
         .thenReturn(mappedDtos);
 
     ConnectionSummaryDto result = discrepanciesElasticSearchService
@@ -272,7 +272,7 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(DiscrepanciesView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -283,12 +283,60 @@ class DiscrepanciesElasticSearchServiceTest {
   @Test
   void shouldThrowRuntimeExceptionWhenSearchForDiscrepanciesPage() {
 
-    when(elasticsearchOperations.search((Query) any(), eq(DiscrepanciesView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
         .thenThrow(new RuntimeException("Elasticsearch failure"));
 
     assertThrows(ConnectionQueryException.class, () -> discrepanciesElasticSearchService
         .searchForDiscrepanciesPageWithFilters(
             searchQuery, dbcs, tisDbcs, programmeName, membershipFrom, membershipTo, submissionFrom,
             submissionTo, lastConnectionFrom, lastConnectionTo, upddatedBy, pageable));
+  }
+
+  @Test
+  void shouldSearchForPageAndExcludeHiddenDiscrepancies()
+      throws Exception {
+
+    @SuppressWarnings("unchecked")
+    SearchHit<MasterDoctorView> hit =
+        (SearchHit<MasterDoctorView>) mock(SearchHit.class);
+    when(hit.getContent()).thenReturn(discrepanciesView);
+
+    @SuppressWarnings("unchecked")
+    SearchHits<MasterDoctorView> hits =
+        (SearchHits<MasterDoctorView>) mock(SearchHits.class);
+    when(hits.getSearchHits()).thenReturn(List.of(hit));
+    when(hits.getTotalHits()).thenReturn(1L);
+
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+        .thenReturn(hits);
+
+    List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
+    when(connectionInfoMapper.masterToDtos(anyList()))
+        .thenReturn(mappedDtos);
+
+    ConnectionSummaryDto result = discrepanciesElasticSearchService
+        .searchForDiscrepanciesPageWithFilters(
+            searchQuery, dbcs, tisDbcs, programmeName, null,
+            null, null,
+            null, null,
+            null, upddatedBy, pageable);
+
+    assertThat(result, notNullValue());
+    assertThat(result.getTotalResults(), Matchers.is(1L));
+    assertThat(result.getTotalPages(), Matchers.is(1L));
+    assertThat(result.getConnections(), hasSize(1));
+
+    ArgumentCaptor<NativeSearchQuery> queryCaptor =
+        ArgumentCaptor.forClass(NativeSearchQuery.class);
+
+    verify(elasticsearchOperations)
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+
+    QueryBuilder qb = queryCaptor.getValue().getQuery();
+    String queryString = qb.toString();
+
+    assertThat(queryString,
+        containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword"));
+    assertThat(queryString.replaceAll("\\s+",""), containsString("[\"1-1RSSQ1B\",\"1-1RSSPZ7\"]"));
   }
 }

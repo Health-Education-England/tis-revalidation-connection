@@ -27,12 +27,15 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.FROM;
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.TO;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +74,7 @@ public class DiscrepanciesElasticSearchService {
   private static final String UPDATED_BY_FIELD = "updatedBy";
   private static final String HIDDEN_DISCREPANCY_DBC_PATH = "hiddenDiscrepancies";
   private static final String HIDDEN_DISCREPANCY_DBC_FIELD =
-      "hiddenDiscrepancies.hiddenForDesignatedBodyCode";
+      "hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword";
 
   @Autowired
   ConnectionInfoMapper connectionInfoMapper;
@@ -168,9 +171,13 @@ public class DiscrepanciesElasticSearchService {
                 ZeroTermsQuery.ALL));
       }
 
-      String allDbcs = formattedDbcs + " " + formattedTisDbcs;
+      //combine dbcs without duplicates
+      Set<String> joinedSet = new HashSet<>();
+      joinedSet.addAll(dbcs);
+      joinedSet.addAll(tisDbcs);
+
       rootQuery.filter(boolQuery().mustNot(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
-          boolQuery().must(matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", allDbcs))),
+          boolQuery().must(termsQuery(HIDDEN_DISCREPANCY_DBC_FIELD, joinedSet)),
           None).ignoreUnmapped(true)));
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()

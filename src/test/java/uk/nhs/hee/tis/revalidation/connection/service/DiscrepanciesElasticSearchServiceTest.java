@@ -335,7 +335,11 @@ class DiscrepanciesElasticSearchServiceTest {
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
 
-    assertThat(queryString, containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode"));
-    assertThat(queryString, containsString("1rsspz7 1rssq1b"));
+    assertThat(queryString,
+        containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword"));
+    assertThat(queryString, containsString("[\n"
+        + "                            \"1-1RSSQ1B\",\n"
+        + "                            \"1-1RSSPZ7\"\n"
+        + "                          ]"));
   }
 }

@@ -171,7 +171,7 @@ public class DiscrepanciesElasticSearchService {
       String allDbcs = formattedDbcs + " " + formattedTisDbcs;
       rootQuery.filter(boolQuery().mustNot(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
           boolQuery().must(matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", allDbcs))),
-          None)));
+          None).ignoreUnmapped(true)));
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()
           .withQuery(rootQuery)

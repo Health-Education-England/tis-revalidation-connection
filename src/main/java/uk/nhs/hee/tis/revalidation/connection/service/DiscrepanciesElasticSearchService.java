@@ -273,8 +273,7 @@ public class DiscrepanciesElasticSearchService {
       }
 
       rootQuery.filter(boolQuery().must(nestedQuery(HIDDEN_DISCREPANCY_DBC_PATH,
-          boolQuery().must(
-              matchQuery(HIDDEN_DISCREPANCY_DBC_FIELD, String.join(" ", formattedDbcs))),
+          boolQuery().must(termsQuery(HIDDEN_DISCREPANCY_DBC_FIELD, dbcs)),
           None).ignoreUnmapped(true)));
 
       NativeSearchQuery searchQueryEsResult = new NativeSearchQueryBuilder()

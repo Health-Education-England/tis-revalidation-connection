@@ -33,7 +33,9 @@ import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.D
 import static uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils.DateRangeQueryType.TO;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.search.MatchQuery.ZeroTermsQuery;
 import org.springframework.data.domain.Page;

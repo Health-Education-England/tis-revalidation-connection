@@ -136,7 +136,7 @@ class HiddenDiscrepancyDtoMapperTest {
         List.of(doctorView1, doctorView2));
 
     // then
-    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(2);
 
     // mapped fields
     var result1 = list.get(0);

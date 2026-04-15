@@ -135,7 +135,7 @@ class ConnectionControllerTest {
   private String exceptionReason2;
   private String updatedBy;
   private String hiddenBy;
-  private String hiidenReason;
+  private String hiddenReason;
 
   @BeforeEach
   public void setup() {
@@ -173,7 +173,7 @@ class ConnectionControllerTest {
     exceptionReason2 = faker.lorem().characters(20);
     updatedBy = faker.lorem().characters(8);
     hiddenBy = faker.lorem().characters(8);
-    hiidenReason = faker.lorem().characters(8);
+    hiddenReason = faker.lorem().characters(8);
   }
 
   @Test
@@ -508,7 +508,7 @@ class ConnectionControllerTest {
             .gmcId(gmcId)
             .hiddenForDesignatedBodyCode(designatedBody1)
             .hiddenBy(hiddenBy)
-            .reason(hiidenReason)
+            .reason(hiddenReason)
             .build()
     );
 
@@ -541,8 +541,7 @@ class ConnectionControllerTest {
             .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
             .param(SEARCH_QUERY, EMPTY_STRING)
             .param(PROGRAMME_NAME, programmeName1)
-            .param(DESIGNATED_BODY_CODES, dbcString)
-            .param(TIS_DESIGNATED_BODY_CODES, dbcString))
+            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.hiddenDiscrepancies[*].gmcReferenceNumber").value(hasItem(gmcId)))

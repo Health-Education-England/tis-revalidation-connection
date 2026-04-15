@@ -353,7 +353,7 @@ public class ConnectionController {
   }
 
   /**
-   * GET  /discrepancies : get discrepancies summary.
+   * GET  /discrepancies : get summary of doctors with hidden discrepancies.
    *
    * @param sortColumn    column to be sorted
    * @param sortOrder     sorting order (ASC or DESC)
@@ -362,7 +362,7 @@ public class ConnectionController {
    * @param tisDbcs       tis designated body code of the user
    * @param programmeName programme name to filter by
    * @param searchQuery   search query of data to get
-   * @return the ResponseEntity with status 200 (OK) and discrepancies summary in body
+   * @return the ResponseEntity with status 200 (OK) and hidden discrepancies summary in body
    */
   @GetMapping(value = {"/discrepancies/hidden"})
   public ResponseEntity<HiddenDiscrepancySummaryDto> getSummaryHiddenDiscrepancies(
@@ -374,8 +374,6 @@ public class ConnectionController {
           required = false) final int pageNumber,
       @RequestParam(name = DESIGNATED_BODY_CODES,
           required = false, defaultValue = EMPTY_STRING) final List<String> dbcs,
-      @RequestParam(name = TIS_DESIGNATED_BODY_CODES,
-          required = false, defaultValue = EMPTY_STRING) final List<String> tisDbcs,
       @RequestParam(name = PROGRAMME_NAME,
           required = false, defaultValue = EMPTY_STRING) final String programmeName,
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)

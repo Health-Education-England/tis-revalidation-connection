@@ -359,7 +359,6 @@ public class ConnectionController {
    * @param sortOrder     sorting order (ASC or DESC)
    * @param pageNumber    page number of data to get
    * @param dbcs          gmc designated body code of the user
-   * @param tisDbcs       tis designated body code of the user
    * @param programmeName programme name to filter by
    * @param searchQuery   search query of data to get
    * @return the ResponseEntity with status 200 (OK) and hidden discrepancies summary in body

@@ -134,7 +134,8 @@ public class HiddenDiscrepancyService {
           log.info("Successfully removed hidden discrepancy for GMC ID: {} and designated body: {}",
               entity.getGmcId(), entity.getHiddenForDesignatedBodyCode());
         }, () -> {
-          throw new IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
+          throw new
+              IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
         }
     );
     return response;

@@ -128,14 +128,15 @@ public class HiddenDiscrepancyService {
   public ShowDiscrepancyResponseDto showDiscrepancy(String discrepancyId) {
     ShowDiscrepancyResponseDto response = new ShowDiscrepancyResponseDto();
     hiddenDiscrepancyRepository.findById(new ObjectId(discrepancyId)).ifPresentOrElse(entity -> {
-      hiddenDiscrepancyRepository.delete(entity);
-      response.setShownForGmcId(entity.getGmcId());
-      response.setShownForDesignatedBodyCode(entity.getHiddenForDesignatedBodyCode());
-      log.info("Successfully removed hidden discrepancy for GMC ID: {} and designated body: {}",
-          entity.getGmcId(), entity.getHiddenForDesignatedBodyCode());
-    }, () -> {
-      throw new IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
-    });
+          hiddenDiscrepancyRepository.delete(entity);
+          response.setShownForGmcId(entity.getGmcId());
+          response.setShownForDesignatedBodyCode(entity.getHiddenForDesignatedBodyCode());
+          log.info("Successfully removed hidden discrepancy for GMC ID: {} and designated body: {}",
+              entity.getGmcId(), entity.getHiddenForDesignatedBodyCode());
+        }, () -> {
+          throw new IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
+        }
+    );
     return response;
   }
 

@@ -228,7 +228,7 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException("discrepancies", searchQuery, re);
+      throw new ConnectionQueryException(DISCREPANCIES_INDEX_ALIAS, searchQuery, re);
     }
   }
 

@@ -52,6 +52,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
@@ -153,7 +154,8 @@ class DiscrepanciesElasticSearchServiceTest {
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class),
+        any(IndexCoordinates.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
@@ -175,7 +177,8 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class),
+            any(IndexCoordinates.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -207,7 +210,8 @@ class DiscrepanciesElasticSearchServiceTest {
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class),
+        any(IndexCoordinates.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
@@ -230,7 +234,8 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class),
+            any(IndexCoordinates.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -255,7 +260,8 @@ class DiscrepanciesElasticSearchServiceTest {
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class),
+        any(IndexCoordinates.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
@@ -277,7 +283,8 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class),
+            any(IndexCoordinates.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
@@ -312,7 +319,8 @@ class DiscrepanciesElasticSearchServiceTest {
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class),
+        any(IndexCoordinates.class)))
         .thenReturn(hits);
 
     List<ConnectionInfoDto> mappedDtos = List.of(new ConnectionInfoDto());
@@ -335,14 +343,15 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class),
+            any(IndexCoordinates.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();
 
     assertThat(queryString,
         containsString("hiddenDiscrepancies.hiddenForDesignatedBodyCode.keyword"));
-    assertThat(queryString.replaceAll("\\s+",""), containsString("[\"1-1RSSQ1B\",\"1-1RSSPZ7\"]"));
+    assertThat(queryString.replaceAll("\\s+", ""), containsString("[\"1-1RSSQ1B\",\"1-1RSSPZ7\"]"));
   }
 
   @Test
@@ -360,7 +369,8 @@ class DiscrepanciesElasticSearchServiceTest {
     when(hits.getSearchHits()).thenReturn(List.of(hit));
     when(hits.getTotalHits()).thenReturn(1L);
 
-    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class)))
+    when(elasticsearchOperations.search((Query) any(), eq(MasterDoctorView.class),
+        any(IndexCoordinates.class)))
         .thenReturn(hits);
 
     List<HiddenDiscrepancyInfoDto> mappedDtos = List.of(new HiddenDiscrepancyInfoDto());
@@ -381,7 +391,8 @@ class DiscrepanciesElasticSearchServiceTest {
         ArgumentCaptor.forClass(NativeSearchQuery.class);
 
     verify(elasticsearchOperations)
-        .search(queryCaptor.capture(), eq(MasterDoctorView.class));
+        .search(queryCaptor.capture(), eq(MasterDoctorView.class),
+            any(IndexCoordinates.class));
 
     QueryBuilder qb = queryCaptor.getValue().getQuery();
     String queryString = qb.toString();

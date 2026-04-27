@@ -44,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ import uk.nhs.hee.tis.revalidation.connection.service.util.EsQueryUtils;
 @Service
 public class DiscrepanciesElasticSearchService {
 
+  private static final String DISCREPANCIES_INDEX_ALIAS = "discrepancies";
   private static final String DOCTOR_FIRST_NAME_DISCREPANCIES = "doctorFirstName";
   private static final String DOCTOR_LAST_NAME_DISCREPANCIES = "doctorLastName";
   private static final String GMC_REFERENCE_NUMBER_DISCREPANCIES = "gmcReferenceNumber";
@@ -205,7 +207,8 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
       SearchHits<MasterDoctorView> searchHits =
-          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class);
+          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class,
+              IndexCoordinates.of(DISCREPANCIES_INDEX_ALIAS));
 
       List<MasterDoctorView> contentList = searchHits.getSearchHits()
           .stream()
@@ -225,7 +228,7 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
     } catch (RuntimeException re) {
-      throw new ConnectionQueryException("discrepancies", searchQuery, re);
+      throw new ConnectionQueryException(DISCREPANCIES_INDEX_ALIAS, searchQuery, re);
     }
   }
 
@@ -279,7 +282,8 @@ public class DiscrepanciesElasticSearchService {
           .build();
 
       SearchHits<MasterDoctorView> searchHits =
-          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class);
+          elasticsearchOperations.search(searchQueryEsResult, MasterDoctorView.class,
+              IndexCoordinates.of(DISCREPANCIES_INDEX_ALIAS));
 
       List<MasterDoctorView> contentList = searchHits.getSearchHits()
           .stream()

@@ -127,7 +127,7 @@ public class HiddenDiscrepancyService {
    */
   public ShowDiscrepancyResponseDto showDiscrepancy(String discrepancyId) {
     ShowDiscrepancyResponseDto response = new ShowDiscrepancyResponseDto();
-    hiddenDiscrepancyRepository.findById(new ObjectId(discrepancyId)).ifPresentOrElse(entity -> {
+    hiddenDiscrepancyRepository.findById(discrepancyId).ifPresentOrElse(entity -> {
           hiddenDiscrepancyRepository.delete(entity);
           response.setShownForGmcId(entity.getGmcId());
           response.setShownForDesignatedBodyCode(entity.getHiddenForDesignatedBodyCode());

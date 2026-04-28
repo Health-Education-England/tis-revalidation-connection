@@ -31,7 +31,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
  * Repository interface for managing HiddenDiscrepancy entities in MongoDB.
  */
 @Repository
-public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscrepancy, ObjectId> {
+public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscrepancy, String> {
 
   /**
    * Finds hidden discrepancies by GMC reference numbers and designated body code.

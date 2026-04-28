@@ -26,6 +26,7 @@ import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 import io.swagger.annotations.ApiOperation;
@@ -37,7 +38,6 @@ import java.util.Objects;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -204,22 +204,22 @@ public class ConnectionController {
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery,
       @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate membershipEndDateTo,
       @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate submissionDateTo,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate lastConnectionDateTimeTo,
       @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
       String updatedBy) throws ConnectionQueryException {
@@ -275,22 +275,22 @@ public class ConnectionController {
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery,
       @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate membershipEndDateTo,
       @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate submissionDateTo,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
-      @DateTimeFormat(iso = ISO.DATE)
+      @DateTimeFormat(iso = DATE)
       LocalDate lastConnectionDateTimeTo,
       @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
       String updatedBy) throws ConnectionQueryException {
@@ -416,9 +416,9 @@ public class ConnectionController {
   }
 
   /**
-   * DELETE  /discrepancies/hidden/{discrepancyId} : Show hidden discrepancy for a list of GMC IDs.
+   * DELETE  /discrepancies/hidden/{discrepancyId} : Show a hidden discrepancy.
    *
-   * @param discrepancyId the id of hidden discrepancy to show
+   * @param discrepancyId the id of hidden discrepancy entity to remove
    * @return the ResponseEntity with status 200 (OK) and details of shown discrepancy in body
    */
   @DeleteMapping("/discrepancies/hidden/{discrepancyId}")

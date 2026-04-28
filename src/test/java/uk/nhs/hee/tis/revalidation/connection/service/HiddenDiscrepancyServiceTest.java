@@ -39,6 +39,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -347,7 +348,7 @@ class HiddenDiscrepancyServiceTest {
         .hiddenForDesignatedBodyCode(DBC)
         .build();
     when(hiddenDiscrepancyRepository.findById(new ObjectId(discrepancyId)))
-        .thenReturn(java.util.Optional.of(entity));
+        .thenReturn(Optional.of(entity));
 
     var response = service.showDiscrepancy(discrepancyId);
 

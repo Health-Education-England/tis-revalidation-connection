@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ShowDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
@@ -115,6 +116,28 @@ public class HiddenDiscrepancyService {
 
     return new HideDiscrepancyResponseDto(hiddenForDbc, savedGmcIds, failedToHide,
         new ArrayList<>(alreadyHidden));
+  }
+
+  /**
+   * Show hidden discrepancies for a list of doctors based on the provided DTO.
+   *
+   * @param discrepancyId the id of the hidden discrepancy to hide
+   * @return a response DTO summarizing the results of the show operation
+   */
+  public ShowDiscrepancyResponseDto showDiscrepancy(String discrepancyId) {
+    ShowDiscrepancyResponseDto response = new ShowDiscrepancyResponseDto();
+    hiddenDiscrepancyRepository.findById(discrepancyId).ifPresentOrElse(entity -> {
+          hiddenDiscrepancyRepository.delete(entity);
+          response.setShownForGmcId(entity.getGmcId());
+          response.setShownForDesignatedBodyCode(entity.getHiddenForDesignatedBodyCode());
+          log.info("Successfully removed hidden discrepancy for GMC ID: {} and designated body: {}",
+              entity.getGmcId(), entity.getHiddenForDesignatedBodyCode());
+        }, () -> {
+          throw new
+              IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
+        }
+    );
+    return response;
   }
 
   private List<String> extractRequestedGmcIds(HideDiscrepancyDto dto) {

@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -62,6 +63,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ShowDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -556,6 +558,32 @@ class ConnectionControllerTest {
         .andExpect(
             jsonPath("$.hiddenDiscrepancies.[*].tcsDesignatedBody")
                 .value(hasItem(designatedBody2)));
+  }
+
+  @Test
+  void showDiscrepancyShouldReturnOkWhenDiscrepancyIsShown() throws Exception {
+    var hiddenDiscrepancyId = "507f1f77bcf86cd799439012";
+    var responseDto = ShowDiscrepancyResponseDto.builder()
+        .shownForGmcId(gmcId)
+        .shownForDesignatedBodyCode(designatedBodyCode)
+        .build();
+    when(hiddenDiscrepancyService.showDiscrepancy(hiddenDiscrepancyId)).thenReturn(responseDto);
+
+    mockMvc.perform(
+            delete("/api/connections/discrepancies/hidden/{discrepancyId}",
+                hiddenDiscrepancyId))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void showDiscrepancyShouldReturnNotFoundWhenIllegalArgumentExceptionThrown() throws Exception {
+    String discrepancyId = "notfound";
+    when(hiddenDiscrepancyService.showDiscrepancy(discrepancyId)).thenThrow(
+        new IllegalArgumentException());
+
+    mockMvc.perform(
+            delete("/api/connections/discrepancies/hidden/{discrepancyId}", discrepancyId))
+        .andExpect(status().isNotFound());
   }
 
   private ConnectionDto prepareConnectionDto() {

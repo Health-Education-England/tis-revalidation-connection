@@ -19,29 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.dto;
 
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Repository interface for managing HiddenDiscrepancy entities in MongoDB.
+ * A DTO class that has all fields for the response of hiding discrepancies.
  */
-@Repository
-public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscrepancy, String> {
-
-  /**
-   * Finds hidden discrepancies by GMC reference numbers and designated body code.
-   *
-   * @param gmcReferenceNumbers         the list of GMC reference numbers to search for
-   * @param hiddenForDesignatedBodyCode the designated body code for which the discrepancies are
-   *                                    hidden
-   * @return a list of HiddenDiscrepancy entities matching the criteria
-   */
-  List<HiddenDiscrepancy> findByGmcIdInAndHiddenForDesignatedBodyCode(
-      List<String> gmcReferenceNumbers,
-      String hiddenForDesignatedBodyCode
-  );
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ShowDiscrepancyResponseDto {
+  private String shownForDesignatedBodyCode;
+  private String shownForGmcId;
 }

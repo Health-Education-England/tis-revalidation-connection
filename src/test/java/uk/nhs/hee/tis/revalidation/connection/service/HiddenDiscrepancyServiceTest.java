@@ -43,7 +43,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -347,7 +346,7 @@ class HiddenDiscrepancyServiceTest {
         .gmcId(GMC_ID_1)
         .hiddenForDesignatedBodyCode(DBC)
         .build();
-    when(hiddenDiscrepancyRepository.findById(new ObjectId(discrepancyId)))
+    when(hiddenDiscrepancyRepository.findById(discrepancyId))
         .thenReturn(Optional.of(entity));
 
     var response = service.showDiscrepancy(discrepancyId);
@@ -361,7 +360,7 @@ class HiddenDiscrepancyServiceTest {
   @Test
   void showDiscrepancyShouldThrowExceptionWhenDiscrepancyNotFound() {
     String discrepancyId = "507f1f77bcf86cd799439012";
-    when(hiddenDiscrepancyRepository.findById(new ObjectId(discrepancyId)))
+    when(hiddenDiscrepancyRepository.findById(discrepancyId))
         .thenReturn(java.util.Optional.empty());
 
     IllegalArgumentException ex = assertThrows(

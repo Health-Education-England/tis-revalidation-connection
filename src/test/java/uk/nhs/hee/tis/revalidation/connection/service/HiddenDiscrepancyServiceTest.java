@@ -76,6 +76,8 @@ class HiddenDiscrepancyServiceTest {
   private static final String GMC_ID_1 = "GMC1";
   private static final String GMC_ID_2 = "GMC2";
   private static final String GMC_ID_3 = "GMC3";
+  private HiddenDiscrepancy hd1;
+  private HiddenDiscrepancy hd2;
 
   @Captor
   ArgumentCaptor<List<HiddenDiscrepancy>> saveCaptor;
@@ -98,6 +100,19 @@ class HiddenDiscrepancyServiceTest {
   void setup() {
     setField(service, "exchange", EXCHANGE);
     setField(service, "esSyncDataRoutingKey", ES_SYNC_DATA_ROUTING_KEY);
+
+    hd1 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(DBC)
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .build();
+    hd2 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_2)
+        .hiddenForDesignatedBodyCode(DBC)
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .build();
   }
 
   @ParameterizedTest
@@ -373,6 +388,30 @@ class HiddenDiscrepancyServiceTest {
     );
     assertThat(ex.getMessage()).contains(discrepancyId);
     verify(hiddenDiscrepancyRepository, never()).delete(any());
+  }
+
+  @Test
+  void shouldReturnHiddenDiscrepanciesForGmcId() {
+    List<HiddenDiscrepancy> expected = List.of(hd1, hd2);
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(expected);
+
+    List<HiddenDiscrepancy> result = service.findByGmcId(GMC_ID_1);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    assertNotNull(result);
+    assertEquals(2, result.size());
+    assertThat(result).containsExactlyElementsOf(expected);
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoHiddenDiscrepanciesFoundForGmcId() {
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(List.of());
+
+    List<HiddenDiscrepancy> result = service.findByGmcId(GMC_ID_1);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    assertNotNull(result);
+    assertThat(result).isEmpty();
   }
 
   // -------------------- Helpers --------------------

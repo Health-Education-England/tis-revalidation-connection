@@ -179,4 +179,14 @@ public class HiddenDiscrepancyService {
     var syncEndPayload = IndexSyncMessage.builder().syncEnd(true).build();
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
+
+  /**
+   * Find all HiddenDiscrepancy records associated with a given GMC ID.
+   *
+   * @param gmcId the GMC ID to search for
+   * @return list of HiddenDiscrepancy objects
+   */
+  public List<HiddenDiscrepancy> findByGmcId(String gmcId) {
+    return hiddenDiscrepancyRepository.findByGmcId(gmcId);
+  }
 }

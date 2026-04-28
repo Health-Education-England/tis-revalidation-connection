@@ -581,6 +581,36 @@ class ConnectionControllerTest {
         .andExpect(status().isNotFound());
   }
 
+  @Test
+  void shouldReturnHiddenDiscrepanciesByGmcId() throws Exception {
+    HiddenDiscrepancy discrepancy1 = HiddenDiscrepancy.builder().gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").build();
+    HiddenDiscrepancy discrepancy2 = HiddenDiscrepancy.builder().gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody2).reason("reason2").build();
+    List<HiddenDiscrepancy> discrepancies = List.of(discrepancy1, discrepancy2);
+    when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(discrepancies);
+
+    mockMvc.perform(get("/api/connections/discrepancies/hidden/" + gmcId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$[0].gmcId").value(gmcId))
+        .andExpect(jsonPath("$[0].reason").value("reason1"))
+        .andExpect(jsonPath("$[0].hiddenForDesignatedBodyCode").value(designatedBody1))
+        .andExpect(jsonPath("$[1].gmcId").value(gmcId))
+        .andExpect(jsonPath("$[1].reason").value("reason2"))
+        .andExpect(jsonPath("$[1].hiddenForDesignatedBodyCode").value(designatedBody2));
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoHiddenDiscrepanciesByGmcId() throws Exception {
+    when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(List.of());
+
+    mockMvc.perform(get("/api/connections/discrepancies/hidden/" + gmcId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().json("[]"));
+  }
+
   private ConnectionDto prepareConnectionDto() {
     final ConnectionDto connectionDto = new ConnectionDto();
     final ConnectionHistoryDto connectionHistory = ConnectionHistoryDto.builder()

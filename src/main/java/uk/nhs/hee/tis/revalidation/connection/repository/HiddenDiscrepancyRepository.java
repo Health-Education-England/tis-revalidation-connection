@@ -36,7 +36,7 @@ public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscr
    * Finds hidden discrepancies by GMC reference numbers and designated body code.
    *
    * @param gmcReferenceNumbers         the list of GMC reference numbers to search for
-   * @param hiddenForDesignatedBodyCodes the list of designated body cods for which the
+   * @param hiddenForDesignatedBodyCodes the list of designated body codes for which the
    *                                     discrepancies are hidden
    * @return a list of HiddenDiscrepancy entities matching the criteria
    */

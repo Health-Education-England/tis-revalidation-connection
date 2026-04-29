@@ -37,11 +37,11 @@ public interface HiddenDiscrepancyMapper {
   /**
    * Maps a HideDiscrepancyDto to a HiddenDiscrepancy entity.
    *
-   * @param dto the HideDiscrepancyDto to be mapped
-   * @param gmcId the GMC ID of the doctor associated with the discrepancy
-   * @param batchTime the time when the discrepancy was hidden
+   * @param dto the HideDiscrepancyDto containing the data to be mapped
+   * @param gmcId the GMC ID of the doctor for whom the discrepancy is being hidden
+   * @param batchTime the timestamp when the hiding action is performed
    * @param hiddenForDesignatedBodyCode the designated body code for which the discrepancy is hidden
-   * @return a HiddenDiscrepancy entity mapped from the provided DTO and additional parameters
+   * @return a HiddenDiscrepancy entity populated with data from the DTO and additional parameters
    */
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "hiddenDateTime", source = "batchTime")

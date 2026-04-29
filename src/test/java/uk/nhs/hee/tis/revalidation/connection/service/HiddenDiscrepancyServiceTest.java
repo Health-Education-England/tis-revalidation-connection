@@ -130,7 +130,7 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    // expect no results for invalid doctors
+    // expect empty response for invalid doctors
     assertNotNull(response);
     assertNotNull(response.getResults());
     assertEquals(0, response.getResults().size());
@@ -151,7 +151,7 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    // expect no results when admin dbcs invalid
+    // expect empty response for invalid admin dbcs
     assertNotNull(response);
     assertNotNull(response.getResults());
     assertEquals(0, response.getResults().size());
@@ -279,7 +279,7 @@ class HiddenDiscrepancyServiceTest {
         .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(anyList(), anyList()))
         .thenReturn(List.of());
     when(hiddenDiscrepancyRepository.saveAll(anyList()))
-        .thenReturn(List.of(entity(GMC_ID_1), entity(GMC_ID_2))); // nowHidden missing GMC3
+        .thenReturn(List.of(entity(GMC_ID_1), entity(GMC_ID_2)));
 
     mockMapperToReturnRealEntity();
 

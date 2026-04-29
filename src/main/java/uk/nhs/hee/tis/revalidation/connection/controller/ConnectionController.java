@@ -417,7 +417,6 @@ public class ConnectionController {
    * DELETE  /discrepancies/hidden/{discrepancyId} : Show a hidden discrepancy.
    *
    * @param discrepancyId the id of hidden discrepancy entity to remove
-   * @return the ResponseEntity with status 200 (OK) and details of shown discrepancy in body
    */
   @DeleteMapping("/discrepancies/hidden/{discrepancyId}")
   public ResponseEntity<Void> showDiscrepancy(

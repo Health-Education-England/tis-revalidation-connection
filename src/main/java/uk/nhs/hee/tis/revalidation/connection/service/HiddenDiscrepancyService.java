@@ -121,7 +121,6 @@ public class HiddenDiscrepancyService {
    * Show hidden discrepancies for a list of doctors based on the provided DTO.
    *
    * @param discrepancyId the id of the hidden discrepancy to hide
-   * @return a response DTO summarizing the results of the show operation
    */
   public void showDiscrepancy(String discrepancyId) {
     hiddenDiscrepancyRepository.findById(discrepancyId).ifPresentOrElse(entity -> {

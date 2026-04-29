@@ -26,7 +26,6 @@ import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
-import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 import static uk.nhs.hee.tis.revalidation.connection.service.StringConverter.getConverter;
 
 import io.swagger.annotations.ApiOperation;
@@ -52,7 +51,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ShowDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
@@ -204,22 +202,22 @@ public class ConnectionController {
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery,
       @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateTo,
       @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate submissionDateTo,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate lastConnectionDateTimeTo,
       @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
       String updatedBy) throws ConnectionQueryException {
@@ -275,22 +273,22 @@ public class ConnectionController {
       @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
       String searchQuery,
       @RequestParam(name = MEMBERSHIP_END_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateFrom,
       @RequestParam(name = MEMBERSHIP_END_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate membershipEndDateTo,
       @RequestParam(name = GMC_SUBMISSION_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate submissionDateFrom,
       @RequestParam(name = GMC_SUBMISSION_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate submissionDateTo,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_FROM, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate lastConnectionDateTimeFrom,
       @RequestParam(name = CONNECTION_LAST_UPDATED_DATE_TO, required = false)
-      @DateTimeFormat(iso = DATE)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
       LocalDate lastConnectionDateTimeTo,
       @RequestParam(name = UPDATED_BY, defaultValue = EMPTY_STRING, required = false)
       String updatedBy) throws ConnectionQueryException {
@@ -422,14 +420,12 @@ public class ConnectionController {
    * @return the ResponseEntity with status 200 (OK) and details of shown discrepancy in body
    */
   @DeleteMapping("/discrepancies/hidden/{discrepancyId}")
-  public ResponseEntity<ShowDiscrepancyResponseDto> showDiscrepancy(
+  public ResponseEntity<Void> showDiscrepancy(
       @PathVariable("discrepancyId") final String discrepancyId) {
     log.info("Request received to show discrepancy: {}", discrepancyId);
-
     try {
-      ShowDiscrepancyResponseDto responseDto =
-          hiddenDiscrepancyService.showDiscrepancy(discrepancyId);
-      return ResponseEntity.ok(responseDto);
+      hiddenDiscrepancyService.showDiscrepancy(discrepancyId);
+      return ResponseEntity.ok().build();
     } catch (IllegalArgumentException ie) {
       return ResponseEntity.notFound().build();
     }

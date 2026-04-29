@@ -80,6 +80,8 @@ class HiddenDiscrepancyServiceTest {
   @Captor
   ArgumentCaptor<List<HiddenDiscrepancy>> saveCaptor;
   @Captor
+  ArgumentCaptor<HiddenDiscrepancy> deleteCaptor;
+  @Captor
   ArgumentCaptor<List<String>> gmcIdsCaptor;
   @Captor
   ArgumentCaptor<IndexSyncMessage<List<HiddenDiscrepancy>>> syncMessageCaptor;
@@ -341,20 +343,22 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void showDiscrepancyShouldRemoveAndReturnResponseWhenDiscrepancyPresent() {
-    String discrepancyId = "507f1f77bcf86cd799439012";
+    String hiddenDiscrepancyId = "507f1f77bcf86cd799439012";
     HiddenDiscrepancy entity = HiddenDiscrepancy.builder()
+        .id(hiddenDiscrepancyId)
         .gmcId(GMC_ID_1)
         .hiddenForDesignatedBodyCode(DBC)
         .build();
-    when(hiddenDiscrepancyRepository.findById(discrepancyId))
+    when(hiddenDiscrepancyRepository.findById(hiddenDiscrepancyId))
         .thenReturn(Optional.of(entity));
 
-    var response = service.showDiscrepancy(discrepancyId);
+    service.showDiscrepancy(hiddenDiscrepancyId);
 
-    assertNotNull(response);
-    assertEquals(GMC_ID_1, response.getShownForGmcId());
-    assertEquals(DBC, response.getShownForDesignatedBodyCode());
-    verify(hiddenDiscrepancyRepository).delete(entity);
+    verify(hiddenDiscrepancyRepository).delete(deleteCaptor.capture());
+    var result = deleteCaptor.getValue();
+    assertThat(result.getGmcId()).isEqualTo(GMC_ID_1);
+    assertThat(result.getHiddenForDesignatedBodyCode()).isEqualTo(DBC);
+    assertThat(result.getId()).isEqualTo(hiddenDiscrepancyId);
   }
 
   @Test

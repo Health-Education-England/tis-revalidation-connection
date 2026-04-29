@@ -118,7 +118,7 @@ public class HiddenDiscrepancyService {
   }
 
   /**
-   * Show hidden discrepancies for a list of doctors based on the provided DTO.
+   * Show hidden discrepancy by removing the hidden discrepancy record with the specified id.
    *
    * @param discrepancyId the id of the hidden discrepancy to hide
    */

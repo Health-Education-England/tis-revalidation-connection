@@ -21,7 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -36,15 +36,32 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HideDiscrepancyResponseDto {
 
-  private String hiddenForDesignatedBodyCode;
+  @Builder.Default
+  private List<HideDiscrepancyResponseItem> results = new ArrayList<>();
 
-  @Builder.Default
-  private List<String> successfulHiddenGmcIds = new ArrayList<>();
-  @Builder.Default
-  private List<String> failedToHideGmcIds = new ArrayList<>();
-  @Builder.Default
-  private List<String> existingHiddenGmcIds = new ArrayList<>();
+  /**
+   * A nested DTO class that contains the GMC ID and lists of successful, failed, and existing
+   * designated body codes for each doctor when hiding discrepancies.
+   */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  public static class HideDiscrepancyResponseItem {
+
+    private String gmcId;
+
+    @Builder.Default
+    private List<String> successfulDbcCodes = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> failedDbcCodes = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> existingDbcCodes = new ArrayList<>();
+  }
 }

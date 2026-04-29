@@ -21,15 +21,15 @@
 
 package uk.nhs.hee.tis.revalidation.connection.service;
 
-import static java.util.function.Predicate.not;
 import static org.springframework.data.domain.PageRequest.of;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,40 +81,88 @@ public class HiddenDiscrepancyService {
    * @return a response DTO summarizing the results of the hide operation
    */
   public HideDiscrepancyResponseDto hideDiscrepancies(HideDiscrepancyDto dto) {
-    final String hiddenForDbc = dto.getHiddenForDesignatedBodyCode();
-    final List<String> requestedGmcIds = extractRequestedGmcIds(dto);
+    HideDiscrepancyResponseDto response = new HideDiscrepancyResponseDto();
 
-    if (requestedGmcIds.isEmpty()) {
-      return HideDiscrepancyResponseDto.builder().hiddenForDesignatedBodyCode(hiddenForDbc).build();
-    }
+    var adminDbcs = dto.getAdminDesignatedBodyCodes();
 
-    final Set<String> alreadyHidden = findHiddenGmcIds(requestedGmcIds, hiddenForDbc);
-    final List<String> newGmcIdsToHide = requestedGmcIds.stream()
-        .filter(not(alreadyHidden::contains))
-        .collect(Collectors.toList());
-    if (!alreadyHidden.isEmpty()) {
-      log.warn("Discrepancies for the following GMC IDs are already hidden for {}: {}",
-          hiddenForDbc, alreadyHidden);
-    }
-    final List<String> savedGmcIds = new ArrayList<>();
+    for (DoctorInfoDto doctor : dto.getDoctors()) {
+      var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
+      String gmcId = doctor.getGmcId();
+      item.setGmcId(gmcId);
 
-    if (!newGmcIdsToHide.isEmpty()) {
-      final LocalDateTime batchTime = LocalDateTime.now();
-      final List<HiddenDiscrepancy> newEntities = newGmcIdsToHide.stream()
-          .map(gmcId -> hiddenDiscrepancyMapper.toEntity(dto, gmcId, batchTime))
+      // collect the doctor's designated body codes (may be null)
+      var doctorDbcs = Stream.of(doctor.getCurrentDesignatedBodyCode(),
+              doctor.getProgrammeOwnerDesignatedBodyCode())
+          .filter(Objects::nonNull)
+          .collect(Collectors.toSet());
+
+      // intersection with admin codes
+      var toHide = adminDbcs.stream()
+          .filter(doctorDbcs::contains)
+          .distinct()
           .collect(Collectors.toList());
 
-      savedGmcIds.addAll(hiddenDiscrepancyRepository.saveAll(newEntities).stream()
-          .map(HiddenDiscrepancy::getGmcId)
-          .collect(Collectors.toList()));
+      if (toHide.isEmpty()) {
+        // nothing to hide for this doctor
+        response.getResults().add(item);
+        continue;
+      }
+
+      for (String dbc : toHide) {
+        try {
+          // check existence
+          var existing = hiddenDiscrepancyRepository
+              .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(List.of(gmcId), List.of(dbc));
+          if (existing != null && !existing.isEmpty()) {
+            mergeExisting(item, dbc);
+            continue;
+          }
+
+          var entity = hiddenDiscrepancyMapper.toEntity(dto, gmcId, LocalDateTime.now(), dbc);
+          entity.setHiddenBy(dto.getHiddenBy());
+          entity.setReason(dto.getReason());
+          hiddenDiscrepancyRepository.save(entity);
+          mergeSuccessful(item, dbc);
+        } catch (Exception ex) {
+          log.error("Failed to hide discrepancy for gmcId {} and dbc {}: {}", gmcId, dbc,
+              ex.getMessage());
+          mergeFailed(item, dbc);
+        }
+      }
+
+      response.getResults().add(item);
     }
 
-    final List<String> failedToHide = newGmcIdsToHide.stream()
-        .filter(not(savedGmcIds::contains))
-        .collect(Collectors.toList());
+    return response;
+  }
+  private void mergeSuccessful(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+      String dbc) {
+    var list = item.getSuccessfulDbcCodes();
+    if (list == null) {
+      list = new ArrayList<>();
+      item.setSuccessfulDbcCodes(list);
+    }
+    list.add(dbc);
+  }
 
-    return new HideDiscrepancyResponseDto(hiddenForDbc, savedGmcIds, failedToHide,
-        new ArrayList<>(alreadyHidden));
+  private void mergeFailed(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+      String dbc) {
+    var list = item.getFailedDbcCodes();
+    if (list == null) {
+      list = new ArrayList<>();
+      item.setFailedDbcCodes(list);
+    }
+    list.add(dbc);
+  }
+
+  private void mergeExisting(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+      String dbc) {
+    var list = item.getExistingDbcCodes();
+    if (list == null) {
+      list = new ArrayList<>();
+      item.setExistingDbcCodes(list);
+    }
+    list.add(dbc);
   }
 
   /**
@@ -147,7 +195,8 @@ public class HiddenDiscrepancyService {
 
   private Set<String> findHiddenGmcIds(List<String> gmcIds, String hiddenForDbc) {
     return hiddenDiscrepancyRepository
-        .findByGmcIdInAndHiddenForDesignatedBodyCode(gmcIds, hiddenForDbc).stream()
+        .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(gmcIds,
+            List.of(hiddenForDbc)).stream()
         .map(HiddenDiscrepancy::getGmcId)
         .collect(Collectors.toSet());
   }

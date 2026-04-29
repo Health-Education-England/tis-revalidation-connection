@@ -130,8 +130,10 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 0, 0, 0);
-    assertResponseLists(response, List.of(), List.of(), List.of());
+    // expect no results for invalid doctors
+    assertNotNull(response);
+    assertNotNull(response.getResults());
+    assertEquals(0, response.getResults().size());
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hiddenDiscrepancyMapper);
@@ -149,7 +151,10 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseLists(response, List.of(), List.of(), List.of());
+    // expect no results when admin dbcs invalid
+    assertNotNull(response);
+    assertNotNull(response.getResults());
+    assertEquals(0, response.getResults().size());
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hiddenDiscrepancyMapper);
@@ -159,8 +164,10 @@ class HiddenDiscrepancyServiceTest {
   void shouldReturnEmptyResponseWhenDtoInvalid() {
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(null);
 
-    assertResponseListCounts(response, 0, 0, 0);
-    assertResponseLists(response, List.of(), List.of(), List.of());
+    // expect empty response when dto is null
+    assertNotNull(response);
+    assertNotNull(response.getResults());
+    assertEquals(0, response.getResults().size());
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hiddenDiscrepancyMapper);
@@ -181,8 +188,28 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 2, 0, 0);
-    assertResponseLists(response, List.of(), List.of(), List.of(GMC_ID_1, GMC_ID_2));
+    assertNotNull(response);
+    var resultMap2 = response.getResults().stream()
+        .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
+
+    var item1 = resultMap2.get(GMC_ID_1);
+    var item2 = resultMap2.get(GMC_ID_2);
+
+    assertNotNull(item1);
+    assertListContainsExactlyIgnoringOrder(item1.getExistingDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(
+        item1.getSuccessfulDbcCodes() == null ? List.of() : item1.getSuccessfulDbcCodes(),
+        List.of());
+    assertListContainsExactlyIgnoringOrder(
+        item1.getFailedDbcCodes() == null ? List.of() : item1.getFailedDbcCodes(), List.of());
+
+    assertNotNull(item2);
+    assertListContainsExactlyIgnoringOrder(item2.getExistingDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(
+        item2.getSuccessfulDbcCodes() == null ? List.of() : item2.getSuccessfulDbcCodes(),
+        List.of());
+    assertListContainsExactlyIgnoringOrder(
+        item2.getFailedDbcCodes() == null ? List.of() : item2.getFailedDbcCodes(), List.of());
 
     verify(hiddenDiscrepancyRepository, never()).saveAll(anyList());
     verifyNoInteractions(hiddenDiscrepancyMapper);
@@ -208,8 +235,22 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 1, 2, 0);
-    assertResponseLists(response, List.of(GMC_ID_2, GMC_ID_3), List.of(), List.of(GMC_ID_1));
+    assertNotNull(response);
+    var resultMap3 = response.getResults().stream()
+        .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
+
+    // GMC1 existing
+    var it1 = resultMap3.get(GMC_ID_1);
+    assertNotNull(it1);
+    assertListContainsExactlyIgnoringOrder(it1.getExistingDbcCodes(), List.of(ADMIN_DBC_1));
+
+    // GMC2 and GMC3 successful
+    var it2 = resultMap3.get(GMC_ID_2);
+    var it3 = resultMap3.get(GMC_ID_3);
+    assertNotNull(it2);
+    assertNotNull(it3);
+    assertListContainsExactlyIgnoringOrder(it2.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(it3.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
 
     verify(hiddenDiscrepancyRepository).saveAll(saveCaptor.capture());
     List<HiddenDiscrepancy> saved = saveCaptor.getValue();
@@ -244,9 +285,19 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 0, 2, 1);
-    assertResponseLists(response, List.of(GMC_ID_1, GMC_ID_2), List.of(GMC_ID_3), List.of()
-    );
+    assertNotNull(response);
+    var resultMap4 = response.getResults().stream()
+        .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
+
+    var a1 = resultMap4.get(GMC_ID_1);
+    var a2 = resultMap4.get(GMC_ID_2);
+    var a3 = resultMap4.get(GMC_ID_3);
+    assertNotNull(a1);
+    assertNotNull(a2);
+    assertNotNull(a3);
+    assertListContainsExactlyIgnoringOrder(a1.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(a2.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(a3.getFailedDbcCodes(), List.of(ADMIN_DBC_1));
   }
 
   @Test
@@ -270,8 +321,19 @@ class HiddenDiscrepancyServiceTest {
 
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    assertResponseListCounts(response, 0, 2, 0);
-    assertResponseLists(response, List.of(GMC_ID_1, GMC_ID_2), List.of(), List.of());
+    assertNotNull(response);
+    var resultMap5 = response.getResults().stream()
+        .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
+    var b1 = resultMap5.get(GMC_ID_1);
+    var b2 = resultMap5.get(GMC_ID_2);
+    assertNotNull(b1);
+    assertNotNull(b2);
+    assertListContainsExactlyIgnoringOrder(b1.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(b2.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(
+        b1.getFailedDbcCodes() == null ? List.of() : b1.getFailedDbcCodes(), List.of());
+    assertListContainsExactlyIgnoringOrder(
+        b2.getFailedDbcCodes() == null ? List.of() : b2.getFailedDbcCodes(), List.of());
 
     verify(hiddenDiscrepancyRepository)
         .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(gmcIdsCaptor.capture(),
@@ -286,6 +348,67 @@ class HiddenDiscrepancyServiceTest {
         any(LocalDateTime.class), anyString());
     verify(hiddenDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
         any(LocalDateTime.class), anyString());
+  }
+
+  @Test
+  void shouldHideDiscrepanciesWhenOneDoctorCoversBothDbcsAndAnotherCoversOne() {
+    // admin has two dbcs
+    final HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+        .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1, ADMIN_DBC_2))
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        // doctor1 covers both dbcs, doctor2 covers only first dbc
+        .doctors(List.of(doc(GMC_ID_1, ADMIN_DBC_1, ADMIN_DBC_2), doc(GMC_ID_2, ADMIN_DBC_1, null)))
+        .build();
+
+    // none exist beforehand
+    when(hiddenDiscrepancyRepository.findByGmcIdInAndHiddenForDesignatedBodyCodeIn(anyList(),
+        anyList()))
+        .thenReturn(List.of());
+
+    // mapper should produce real entities for each toSave
+    mockMapperToReturnRealEntity();
+
+    // make saveAll return the passed list (simulate successful save)
+    when(hiddenDiscrepancyRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+    HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
+
+    // expect two result items (one per doctor)
+    assertNotNull(response);
+    assertNotNull(response.getResults());
+    assertEquals(2, response.getResults().size());
+
+    var resultMap = response.getResults().stream()
+        .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
+
+    var r1 = resultMap.get(GMC_ID_1);
+    var r2 = resultMap.get(GMC_ID_2);
+
+    // doctor1 should have both successful dbcs
+    assertNotNull(r1);
+    assertListContainsExactlyIgnoringOrder(r1.getSuccessfulDbcCodes(),
+        List.of(ADMIN_DBC_1, ADMIN_DBC_2));
+    assertListContainsExactlyIgnoringOrder(
+        r1.getFailedDbcCodes() == null ? List.of() : r1.getFailedDbcCodes(), List.of());
+    assertListContainsExactlyIgnoringOrder(
+        r1.getExistingDbcCodes() == null ? List.of() : r1.getExistingDbcCodes(), List.of());
+
+    // doctor2 should have only first dbc successful
+    assertNotNull(r2);
+    assertListContainsExactlyIgnoringOrder(r2.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
+    assertListContainsExactlyIgnoringOrder(
+        r2.getFailedDbcCodes() == null ? List.of() : r2.getFailedDbcCodes(), List.of());
+    assertListContainsExactlyIgnoringOrder(
+        r2.getExistingDbcCodes() == null ? List.of() : r2.getExistingDbcCodes(), List.of());
+
+    // verify mapper called 3 times (2 for doctor1, 1 for doctor2)
+    verify(hiddenDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_1),
+        any(LocalDateTime.class), eq(ADMIN_DBC_1));
+    verify(hiddenDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_1),
+        any(LocalDateTime.class), eq(ADMIN_DBC_2));
+    verify(hiddenDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
+        any(LocalDateTime.class), eq(ADMIN_DBC_1));
   }
 
   @Test
@@ -460,74 +583,6 @@ class HiddenDiscrepancyServiceTest {
               .hiddenDateTime(batchTime)
               .build();
         });
-  }
-
-  /**
-   * Assert the counts in the response and that the lists are non-null (but not their contents).
-   *
-   * @param response           the service response containing details of hidden discrepancies
-   * @param expectedExisting   the expected number of existing discrepancies
-   * @param expectedSuccessful the expected number of hide discrepancy updates to succeed
-   * @param expectedFailed     the expected number of hide discrepancy updates to succeed
-   */
-  private void assertResponseListCounts(HideDiscrepancyResponseDto response, int expectedExisting,
-      int expectedSuccessful, int expectedFailed) {
-    assertNotNull(response);
-    var results = response.getResults();
-    assertNotNull(results);
-
-    var existing = results.stream()
-        .filter(
-            i -> i.getExistingDbcCodes() != null && i.getExistingDbcCodes().contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toSet());
-    var successful = results.stream()
-        .filter(i -> i.getSuccessfulDbcCodes() != null && i.getSuccessfulDbcCodes()
-            .contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toSet());
-    var failed = results.stream()
-        .filter(i -> i.getFailedDbcCodes() != null && i.getFailedDbcCodes().contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toSet());
-
-    assertEquals(expectedExisting, existing.size());
-    assertEquals(expectedSuccessful, successful.size());
-    assertEquals(expectedFailed, failed.size());
-  }
-
-  /**
-   * Assert the contents of the three lists in the response (ignoring order).
-   *
-   * @param response           the service response containing details of hidden discrepancies
-   * @param expectedExisting   the expected number of existing discrepancies
-   * @param expectedSuccessful the expected number of hide discrepancy updates to succeed
-   * @param expectedFailed     the expected number of hide discrepancy updates to succeed
-   */
-  private void assertResponseLists(HideDiscrepancyResponseDto response,
-      List<String> expectedSuccessful,
-      List<String> expectedFailed,
-      List<String> expectedExisting) {
-
-    var results = response.getResults();
-    var successful = results.stream()
-        .filter(i -> i.getSuccessfulDbcCodes() != null && i.getSuccessfulDbcCodes()
-            .contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toList());
-    var failed = results.stream()
-        .filter(i -> i.getFailedDbcCodes() != null && i.getFailedDbcCodes().contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toList());
-    var existing = results.stream()
-        .filter(
-            i -> i.getExistingDbcCodes() != null && i.getExistingDbcCodes().contains(ADMIN_DBC_1))
-        .map(i -> i.getGmcId())
-        .collect(Collectors.toList());
-
-    assertListContainsExactlyIgnoringOrder(successful, expectedSuccessful);
-    assertListContainsExactlyIgnoringOrder(failed, expectedFailed);
-    assertListContainsExactlyIgnoringOrder(existing, expectedExisting);
   }
 
   private void assertListContainsExactlyIgnoringOrder(List<String> actual, List<String> expected) {

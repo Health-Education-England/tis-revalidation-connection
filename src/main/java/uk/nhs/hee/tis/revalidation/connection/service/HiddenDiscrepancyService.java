@@ -123,9 +123,11 @@ public class HiddenDiscrepancyService {
     var map = new HashMap<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem>();
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
-      var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
-      item.setGmcId(gmcId);
-      map.put(gmcId, item);
+      if (gmcId != null) {
+        var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
+        item.setGmcId(gmcId);
+        map.put(gmcId, item);
+      }
     }
     return map;
   }
@@ -136,24 +138,23 @@ public class HiddenDiscrepancyService {
 
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
+      if (gmcId != null) {
+        Set<String> doctorDbcs = Stream.of(doctor.getCurrentDesignatedBodyCode(),
+                doctor.getProgrammeOwnerDesignatedBodyCode())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
-      Set<String> doctorDbcs = Stream.of(doctor.getCurrentDesignatedBodyCode(),
-              doctor.getProgrammeOwnerDesignatedBodyCode())
-          .filter(Objects::nonNull)
-          .collect(Collectors.toSet());
+        List<String> toHideList = adminDesignatedBodyCodes.stream()
+            .filter(doctorDbcs::contains)
+            .distinct()
+            .collect(Collectors.toList());
 
-      List<String> toHideList = adminDesignatedBodyCodes.stream()
-          .filter(doctorDbcs::contains)
-          .distinct()
-          .collect(Collectors.toList());
-
-      if (toHideList.isEmpty()) {
-        continue;
+        if (!toHideList.isEmpty()) {
+          toHideByGmc.put(gmcId, toHideList);
+          allGmcIds.add(gmcId);
+          allDbcs.addAll(toHideList);
+        }
       }
-
-      toHideByGmc.put(gmcId, toHideList);
-      allGmcIds.add(gmcId);
-      allDbcs.addAll(toHideList);
     }
   }
 

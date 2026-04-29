@@ -24,8 +24,11 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.springframework.data.domain.PageRequest.of;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,60 +84,101 @@ public class HiddenDiscrepancyService {
    * @return a response DTO summarizing the results of the hide operation
    */
   public HideDiscrepancyResponseDto hideDiscrepancies(HideDiscrepancyDto dto) {
+
     HideDiscrepancyResponseDto response = new HideDiscrepancyResponseDto();
 
-    var adminDbcs = dto.getAdminDesignatedBodyCodes();
+    var adminDesignatedBodyCodes = dto.getAdminDesignatedBodyCodes();
+
+    // Prepare per-doctor toHide lists and response items
+    Map<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem> responseItems =
+        new HashMap<>();
+    Map<String, List<String>> toHideByGmc = new HashMap<>();
+    Set<String> allGmcIds = new HashSet<>();
+    Set<String> allDbcs = new HashSet<>();
 
     for (DoctorInfoDto doctor : dto.getDoctors()) {
-      var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
       String gmcId = doctor.getGmcId();
+      var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
       item.setGmcId(gmcId);
+      responseItems.put(gmcId, item);
 
-      // collect the doctor's designated body codes (may be null)
+      // collect the doctor's designated body codes
       var doctorDbcs = Stream.of(doctor.getCurrentDesignatedBodyCode(),
               doctor.getProgrammeOwnerDesignatedBodyCode())
           .filter(Objects::nonNull)
           .collect(Collectors.toSet());
 
       // intersection with admin codes
-      var toHide = adminDbcs.stream()
+      var toHide = adminDesignatedBodyCodes.stream()
           .filter(doctorDbcs::contains)
           .distinct()
           .collect(Collectors.toList());
 
       if (toHide.isEmpty()) {
         // nothing to hide for this doctor
-        response.getResults().add(item);
         continue;
       }
 
-      for (String dbc : toHide) {
-        try {
-          // check existence
-          var existing = hiddenDiscrepancyRepository
-              .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(List.of(gmcId), List.of(dbc));
-          if (existing != null && !existing.isEmpty()) {
-            mergeExisting(item, dbc);
-            continue;
-          }
+      toHideByGmc.put(gmcId, toHide);
+      allGmcIds.add(gmcId);
+      allDbcs.addAll(toHide);
+    }
 
+    if (toHideByGmc.isEmpty()) {
+      // nothing to do
+      response.getResults().addAll(responseItems.values());
+      return response;
+    }
+
+    // Query existing hidden discrepancies for all relevant gmcs and dbcs
+    var existing = hiddenDiscrepancyRepository
+        .findByGmcIdInAndHiddenForDesignatedBodyCodeIn(new ArrayList<>(allGmcIds),
+            new ArrayList<>(allDbcs));
+    Set<String> existingPairs = existing.stream()
+        .map(e -> e.getGmcId() + "#" + e.getHiddenForDesignatedBodyCode())
+        .collect(Collectors.toSet());
+
+    // Build list of entities to save (non-existing pairs)
+    List<HiddenDiscrepancy> toSave = new ArrayList<>();
+    for (Map.Entry<String, List<String>> entry : toHideByGmc.entrySet()) {
+      String gmcId = entry.getKey();
+      var item = responseItems.get(gmcId);
+      for (String dbc : entry.getValue()) {
+        String key = gmcId + "#" + dbc;
+        if (existingPairs.contains(key)) {
+          mergeExisting(item, dbc);
+        } else {
           var entity = hiddenDiscrepancyMapper.toEntity(dto, gmcId, LocalDateTime.now(), dbc);
           entity.setHiddenBy(dto.getHiddenBy());
           entity.setReason(dto.getReason());
-          hiddenDiscrepancyRepository.save(entity);
-          mergeSuccessful(item, dbc);
-        } catch (Exception ex) {
-          log.error("Failed to hide discrepancy for gmcId {} and dbc {}: {}", gmcId, dbc,
-              ex.getMessage());
-          mergeFailed(item, dbc);
+          toSave.add(entity);
         }
       }
-
-      response.getResults().add(item);
     }
+
+    // Save all new entities in batch, with fallback for duplicate-key concurrency
+    if (!toSave.isEmpty()) {
+      try {
+        var saved = hiddenDiscrepancyRepository.saveAll(toSave);
+        for (HiddenDiscrepancy s : saved) {
+          var item = responseItems.get(s.getGmcId());
+          mergeSuccessful(item, s.getHiddenForDesignatedBodyCode());
+        }
+      } catch (Exception ex) {
+        // If batch save failed, mark all as failed
+        for (HiddenDiscrepancy e : toSave) {
+          mergeFailed(responseItems.get(e.getGmcId()), e.getHiddenForDesignatedBodyCode());
+        }
+        log.error("Batch save failed: {}", ex.getMessage());
+      }
+    }
+
+    // Add all response items
+    response.getResults().addAll(responseItems.values());
 
     return response;
   }
+
   private void mergeSuccessful(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
       String dbc) {
     var list = item.getSuccessfulDbcCodes();

@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 public class HideDiscrepancyResponseDto {
 
   @Builder.Default
-  private List<HideDiscrepancyResponseItem> results = new ArrayList<>();
+  private List<HiddenDiscrepancyResponseItem> results = new ArrayList<>();
 
   /**
    * A nested DTO class that contains the GMC ID and lists of successful, failed, and existing
@@ -51,7 +51,7 @@ public class HideDiscrepancyResponseDto {
   @NoArgsConstructor
   @AllArgsConstructor
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  public static class HideDiscrepancyResponseItem {
+  public static class HiddenDiscrepancyResponseItem {
 
     private String gmcId;
 

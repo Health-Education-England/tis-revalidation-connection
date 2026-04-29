@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
@@ -118,13 +119,13 @@ public class HiddenDiscrepancyService {
   }
 
   // Prepare a map of GMC ID to response item for easy lookup and result aggregation
-  private Map<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem> prepareResponseItemsMap(
+  private Map<String, HiddenDiscrepancyResponseItem> prepareResponseItemsMap(
       List<DoctorInfoDto> doctors) {
-    var map = new HashMap<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem>();
+    var map = new HashMap<String, HiddenDiscrepancyResponseItem>();
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
       if (gmcId != null) {
-        var item = new HideDiscrepancyResponseDto.HideDiscrepancyResponseItem();
+        var item = new HiddenDiscrepancyResponseItem();
         item.setGmcId(gmcId);
         map.put(gmcId, item);
       }
@@ -158,7 +159,7 @@ public class HiddenDiscrepancyService {
     }
   }
 
-  // Query existing hidden discrepancies for the given GMC IDs and designated body codes to avoid duplicates
+  // Query existing hidden discrepancies for the given GMC IDs and designated body codes
   private Set<String> queryExistingPairs(Set<String> allGmcIds, Set<String> allDbcs) {
     if (allGmcIds.isEmpty() || allDbcs.isEmpty()) {
       return Set.of();
@@ -173,7 +174,7 @@ public class HiddenDiscrepancyService {
 
   private List<HiddenDiscrepancy> buildEntitiesToSave(HideDiscrepancyDto dto,
       Map<String, List<String>> toHideByGmc, Set<String> existingPairs,
-      Map<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem> responseItems) {
+      Map<String, HiddenDiscrepancyResponseItem> responseItems) {
     List<HiddenDiscrepancy> toSave = new ArrayList<>();
     LocalDateTime saveTime = LocalDateTime.now();
     for (Map.Entry<String, List<String>> entry : toHideByGmc.entrySet()) {
@@ -197,7 +198,7 @@ public class HiddenDiscrepancyService {
   }
 
   private void saveEntitiesBatch(List<HiddenDiscrepancy> toSave,
-      Map<String, HideDiscrepancyResponseDto.HideDiscrepancyResponseItem> responseItems) {
+      Map<String, HiddenDiscrepancyResponseItem> responseItems) {
     if (toSave.isEmpty()) {
       return;
     }
@@ -221,7 +222,7 @@ public class HiddenDiscrepancyService {
     }
   }
 
-  private void mergeSuccessful(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+  private void mergeSuccessful(HiddenDiscrepancyResponseItem item,
       String dbc) {
     var list = item.getSuccessfulDbcCodes();
     if (list == null) {
@@ -231,7 +232,7 @@ public class HiddenDiscrepancyService {
     list.add(dbc);
   }
 
-  private void mergeFailed(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+  private void mergeFailed(HiddenDiscrepancyResponseItem item,
       String dbc) {
     var list = item.getFailedDbcCodes();
     if (list == null) {
@@ -241,7 +242,7 @@ public class HiddenDiscrepancyService {
     list.add(dbc);
   }
 
-  private void mergeExisting(HideDiscrepancyResponseDto.HideDiscrepancyResponseItem item,
+  private void mergeExisting(HiddenDiscrepancyResponseItem item,
       String dbc) {
     var list = item.getExistingDbcCodes();
     if (list == null) {

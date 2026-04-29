@@ -64,6 +64,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -465,7 +466,7 @@ class ConnectionControllerTest {
         .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
         .doctors(List.of(doctor)).hiddenBy(ADMIN_NAME).build();
 
-    var item = HideDiscrepancyResponseDto.HideDiscrepancyResponseItem.builder()
+    var item = HiddenDiscrepancyResponseItem.builder()
         .gmcId(gmcId)
         .successfulDbcCodes(List.of(designatedBodyCode))
         .build();

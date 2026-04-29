@@ -193,8 +193,6 @@ class HiddenDiscrepancyServiceTest {
         .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
 
     var item1 = resultMap2.get(GMC_ID_1);
-    var item2 = resultMap2.get(GMC_ID_2);
-
     assertNotNull(item1);
     assertListContainsExactlyIgnoringOrder(item1.getExistingDbcCodes(), List.of(ADMIN_DBC_1));
     assertListContainsExactlyIgnoringOrder(
@@ -203,6 +201,7 @@ class HiddenDiscrepancyServiceTest {
     assertListContainsExactlyIgnoringOrder(
         item1.getFailedDbcCodes() == null ? List.of() : item1.getFailedDbcCodes(), List.of());
 
+    var item2 = resultMap2.get(GMC_ID_2);
     assertNotNull(item2);
     assertListContainsExactlyIgnoringOrder(item2.getExistingDbcCodes(), List.of(ADMIN_DBC_1));
     assertListContainsExactlyIgnoringOrder(
@@ -383,8 +382,6 @@ class HiddenDiscrepancyServiceTest {
         .collect(Collectors.toMap(r -> r.getGmcId(), r -> r));
 
     var r1 = resultMap.get(GMC_ID_1);
-    var r2 = resultMap.get(GMC_ID_2);
-
     // doctor1 should have both successful dbcs
     assertNotNull(r1);
     assertListContainsExactlyIgnoringOrder(r1.getSuccessfulDbcCodes(),
@@ -394,6 +391,7 @@ class HiddenDiscrepancyServiceTest {
     assertListContainsExactlyIgnoringOrder(
         r1.getExistingDbcCodes() == null ? List.of() : r1.getExistingDbcCodes(), List.of());
 
+    var r2 = resultMap.get(GMC_ID_2);
     // doctor2 should have only first dbc successful
     assertNotNull(r2);
     assertListContainsExactlyIgnoringOrder(r2.getSuccessfulDbcCodes(), List.of(ADMIN_DBC_1));
@@ -554,6 +552,7 @@ class HiddenDiscrepancyServiceTest {
     when(d.getProgrammeOwnerDesignatedBodyCode()).thenReturn(programmeDbc);
     return d;
   }
+
   /**
    * Simple entity builder for repository return values (only gmcId is relevant for service logic).
    *

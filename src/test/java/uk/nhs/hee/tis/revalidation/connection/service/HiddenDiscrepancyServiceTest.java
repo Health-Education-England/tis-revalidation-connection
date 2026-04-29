@@ -24,6 +24,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,6 +39,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,6 +79,8 @@ class HiddenDiscrepancyServiceTest {
 
   @Captor
   ArgumentCaptor<List<HiddenDiscrepancy>> saveCaptor;
+  @Captor
+  ArgumentCaptor<HiddenDiscrepancy> deleteCaptor;
   @Captor
   ArgumentCaptor<List<String>> gmcIdsCaptor;
   @Captor
@@ -335,6 +339,40 @@ class HiddenDiscrepancyServiceTest {
     IndexSyncMessage<List<HiddenDiscrepancy>> msg = messages.get(0);
     assertThat(msg.getPayload()).isNull();
     assertThat(msg.getSyncEnd()).isTrue();
+  }
+
+  @Test
+  void showDiscrepancyShouldRemoveAndReturnResponseWhenDiscrepancyPresent() {
+    String hiddenDiscrepancyId = "507f1f77bcf86cd799439012";
+    HiddenDiscrepancy entity = HiddenDiscrepancy.builder()
+        .id(hiddenDiscrepancyId)
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(DBC)
+        .build();
+    when(hiddenDiscrepancyRepository.findById(hiddenDiscrepancyId))
+        .thenReturn(Optional.of(entity));
+
+    service.showDiscrepancy(hiddenDiscrepancyId);
+
+    verify(hiddenDiscrepancyRepository).delete(deleteCaptor.capture());
+    var result = deleteCaptor.getValue();
+    assertThat(result.getGmcId()).isEqualTo(GMC_ID_1);
+    assertThat(result.getHiddenForDesignatedBodyCode()).isEqualTo(DBC);
+    assertThat(result.getId()).isEqualTo(hiddenDiscrepancyId);
+  }
+
+  @Test
+  void showDiscrepancyShouldThrowExceptionWhenDiscrepancyNotFound() {
+    String discrepancyId = "507f1f77bcf86cd799439012";
+    when(hiddenDiscrepancyRepository.findById(discrepancyId))
+        .thenReturn(java.util.Optional.empty());
+
+    IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException.class,
+        () -> service.showDiscrepancy(discrepancyId)
+    );
+    assertThat(ex.getMessage()).contains(discrepancyId);
+    verify(hiddenDiscrepancyRepository, never()).delete(any());
   }
 
   // -------------------- Helpers --------------------

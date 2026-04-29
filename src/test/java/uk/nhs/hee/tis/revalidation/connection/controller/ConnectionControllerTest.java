@@ -25,11 +25,13 @@ import static java.time.LocalDate.now;
 import static java.util.List.of;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -556,6 +558,27 @@ class ConnectionControllerTest {
         .andExpect(
             jsonPath("$.hiddenDiscrepancies.[*].tcsDesignatedBody")
                 .value(hasItem(designatedBody2)));
+  }
+
+  @Test
+  void showDiscrepancyShouldReturnOkWhenDiscrepancyIsShown() throws Exception {
+    var hiddenDiscrepancyId = "507f1f77bcf86cd799439012";
+
+    mockMvc.perform(
+            delete("/api/connections/discrepancies/hidden/{discrepancyId}",
+                hiddenDiscrepancyId))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void showDiscrepancyShouldReturnNotFoundWhenIllegalArgumentExceptionThrown() throws Exception {
+    String discrepancyId = "notfound";
+    doThrow(IllegalArgumentException.class)
+        .when(hiddenDiscrepancyService).showDiscrepancy(discrepancyId);
+
+    mockMvc.perform(
+            delete("/api/connections/discrepancies/hidden/{discrepancyId}", discrepancyId))
+        .andExpect(status().isNotFound());
   }
 
   private ConnectionDto prepareConnectionDto() {

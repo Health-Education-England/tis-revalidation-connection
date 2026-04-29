@@ -38,6 +38,7 @@ import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -410,5 +411,22 @@ public class ConnectionController {
     HideDiscrepancyResponseDto responseDto =
         hiddenDiscrepancyService.hideDiscrepancies(hideDiscrepancyDto);
     return ResponseEntity.ok(responseDto);
+  }
+
+  /**
+   * DELETE  /discrepancies/hidden/{discrepancyId} : Show a hidden discrepancy.
+   *
+   * @param discrepancyId the id of hidden discrepancy entity to remove
+   */
+  @DeleteMapping("/discrepancies/hidden/{discrepancyId}")
+  public ResponseEntity<Void> showDiscrepancy(
+      @PathVariable("discrepancyId") final String discrepancyId) {
+    log.info("Request received to show discrepancy: {}", discrepancyId);
+    try {
+      hiddenDiscrepancyService.showDiscrepancy(discrepancyId);
+      return ResponseEntity.ok().build();
+    } catch (IllegalArgumentException ie) {
+      return ResponseEntity.notFound().build();
+    }
   }
 }

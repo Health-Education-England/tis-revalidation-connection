@@ -117,6 +117,23 @@ public class HiddenDiscrepancyService {
         new ArrayList<>(alreadyHidden));
   }
 
+  /**
+   * Show hidden discrepancy by removing the hidden discrepancy record with the specified id.
+   *
+   * @param discrepancyId the id of the hidden discrepancy to hide
+   */
+  public void showDiscrepancy(String discrepancyId) {
+    hiddenDiscrepancyRepository.findById(discrepancyId).ifPresentOrElse(entity -> {
+          hiddenDiscrepancyRepository.delete(entity);
+          log.info("Successfully removed hidden discrepancy for GMC ID: {} and designated body: {}",
+              entity.getGmcId(), entity.getHiddenForDesignatedBodyCode());
+        }, () -> {
+          throw new
+              IllegalArgumentException("No hidden discrepancy found with id: " + discrepancyId);
+        }
+    );
+  }
+
   private List<String> extractRequestedGmcIds(HideDiscrepancyDto dto) {
     if (dto.getDoctors() == null) {
       return List.of();

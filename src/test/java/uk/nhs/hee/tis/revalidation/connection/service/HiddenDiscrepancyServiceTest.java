@@ -293,19 +293,6 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldPaginateHiddenDiscrepanciesForSync() {
-    HiddenDiscrepancy hd1 = HiddenDiscrepancy.builder()
-        .gmcId(GMC_ID_1)
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .build();
-    HiddenDiscrepancy hd2 = HiddenDiscrepancy.builder()
-        .gmcId(GMC_ID_2)
-        .hiddenForDesignatedBodyCode(DBC)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .build();
-
     Page<HiddenDiscrepancy> page1 = new PageImpl<>(List.of(hd1), PageRequest.of(0, 1), 2);
     Page<HiddenDiscrepancy> page2 = new PageImpl<>(List.of(hd2), PageRequest.of(1, 1), 2);
 

@@ -19,37 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.repository;
+package uk.nhs.hee.tis.revalidation.connection.mapper;
 
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 
 /**
- * Repository interface for managing HiddenDiscrepancy entities in MongoDB.
+ * Mapper interface for converting HideDiscrepancyDto objects to HiddenDiscrepancy entities.
+ * This mapper uses MapStruct to automatically generate the implementation code for the mapping.
  */
-@Repository
-public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscrepancy, String> {
+@Mapper(componentModel = "spring")
+public interface HideDiscrepancyMapper {
 
   /**
-   * Finds hidden discrepancies by GMC reference numbers and designated body code.
+   * Maps a HideDiscrepancyDto to a HiddenDiscrepancy entity.
    *
-   * @param gmcReferenceNumbers         the list of GMC reference numbers to search for
-   * @param hiddenForDesignatedBodyCode the designated body code for which the discrepancies are
-   *                                    hidden
-   * @return a list of HiddenDiscrepancy entities matching the criteria
+   * @param dto the HideDiscrepancyDto containing the data to be mapped
+   * @param gmcId the GMC ID of the doctor for whom the discrepancy is being hidden
+   * @param batchTime the timestamp when the hiding action is performed
+   * @return a HiddenDiscrepancy entity populated with data from the DTO and additional parameters
    */
-  List<HiddenDiscrepancy> findByGmcIdInAndHiddenForDesignatedBodyCode(
-      List<String> gmcReferenceNumbers,
-      String hiddenForDesignatedBodyCode
-  );
-
-  /**
-   * Finds hidden discrepancies by GMC reference number.
-   *
-   * @param gmcId the GMC reference number to search for
-   * @return a list of HiddenDiscrepancy entities with a matching GMC ID
-   */
-  List<HiddenDiscrepancy> findByGmcId(String gmcId);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "hiddenDateTime", source = "batchTime")
+  HiddenDiscrepancy toEntity(HideDiscrepancyDto dto, String gmcId, LocalDateTime batchTime);
 }

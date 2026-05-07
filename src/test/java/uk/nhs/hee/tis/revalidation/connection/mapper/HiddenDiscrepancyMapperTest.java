@@ -127,7 +127,8 @@ class HiddenDiscrepancyMapperTest {
         .hiddenDateTime(HIDDEN_DATE_TIME_2)
         .build();
 
-    List<HiddenDiscrepancy> hiddenDiscrepancies = Arrays.asList(hiddenDiscrepancy1, hiddenDiscrepancy2);
+    List<HiddenDiscrepancy> hiddenDiscrepancies = Arrays.asList(hiddenDiscrepancy1,
+        hiddenDiscrepancy2);
 
     List<HiddenDiscrepancyDto> dtos = mapper.toHiddenDiscrepancyDtoList(hiddenDiscrepancies);
 

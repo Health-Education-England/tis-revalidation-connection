@@ -47,5 +47,6 @@ public interface HiddenDiscrepancyMapper {
    * @param hiddenDiscrepancies the HiddenDiscrepancies List to convert
    * @return the corresponding List of HiddenDiscrepancyDto DTOs
    */
-  List<HiddenDiscrepancyDto> toHiddenDiscrepancyDtoList(List<HiddenDiscrepancy> hiddenDiscrepancies);
+  List<HiddenDiscrepancyDto> toHiddenDiscrepancyDtoList(
+      List<HiddenDiscrepancy> hiddenDiscrepancies);
 }

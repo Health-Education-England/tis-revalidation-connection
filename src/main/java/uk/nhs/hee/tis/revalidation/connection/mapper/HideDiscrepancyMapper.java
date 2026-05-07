@@ -21,32 +21,31 @@
 
 package uk.nhs.hee.tis.revalidation.connection.mapper;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import org.mapstruct.Mapper;
-import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
+import org.mapstruct.Mapping;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 
 /**
- * Mapper interface for converting HiddenDiscrepancy objects to HiddenDiscrepancyDto DTOs. This
- * mapper uses MapStruct to automatically generate the implementation code for the mapping.
+ * Mapper interface for converting HideDiscrepancyDto objects to HiddenDiscrepancy entities.
+ * This mapper uses MapStruct to automatically generate the implementation code for the mapping.
  */
 @Mapper(componentModel = "spring")
-public interface HiddenDiscrepancyMapper {
+public interface HideDiscrepancyMapper {
 
   /**
-   * Converts a HiddenDiscrepancy object to a HiddenDiscrepancyDto DTO.
+   * Maps a HideDiscrepancyDto to a HiddenDiscrepancy entity.
    *
-   * @param hiddenDiscrepancy the HiddenDiscrepancy object to convert
-   * @return the corresponding HiddenDiscrepancyDto DTO
+   * @param dto the HideDiscrepancyDto containing the data to be mapped
+   * @param gmcId the GMC ID of the doctor for whom the discrepancy is being hidden
+   * @param batchTime the timestamp when the hiding action is performed
+   * @param hiddenForDesignatedBodyCode the designated body code for which the discrepancy is hidden
+   * @return a HiddenDiscrepancy entity populated with data from the DTO and additional parameters
    */
-  HiddenDiscrepancyDto toHiddenDiscrepancyDto(HiddenDiscrepancy hiddenDiscrepancy);
-
-  /**
-   * Converts a List of HiddenDiscrepancy objects to a List of HiddenDiscrepancyDto DTOs.
-   *
-   * @param hiddenDiscrepancies the HiddenDiscrepancies List to convert
-   * @return the corresponding List of HiddenDiscrepancyDto DTOs
-   */
-  List<HiddenDiscrepancyDto> toHiddenDiscrepancyDtoList(
-      List<HiddenDiscrepancy> hiddenDiscrepancies);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "hiddenDateTime", source = "batchTime")
+  @Mapping(target = "hiddenForDesignatedBodyCode", source = "hiddenForDesignatedBodyCode")
+  HiddenDiscrepancy toEntity(HideDiscrepancyDto dto, String gmcId, LocalDateTime batchTime,
+      String hiddenForDesignatedBodyCode);
 }

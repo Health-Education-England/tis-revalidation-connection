@@ -60,6 +60,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
@@ -578,6 +579,36 @@ class ConnectionControllerTest {
     mockMvc.perform(
             delete("/api/connections/discrepancies/hidden/{discrepancyId}", discrepancyId))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void shouldReturnHiddenDiscrepanciesByGmcId() throws Exception {
+    HiddenDiscrepancyDto discrepancy1 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").build();
+    HiddenDiscrepancyDto discrepancy2 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody2).reason("reason2").build();
+    List<HiddenDiscrepancyDto> discrepancies = List.of(discrepancy1, discrepancy2);
+    when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(discrepancies);
+
+    mockMvc.perform(get("/api/connections/discrepancies/hidden/" + gmcId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$[0].gmcId").value(gmcId))
+        .andExpect(jsonPath("$[0].reason").value("reason1"))
+        .andExpect(jsonPath("$[0].hiddenForDesignatedBodyCode").value(designatedBody1))
+        .andExpect(jsonPath("$[1].gmcId").value(gmcId))
+        .andExpect(jsonPath("$[1].reason").value("reason2"))
+        .andExpect(jsonPath("$[1].hiddenForDesignatedBodyCode").value(designatedBody2));
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoHiddenDiscrepanciesByGmcId() throws Exception {
+    when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(List.of());
+
+    mockMvc.perform(get("/api/connections/discrepancies/hidden/" + gmcId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(content().json("[]"));
   }
 
   private ConnectionDto prepareConnectionDto() {

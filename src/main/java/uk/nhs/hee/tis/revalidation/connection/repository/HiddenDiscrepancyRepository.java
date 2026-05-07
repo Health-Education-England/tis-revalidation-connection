@@ -44,4 +44,12 @@ public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscr
       List<String> gmcReferenceNumbers,
       List<String> hiddenForDesignatedBodyCodes
   );
+
+  /**
+   * Finds hidden discrepancies by GMC reference number.
+   *
+   * @param gmcId the GMC reference number to search for
+   * @return a list of HiddenDiscrepancy entities with a matching GMC ID
+   */
+  List<HiddenDiscrepancy> findByGmcId(String gmcId);
 }

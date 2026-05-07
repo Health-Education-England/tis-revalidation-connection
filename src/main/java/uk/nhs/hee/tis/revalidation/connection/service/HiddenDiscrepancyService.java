@@ -39,11 +39,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
+import uk.nhs.hee.tis.revalidation.connection.mapper.HideDiscrepancyMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
 import uk.nhs.hee.tis.revalidation.connection.repository.HiddenDiscrepancyRepository;
 
@@ -62,19 +64,25 @@ public class HiddenDiscrepancyService {
 
   private final RabbitTemplate rabbitTemplate;
   private final HiddenDiscrepancyRepository hiddenDiscrepancyRepository;
+  private final HideDiscrepancyMapper hideDiscrepancyMapper;
   private final HiddenDiscrepancyMapper hiddenDiscrepancyMapper;
 
   /**
    * Constructs a new HiddenDiscrepancyService with the specified repository and mapper.
    *
    * @param hiddenDiscrepancyRepository the repository for managing hidden discrepancies
-   * @param hiddenDiscrepancyMapper     the mapper for converting between DTOs and entities
+   * @param hideDiscrepancyMapper       the mapper for converting HideDiscrepancy between DTOs and
+   *                                    entities
+   * @param hiddenDiscrepancyMapper     the mapper for converting between HiddenDiscrepancy DTOs and
+   *                                    entities
    * @param rabbitTemplate              the template for sending rabbitmq messages
    */
   public HiddenDiscrepancyService(HiddenDiscrepancyRepository hiddenDiscrepancyRepository,
-      HiddenDiscrepancyMapper hiddenDiscrepancyMapper, RabbitTemplate rabbitTemplate) {
+      HideDiscrepancyMapper hideDiscrepancyMapper, RabbitTemplate rabbitTemplate,
+      HiddenDiscrepancyMapper hiddenDiscrepancyMapper) {
     this.rabbitTemplate = rabbitTemplate;
     this.hiddenDiscrepancyRepository = hiddenDiscrepancyRepository;
+    this.hideDiscrepancyMapper = hideDiscrepancyMapper;
     this.hiddenDiscrepancyMapper = hiddenDiscrepancyMapper;
   }
 
@@ -185,7 +193,7 @@ public class HiddenDiscrepancyService {
         if (existingPairs.contains(key)) {
           mergeExisting(item, dbc);
         } else {
-          var entity = hiddenDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc);
+          var entity = hideDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc);
           toSave.add(entity);
         }
       }
@@ -295,5 +303,16 @@ public class HiddenDiscrepancyService {
     } while (currentPage < hiddenDiscrepancies.getTotalPages());
     var syncEndPayload = IndexSyncMessage.builder().syncEnd(true).build();
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
+  }
+
+  /**
+   * Find all HiddenDiscrepancy records associated with a given GMC ID.
+   *
+   * @param gmcId the GMC ID to search for
+   * @return list of HiddenDiscrepancy objects
+   */
+  public List<HiddenDiscrepancyDto> findByGmcId(String gmcId) {
+    return hiddenDiscrepancyMapper.toHiddenDiscrepancyDtoList(
+        hiddenDiscrepancyRepository.findByGmcId(gmcId));
   }
 }

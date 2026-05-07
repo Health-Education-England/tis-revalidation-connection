@@ -67,7 +67,10 @@ public class HiddenDiscrepancyService {
    * Constructs a new HiddenDiscrepancyService with the specified repository and mapper.
    *
    * @param hiddenDiscrepancyRepository the repository for managing hidden discrepancies
-   * @param hideDiscrepancyMapper       the mapper for converting between DTOs and entities
+   * @param hideDiscrepancyMapper       the mapper for converting HideDiscrepancy between DTOs and
+   *                                    entities
+   * @param hiddenDiscrepancyMapper     the mapper for converting between HiddenDiscrepancy DTOs and
+   *                                    entities
    * @param rabbitTemplate              the template for sending rabbitmq messages
    */
   public HiddenDiscrepancyService(HiddenDiscrepancyRepository hiddenDiscrepancyRepository,

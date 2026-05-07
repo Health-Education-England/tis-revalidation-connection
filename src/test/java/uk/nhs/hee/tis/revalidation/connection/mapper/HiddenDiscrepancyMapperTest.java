@@ -21,10 +21,10 @@
 
 package uk.nhs.hee.tis.revalidation.connection.mapper;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -71,12 +71,12 @@ class HiddenDiscrepancyMapperTest {
     HiddenDiscrepancyDto dto = mapper.toHiddenDiscrepancyDto(hiddenDiscrepancy);
 
     assertNotNull(dto);
-    assertThat(dto.getId(), is(ID_1));
-    assertThat(dto.getGmcId(), is(GMC_ID_1));
-    assertThat(dto.getHiddenForDesignatedBodyCode(), is(HIDDEN_FOR_DESIGNATED_BODY_CODE_1));
-    assertThat(dto.getHiddenBy(), is(HIDDEN_BY_1));
-    assertThat(dto.getReason(), is(REASON_1));
-    assertThat(dto.getHiddenDateTime(), is(HIDDEN_DATE_TIME_1));
+    assertEquals(ID_1, dto.getId());
+    assertEquals(GMC_ID_1, dto.getGmcId());
+    assertEquals(HIDDEN_FOR_DESIGNATED_BODY_CODE_1, dto.getHiddenForDesignatedBodyCode());
+    assertEquals(HIDDEN_BY_1, dto.getHiddenBy());
+    assertEquals(REASON_1, dto.getReason());
+    assertEquals(HIDDEN_DATE_TIME_1, dto.getHiddenDateTime());
   }
 
   @Test
@@ -93,18 +93,18 @@ class HiddenDiscrepancyMapperTest {
     HiddenDiscrepancyDto dto = mapper.toHiddenDiscrepancyDto(hiddenDiscrepancy);
 
     assertNotNull(dto);
-    assertThat(dto.getId(), is(ID_1));
-    assertThat(dto.getGmcId(), is(GMC_ID_1));
-    assertThat(dto.getHiddenForDesignatedBodyCode(), is(HIDDEN_FOR_DESIGNATED_BODY_CODE_1));
-    assertThat(dto.getHiddenBy(), is(nullValue()));
-    assertThat(dto.getReason(), is(nullValue()));
-    assertThat(dto.getHiddenDateTime(), is(nullValue()));
+    assertEquals(ID_1, dto.getId());
+    assertEquals(GMC_ID_1, dto.getGmcId());
+    assertEquals(HIDDEN_FOR_DESIGNATED_BODY_CODE_1, dto.getHiddenForDesignatedBodyCode());
+    assertNull(dto.getHiddenBy());
+    assertNull(dto.getReason());
+    assertNull(dto.getHiddenDateTime());
   }
 
   @Test
   void shouldReturnNullWhenHiddenDiscrepancyIsNull() {
     HiddenDiscrepancyDto dto = mapper.toHiddenDiscrepancyDto(null);
-    assertThat(dto, is(nullValue()));
+    assertNull(dto);
   }
 
   @Test
@@ -133,23 +133,23 @@ class HiddenDiscrepancyMapperTest {
     List<HiddenDiscrepancyDto> dtos = mapper.toHiddenDiscrepancyDtoList(hiddenDiscrepancies);
 
     assertNotNull(dtos);
-    assertThat(dtos.size(), is(2));
+    assertEquals(2, dtos.size());
 
     HiddenDiscrepancyDto dto1 = dtos.get(0);
-    assertThat(dto1.getId(), is(ID_1));
-    assertThat(dto1.getGmcId(), is(GMC_ID_1));
-    assertThat(dto1.getHiddenForDesignatedBodyCode(), is(HIDDEN_FOR_DESIGNATED_BODY_CODE_1));
-    assertThat(dto1.getHiddenBy(), is(HIDDEN_BY_1));
-    assertThat(dto1.getReason(), is(REASON_1));
-    assertThat(dto1.getHiddenDateTime(), is(HIDDEN_DATE_TIME_1));
+    assertEquals(ID_1, dto1.getId());
+    assertEquals(GMC_ID_1, dto1.getGmcId());
+    assertEquals(HIDDEN_FOR_DESIGNATED_BODY_CODE_1, dto1.getHiddenForDesignatedBodyCode());
+    assertEquals(HIDDEN_BY_1, dto1.getHiddenBy());
+    assertEquals(REASON_1, dto1.getReason());
+    assertEquals(HIDDEN_DATE_TIME_1, dto1.getHiddenDateTime());
 
     HiddenDiscrepancyDto dto2 = dtos.get(1);
-    assertThat(dto2.getId(), is(ID_2));
-    assertThat(dto2.getGmcId(), is(GMC_ID_2));
-    assertThat(dto2.getHiddenForDesignatedBodyCode(), is(HIDDEN_FOR_DESIGNATED_BODY_CODE_2));
-    assertThat(dto2.getHiddenBy(), is(HIDDEN_BY_2));
-    assertThat(dto2.getReason(), is(REASON_2));
-    assertThat(dto2.getHiddenDateTime(), is(HIDDEN_DATE_TIME_2));
+    assertEquals(ID_2, dto2.getId());
+    assertEquals(GMC_ID_2, dto2.getGmcId());
+    assertEquals(HIDDEN_FOR_DESIGNATED_BODY_CODE_2, dto2.getHiddenForDesignatedBodyCode());
+    assertEquals(HIDDEN_BY_2, dto2.getHiddenBy());
+    assertEquals(REASON_2, dto2.getReason());
+    assertEquals(HIDDEN_DATE_TIME_2, dto2.getHiddenDateTime());
   }
 
   @Test
@@ -159,7 +159,7 @@ class HiddenDiscrepancyMapperTest {
     List<HiddenDiscrepancyDto> dtos = mapper.toHiddenDiscrepancyDtoList(hiddenDiscrepancies);
 
     assertNotNull(dtos);
-    assertThat(dtos.size(), is(0));
+    assertTrue(dtos.isEmpty());
   }
 }
 

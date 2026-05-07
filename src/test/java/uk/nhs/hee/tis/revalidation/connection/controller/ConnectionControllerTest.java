@@ -60,6 +60,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
@@ -583,11 +584,11 @@ class ConnectionControllerTest {
 
   @Test
   void shouldReturnHiddenDiscrepanciesByGmcId() throws Exception {
-    HiddenDiscrepancy discrepancy1 = HiddenDiscrepancy.builder().gmcId(gmcId)
+    HiddenDiscrepancyDto discrepancy1 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
         .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").build();
-    HiddenDiscrepancy discrepancy2 = HiddenDiscrepancy.builder().gmcId(gmcId)
+    HiddenDiscrepancyDto discrepancy2 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
         .hiddenForDesignatedBodyCode(designatedBody2).reason("reason2").build();
-    List<HiddenDiscrepancy> discrepancies = List.of(discrepancy1, discrepancy2);
+    List<HiddenDiscrepancyDto> discrepancies = List.of(discrepancy1, discrepancy2);
     when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(discrepancies);
 
     mockMvc.perform(get("/api/connections/discrepancies/hidden/" + gmcId))

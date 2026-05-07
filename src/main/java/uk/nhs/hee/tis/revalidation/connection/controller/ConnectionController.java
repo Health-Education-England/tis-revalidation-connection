@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionSummaryDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
@@ -418,12 +419,12 @@ public class ConnectionController {
    * GET  /discrepancies/hidden/{gmcId} : Get all hidden discrepancies for a given GMC ID.
    *
    * @param gmcId the GMC ID to fetch hidden discrepancies for
-   * @return the ResponseEntity with status 200 (OK) and list of HiddenDiscrepancy objects in body
+   * @return the ResponseEntity with status 200 (OK) and list of HiddenDiscrepancyDtos in body
    */
   @GetMapping("/discrepancies/hidden/{gmcId}")
-  public ResponseEntity<List<HiddenDiscrepancy>> getHiddenDiscrepanciesByGmcId(
+  public ResponseEntity<List<HiddenDiscrepancyDto>> getHiddenDiscrepanciesByGmcId(
       @PathVariable("gmcId") String gmcId) {
-    List<HiddenDiscrepancy> discrepancies =
+    List<HiddenDiscrepancyDto> discrepancies =
         hiddenDiscrepancyService.findByGmcId(gmcId);
     return ResponseEntity.ok(discrepancies);
   }

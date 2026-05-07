@@ -21,7 +21,9 @@
 
 package uk.nhs.hee.tis.revalidation.connection.mapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,17 +57,16 @@ class HideDiscrepancyMapperTest {
     HiddenDiscrepancy entity = mapper.toEntity(dto, GMC_ID, BATCH_TIME);
 
     // then
-    assertThat(entity).isNotNull();
+    assertNotNull(entity);
 
     // id ignored
-    assertThat(entity.getId()).isNull();
+    assertNull(entity.getId());
 
     // mapped fields
-    assertThat(entity.getGmcId()).isEqualTo(GMC_ID);
-    assertThat(entity.getHiddenForDesignatedBodyCode()).isEqualTo(
-        dto.getHiddenForDesignatedBodyCode());
-    assertThat(entity.getHiddenBy()).isEqualTo(dto.getHiddenBy());
-    assertThat(entity.getReason()).isEqualTo(dto.getReason());
-    assertThat(entity.getHiddenDateTime()).isEqualTo(BATCH_TIME);
+    assertEquals(DBC, entity.getHiddenForDesignatedBodyCode());
+    assertEquals(HIDDEN_BY, entity.getHiddenBy());
+    assertEquals(REASON, entity.getReason());
+    assertEquals(GMC_ID, entity.getGmcId());
+    assertEquals(BATCH_TIME, entity.getHiddenDateTime());
   }
 }

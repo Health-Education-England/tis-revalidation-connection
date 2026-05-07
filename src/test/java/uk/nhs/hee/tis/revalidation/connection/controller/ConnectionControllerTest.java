@@ -415,11 +415,19 @@ class ConnectionControllerTest {
     return Stream.of(
         Arguments.of(
             HideDiscrepancyDto.builder()
+                .adminDesignatedBodyCodes(null)
+                .hiddenBy(ADMIN_NAME)
+                .doctors(validDoctors)
+                .build(),
+            "adminDesignatedBodyCodes list is null"
+        ),
+        Arguments.of(
+            HideDiscrepancyDto.builder()
                 .adminDesignatedBodyCodes(List.of())
                 .hiddenBy(ADMIN_NAME)
                 .doctors(validDoctors)
                 .build(),
-            "hiddenForDesignatedBodyCode is null"
+            "adminDesignatedBodyCode list is empty"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
@@ -427,7 +435,7 @@ class ConnectionControllerTest {
                 .hiddenBy(ADMIN_NAME)
                 .doctors(null)
                 .build(),
-            "doctors is null"
+            "doctor list is null"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
@@ -435,7 +443,7 @@ class ConnectionControllerTest {
                 .hiddenBy(ADMIN_NAME)
                 .doctors(List.of())
                 .build(),
-            "doctors is empty"
+            "doctor list is empty"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()

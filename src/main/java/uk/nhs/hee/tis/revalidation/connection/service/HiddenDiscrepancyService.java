@@ -38,6 +38,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
@@ -95,11 +97,8 @@ public class HiddenDiscrepancyService {
   public HideDiscrepancyResponseDto hideDiscrepancies(HideDiscrepancyDto dto) {
     HideDiscrepancyResponseDto response = new HideDiscrepancyResponseDto();
 
-    if (dto == null || dto.getDoctors() == null || dto.getDoctors().isEmpty()
-        || dto.getAdminDesignatedBodyCodes() == null || dto.getAdminDesignatedBodyCodes()
-        .isEmpty()) {
-      return response;
-    }
+    // Fail fast. Service-side defensive validation
+    validateHideDiscrepancyInput(dto);
 
     List<String> adminDesignatedBodyCodes = dto.getAdminDesignatedBodyCodes();
 
@@ -126,13 +125,23 @@ public class HiddenDiscrepancyService {
     return response;
   }
 
+  private void validateHideDiscrepancyInput(HideDiscrepancyDto dto) {
+    Objects.requireNonNull(dto, "HideDiscrepancyDto must not be null");
+    if (CollectionUtils.isEmpty(dto.getAdminDesignatedBodyCodes())) {
+      throw new IllegalArgumentException("adminDesignatedBodyCodes must not be empty");
+    }
+    if (CollectionUtils.isEmpty(dto.getDoctors())) {
+      throw new IllegalArgumentException("doctors must not be empty");
+    }
+  }
+
   // Prepare a map of GMC ID to response item for easy lookup and result aggregation
   private Map<String, HiddenDiscrepancyResponseItem> prepareResponseItemsMap(
       List<DoctorInfoDto> doctors) {
     var map = new HashMap<String, HiddenDiscrepancyResponseItem>();
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
-      if (gmcId != null) {
+      if (StringUtils.hasText(gmcId)) {
         var item = new HiddenDiscrepancyResponseItem();
         item.setGmcId(gmcId);
         map.put(gmcId, item);

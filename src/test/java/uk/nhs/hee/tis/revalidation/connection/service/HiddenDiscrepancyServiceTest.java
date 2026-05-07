@@ -128,17 +128,22 @@ class HiddenDiscrepancyServiceTest {
     );
   }
 
-  private static Stream<List<DoctorInfoDto>> invalidDoctorDtosSupplier() {
+  private static Stream<List<DoctorInfoDto>> invalidDoctorlistSupplier() {
     return Stream.of(
         null,
-        List.of(),
+        List.of()
+    );
+  }
+
+  private static Stream<List<DoctorInfoDto>> invalidDoctorGmcIdsSupplier() {
+    return Stream.of(
         List.of(doc(null)),
-        List.of(doc(null), doc(null))
+        List.of(doc(null), doc(""))
     );
   }
 
   @ParameterizedTest
-  @MethodSource("invalidDoctorDtosSupplier")
+  @MethodSource("invalidDoctorlistSupplier")
   void shouldReturnEmptyResponseWhenDoctorsInvalid(List<DoctorInfoDto> doctors) {
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1, ADMIN_DBC_2))
@@ -147,12 +152,7 @@ class HiddenDiscrepancyServiceTest {
         .doctors(doctors)
         .build();
 
-    HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
-
-    // expect empty response for invalid doctors
-    assertNotNull(response);
-    assertNotNull(response.getResults());
-    assertEquals(0, response.getResults().size());
+    assertThrows(IllegalArgumentException.class, () -> service.hideDiscrepancies(dto));
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hideDiscrepancyMapper);
@@ -168,9 +168,24 @@ class HiddenDiscrepancyServiceTest {
         .doctors(List.of(doc(GMC_ID_1)))
         .build();
 
+    assertThrows(IllegalArgumentException.class, () -> service.hideDiscrepancies(dto));
+
+    verifyNoInteractions(hiddenDiscrepancyRepository);
+    verifyNoInteractions(hideDiscrepancyMapper);
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidDoctorGmcIdsSupplier")
+  void shouldReturnEmptyResponseWhenGmcIdInvalid(List<DoctorInfoDto> doctors) {
+    HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
+        .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1))
+        .hiddenBy(HIDDEN_BY)
+        .reason(REASON)
+        .doctors(doctors)
+        .build();
+
     HideDiscrepancyResponseDto response = service.hideDiscrepancies(dto);
 
-    // expect empty response for invalid admin dbcs
     assertNotNull(response);
     assertNotNull(response.getResults());
     assertEquals(0, response.getResults().size());
@@ -181,12 +196,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldReturnEmptyResponseWhenDtoInvalid() {
-    HideDiscrepancyResponseDto response = service.hideDiscrepancies(null);
-
-    // expect empty response when dto is null
-    assertNotNull(response);
-    assertNotNull(response.getResults());
-    assertEquals(0, response.getResults().size());
+    assertThrows(NullPointerException.class, () -> service.hideDiscrepancies(null));
 
     verifyNoInteractions(hiddenDiscrepancyRepository);
     verifyNoInteractions(hideDiscrepancyMapper);

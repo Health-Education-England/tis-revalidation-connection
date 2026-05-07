@@ -40,7 +40,7 @@ class HiddenDiscrepancyMapperTest {
   private static final String ID_1 = "aaaaaaaa11111111";
   private static final String ID_2 = "bbbbbbbb22222222";
   private static final String GMC_ID_1 = "1234567";
-  private static final String GMC_ID_2 = "1234567";
+  private static final String GMC_ID_2 = "7654321";
   private static final String HIDDEN_FOR_DESIGNATED_BODY_CODE_1 = "1-ABCDEF";
   private static final String HIDDEN_FOR_DESIGNATED_BODY_CODE_2 = "1-GHIJKL";
   private static final String HIDDEN_BY_1 = "admin1";

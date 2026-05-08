@@ -80,6 +80,8 @@ class HiddenDiscrepancyServiceTest {
   private static final String GMC_ID_1 = "GMC1";
   private static final String GMC_ID_2 = "GMC2";
   private static final String GMC_ID_3 = "GMC3";
+  private static final String HIDDEN_DISCREPANCY_ID_1 = "HD1";
+  private static final String HIDDEN_DISCREPANCY_ID_2 = "HD2";
   private HiddenDiscrepancy hd1;
   private HiddenDiscrepancy hd2;
 
@@ -91,6 +93,8 @@ class HiddenDiscrepancyServiceTest {
   ArgumentCaptor<List<String>> gmcIdsCaptor;
   @Captor
   ArgumentCaptor<IndexSyncMessage<List<HiddenDiscrepancy>>> syncMessageCaptor;
+  @Captor
+  ArgumentCaptor<String> discrepancyIdCaptor;
   @Mock
   private HiddenDiscrepancyRepository hiddenDiscrepancyRepository;
   @Mock
@@ -108,12 +112,14 @@ class HiddenDiscrepancyServiceTest {
     setField(service, "esSyncDataRoutingKey", ES_SYNC_DATA_ROUTING_KEY);
 
     hd1 = HiddenDiscrepancy.builder()
+        .id(HIDDEN_DISCREPANCY_ID_1)
         .gmcId(GMC_ID_1)
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
         .build();
     hd2 = HiddenDiscrepancy.builder()
+        .id(HIDDEN_DISCREPANCY_ID_2)
         .gmcId(GMC_ID_2)
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
@@ -599,6 +605,59 @@ class HiddenDiscrepancyServiceTest {
     verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
     assertNotNull(result);
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  void shouldShowAllHiddenDiscrepanciesForGmcIdWhenDiscrepanciesExist() {
+    List<HiddenDiscrepancy> hiddenDiscrepancies = List.of(hd1, hd2);
+    List<HiddenDiscrepancyDto> hiddenDiscrepancyDtos = List.of(
+        HiddenDiscrepancyDto.builder()
+            .id(HIDDEN_DISCREPANCY_ID_1)
+            .gmcId(GMC_ID_1)
+            .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
+            .build(),
+        HiddenDiscrepancyDto.builder()
+            .id(HIDDEN_DISCREPANCY_ID_2)
+            .gmcId(GMC_ID_2)
+            .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
+            .build()
+    );
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(hiddenDiscrepancies);
+    when(hiddenDiscrepancyMapper.toHiddenDiscrepancyDtoList(hiddenDiscrepancies))
+        .thenReturn(hiddenDiscrepancyDtos);
+    when(hiddenDiscrepancyRepository.findById(HIDDEN_DISCREPANCY_ID_1))
+        .thenReturn(Optional.of(hd1));
+    when(hiddenDiscrepancyRepository.findById(HIDDEN_DISCREPANCY_ID_2))
+        .thenReturn(Optional.of(hd2));
+
+    service.showAllHiddenDiscrepanciesForGmcId(GMC_ID_1);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository, times(2))
+        .findById(discrepancyIdCaptor.capture());
+    verify(hiddenDiscrepancyRepository, times(2)).delete(deleteCaptor.capture());
+
+    var deletedIds = discrepancyIdCaptor.getAllValues();
+    assertEquals(2, deletedIds.size());
+    assertEquals(HIDDEN_DISCREPANCY_ID_1, deletedIds.get(0));
+    assertEquals(HIDDEN_DISCREPANCY_ID_2, deletedIds.get(1));
+
+    var deletedHiddenDiscrepancies = deleteCaptor.getAllValues();
+    assertEquals(2, deletedHiddenDiscrepancies.size());
+    assertEquals(HIDDEN_DISCREPANCY_ID_1, deletedHiddenDiscrepancies.get(0).getId());
+    assertEquals(HIDDEN_DISCREPANCY_ID_2, deletedHiddenDiscrepancies.get(1).getId());
+  }
+
+  @Test
+  void shouldDoNothingWhenNoHiddenDiscrepanciesFoundForGmcId() {
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(List.of());
+
+    service.showAllHiddenDiscrepanciesForGmcId(GMC_ID_1);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository, never()).findById(anyString());
+    verify(hiddenDiscrepancyRepository, never()).delete(any(HiddenDiscrepancy.class));
   }
 
   // -------------------- Helpers --------------------

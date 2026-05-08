@@ -95,6 +95,9 @@ class ConnectionServiceTest {
   @Mock
   private ExceptionLogService exceptionService;
 
+  @Mock
+  private HiddenDiscrepancyService hiddenDiscrepancyService;
+
   @Spy
   private ConnectionLogMapper connectionLogMapper = new ConnectionLogMapperImpl();
 
@@ -106,6 +109,8 @@ class ConnectionServiceTest {
   private ArgumentCaptor<ConnectionRequestLog> connectionRequestLogArgumentCaptor;
   @Captor
   private ArgumentCaptor<IndexSyncMessage<List<ConnectionLogDto>>> indexSyncMessageCaptor;
+  @Captor
+  private ArgumentCaptor<String> gmcIdCaptor;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -394,6 +399,98 @@ class ConnectionServiceTest {
     assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
     assertEquals(submissionDate, connectionMessage1.getSubmissionDate());
     assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
+  }
+
+  @Test
+  void shouldRemoveAllHiddenDiscrepanciesOnConnectionLogCreation() {
+    final var connectionLogDto = ConnectionLogDto.builder().gmcId(gmcId)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
+        .build();
+
+    connectionService.recordConnectionLog(connectionLogDto);
+
+    verify(hiddenDiscrepancyService, times(1))
+        .showAllHiddenDiscrepanciesForGmcId(gmcIdCaptor.capture());
+    assertThat(gmcIdCaptor.getValue(), is(gmcId));
+  }
+
+  @Test
+  void shouldRemoveAllHiddenDiscrepanciesOnAddConnectionIfConnectionNotAlreadyConnected() {
+    final var addDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(previousDesignatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenReturn(gmcConnectionResponseDtoMock);
+
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+
+    connectionService.addDoctor(addDoctorDto);
+
+    verify(hiddenDiscrepancyService, times(1))
+        .showAllHiddenDiscrepanciesForGmcId(gmcIdCaptor.capture());
+    assertThat(gmcIdCaptor.getValue(), is(gmcId));
+  }
+
+  @Test
+  void shouldNotRemoveHiddenDiscrepanciesOnAddConnectionIfAlreadyConnected() {
+    final var addDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(previousDesignatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenReturn(gmcConnectionResponseDtoMock);
+
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(
+        DOCTOR_ALREADY_ASSOCIATED.getCode());
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+
+    connectionService.addDoctor(addDoctorDto);
+
+    verify(hiddenDiscrepancyService, times(0))
+        .showAllHiddenDiscrepanciesForGmcId(anyString());
+  }
+
+  @Test
+  void shouldRemoveAllHiddenDiscrepanciesOnRemoveConnectionIfConnectionNotAlreadyConnected() {
+    final var removeDoctorDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder().gmcId(gmcId)
+            .currentDesignatedBodyCode(previousDesignatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, previousDesignatedBodyCode))
+        .thenReturn(gmcConnectionResponseDtoMock);
+
+    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
+    when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+    when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+
+    connectionService.removeDoctor(removeDoctorDto);
+
+    verify(hiddenDiscrepancyService, times(1))
+        .showAllHiddenDiscrepanciesForGmcId(gmcIdCaptor.capture());
+    assertThat(gmcIdCaptor.getValue(), is(gmcId));
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

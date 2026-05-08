@@ -47,14 +47,13 @@ class HideDiscrepancyMapperTest {
   void shouldMapAllFieldsAndIgnoreIdWhenToEntityCalled() {
     // given
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DBC)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
         .doctors(List.of()) // doctors list is not mapped, so can be empty
         .build();
 
     // when
-    HiddenDiscrepancy entity = mapper.toEntity(dto, GMC_ID, BATCH_TIME);
+    HiddenDiscrepancy entity = mapper.toEntity(dto, GMC_ID, BATCH_TIME, DBC);
 
     // then
     assertNotNull(entity);

@@ -65,6 +65,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancySummaryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
@@ -141,7 +142,7 @@ class ConnectionControllerTest {
   private String hiddenReason;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     changeReason = faker.lorem().sentence();
     designatedBodyCode = faker.number().digits(8);
     gmcId = faker.number().digits(8);
@@ -414,39 +415,39 @@ class ConnectionControllerTest {
     return Stream.of(
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode(null)
+                .adminDesignatedBodyCodes(null)
                 .hiddenBy(ADMIN_NAME)
                 .doctors(validDoctors)
                 .build(),
-            "hiddenForDesignatedBodyCode is null"
+            "adminDesignatedBodyCodes list is null"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode("")
+                .adminDesignatedBodyCodes(List.of())
                 .hiddenBy(ADMIN_NAME)
                 .doctors(validDoctors)
                 .build(),
-            "hiddenForDesignatedBodyCode is blank"
+            "adminDesignatedBodyCode list is empty"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
                 .hiddenBy(ADMIN_NAME)
                 .doctors(null)
                 .build(),
-            "doctors is null"
+            "doctor list is null"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
                 .hiddenBy(ADMIN_NAME)
                 .doctors(List.of())
                 .build(),
-            "doctors is empty"
+            "doctor list is empty"
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
                 .hiddenBy(null)
                 .doctors(validDoctors)
                 .build(),
@@ -454,7 +455,7 @@ class ConnectionControllerTest {
         ),
         Arguments.of(
             HideDiscrepancyDto.builder()
-                .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+                .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
                 .hiddenBy(" ")
                 .doctors(validDoctors)
                 .build(),
@@ -467,14 +468,20 @@ class ConnectionControllerTest {
   void shouldHideDiscrepancies() throws Exception {
     // given
     DoctorInfoDto doctor = DoctorInfoDto.builder().gmcId(gmcId)
-        .currentDesignatedBodyCode(designatedBodyCode).build();
+        .currentDesignatedBodyCode(designatedBody1)
+        .programmeOwnerDesignatedBodyCode(designatedBody2).build();
+
     final var hideDiscrepancyDto = HideDiscrepancyDto.builder()
-        .hiddenForDesignatedBodyCode(DESIGNATED_BODY_CODES)
+        .adminDesignatedBodyCodes(List.of(DESIGNATED_BODY_CODES))
         .doctors(List.of(doctor)).hiddenBy(ADMIN_NAME).build();
 
+    var item = HiddenDiscrepancyResponseItem.builder()
+        .gmcId(gmcId)
+        .successfulDbcCodes(List.of(designatedBodyCode))
+        .build();
+
     final var response = HideDiscrepancyResponseDto.builder()
-        .hiddenForDesignatedBodyCode(designatedBodyCode)
-        .successfulHiddenGmcIds(List.of(gmcId))
+        .results(List.of(item))
         .build();
 
     when(hiddenDiscrepancyService.hideDiscrepancies(any(HideDiscrepancyDto.class)))

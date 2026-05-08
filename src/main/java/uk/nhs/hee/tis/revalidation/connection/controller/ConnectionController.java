@@ -54,7 +54,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
-import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;

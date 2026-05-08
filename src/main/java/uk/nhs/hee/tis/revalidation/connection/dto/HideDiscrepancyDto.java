@@ -40,8 +40,8 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HideDiscrepancyDto {
 
-  @NotBlank(message = "Hidden For Designated Body Code must not be blank")
-  private String hiddenForDesignatedBodyCode;
+  @NotEmpty
+  private List<String> adminDesignatedBodyCodes;
   @NotEmpty
   private List<DoctorInfoDto> doctors;
   @NotBlank(message = "The user hiding discrepancies must be provided.")

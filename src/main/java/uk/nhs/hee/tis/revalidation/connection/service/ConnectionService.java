@@ -65,6 +65,8 @@ public class ConnectionService {
 
   private final ExceptionLogService exceptionService;
 
+  private final HiddenDiscrepancyService hiddenDiscrepancyService;
+
   private final ConnectionRepository repository;
 
   private final ConnectionLogCustomRepository connectionLogCustomRepository;
@@ -85,11 +87,13 @@ public class ConnectionService {
   private static final String UPDATED_BY_GMC = "Updated by GMC";
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
+      HiddenDiscrepancyService hiddenDiscrepancyService,
       ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
       RabbitTemplate rabbitTemplate,
       ConnectionLogMapper connectionLogMapper) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
+    this.hiddenDiscrepancyService = hiddenDiscrepancyService;
     this.repository = repository;
     this.connectionLogCustomRepository = connectionLogCustomRepository;
     this.rabbitTemplate = rabbitTemplate;
@@ -154,6 +158,7 @@ public class ConnectionService {
     ConnectionLog log = connectionLogMapper.fromDto(connectionLogDto);
     log.setId(UUID.randomUUID().toString());
     repository.save(log);
+    hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(connectionLogDto.getGmcId());
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(
@@ -213,6 +218,8 @@ public class ConnectionService {
               .requestTime(now())
               .build()
       );
+    } else {
+      hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(gmcId);
     }
 
     final var connectionRequestLog = ConnectionRequestLog.builder()

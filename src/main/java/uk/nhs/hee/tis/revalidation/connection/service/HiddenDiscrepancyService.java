@@ -125,6 +125,20 @@ public class HiddenDiscrepancyService {
     return response;
   }
 
+  /**
+   * Show all hidden discrepancies for a given GMC ID by removing the corresponding hidden
+   * discrepancy records.
+   *
+   * @param gmcId the GMC ID for which to show hidden discrepancies
+   */
+  public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
+    findByGmcId(gmcId).forEach(hd -> {
+      log.info("Connection Updated, showing hidden discrepancy with id: {} for gmcId: {}",
+          hd.getId(), gmcId);
+      showDiscrepancy(hd.getId());
+    });
+  }
+
   private void validateHideDiscrepancyInput(HideDiscrepancyDto dto) {
     Objects.requireNonNull(dto, "HideDiscrepancyDto must not be null");
     if (CollectionUtils.isEmpty(dto.getAdminDesignatedBodyCodes())) {

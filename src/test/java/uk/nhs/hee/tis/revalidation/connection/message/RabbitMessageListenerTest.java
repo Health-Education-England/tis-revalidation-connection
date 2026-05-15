@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.ProgrammeInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -88,5 +89,16 @@ class RabbitMessageListenerTest {
     String invalidMessage = "invalidMessage";
     rabbitMessageListener.hiddenDiscrepancyEsSync(invalidMessage);
     verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldShowAllHiddenDiscrepanciesWhenReceivingProgrammeInfoUpdateMessage() {
+    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID)
+        .build();
+
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+
+    verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID);
   }
 }

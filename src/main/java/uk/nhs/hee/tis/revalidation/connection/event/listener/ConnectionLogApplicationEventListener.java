@@ -45,6 +45,11 @@ public class ConnectionLogApplicationEventListener {
     this.hiddenDiscrepancyService = hiddenDiscrepancyService;
   }
 
+  /**
+   * Handle ConnectionLog change events by showing all hidden discrepancies for the GMC ID.
+   *
+   * @param event the event containing the connection log information
+   */
   @EventListener
   public void handleConnectionChangedEvent(ConnectionChangedApplicationEvent event) {
     String gmcId = event.getConnectionLog().getGmcId();

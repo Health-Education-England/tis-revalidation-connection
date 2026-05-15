@@ -27,6 +27,9 @@ import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.event.ConnectionChangedApplicationEvent;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
+/**
+ * Listens for ConnectionLog events.
+ */
 @Component
 @Slf4j
 public class ConnectionLogApplicationEventListener {

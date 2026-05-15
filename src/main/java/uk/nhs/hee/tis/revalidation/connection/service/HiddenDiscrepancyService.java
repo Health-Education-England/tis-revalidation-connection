@@ -125,6 +125,12 @@ public class HiddenDiscrepancyService {
     return response;
   }
 
+  /**
+   * Show all hidden discrepancies for a given GMC ID by removing all associated hidden discrepancy
+   * records.
+   *
+   * @param gmcId the GMC ID for which to show hidden discrepancies
+   */
   public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
     List<HiddenDiscrepancy> discrepancies = hiddenDiscrepancyRepository.findByGmcId(gmcId);
     if (discrepancies.isEmpty()) {

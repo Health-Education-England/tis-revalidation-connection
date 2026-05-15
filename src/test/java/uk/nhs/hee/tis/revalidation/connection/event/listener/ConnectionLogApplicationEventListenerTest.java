@@ -38,7 +38,6 @@ import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 class ConnectionLogApplicationEventListenerTest {
 
   private static final String GMC_ID_1 = "1234567";
-  private static final String GMC_ID_2 = "7654321";
   private static final String DBC_1 = "1-ABCDE";
   private static final String DBC_2 = "1-FGHIJ";
   private static final String UPDATED_BY = "admin";

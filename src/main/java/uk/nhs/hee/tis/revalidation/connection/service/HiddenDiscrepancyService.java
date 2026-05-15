@@ -125,6 +125,16 @@ public class HiddenDiscrepancyService {
     return response;
   }
 
+  public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
+    List<HiddenDiscrepancy> discrepancies = hiddenDiscrepancyRepository.findByGmcId(gmcId);
+    if (discrepancies.isEmpty()) {
+      return;
+    }
+    hiddenDiscrepancyRepository.deleteAll(discrepancies);
+    log.info("Successfully removed {} hidden discrepancies for GMC ID: {}", discrepancies.size(),
+        gmcId);
+  }
+
   private void validateHideDiscrepancyInput(HideDiscrepancyDto dto) {
     Objects.requireNonNull(dto, "HideDiscrepancyDto must not be null");
     if (CollectionUtils.isEmpty(dto.getAdminDesignatedBodyCodes())) {

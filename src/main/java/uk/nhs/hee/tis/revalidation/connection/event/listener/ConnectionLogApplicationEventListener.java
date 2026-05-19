@@ -54,6 +54,10 @@ public class ConnectionLogApplicationEventListener {
   public void handleConnectionChangedEvent(ConnectionChangedApplicationEvent event) {
     String gmcId = event.getConnectionLog().getGmcId();
     log.info("Connection Changed, showing all hidden discrepancies for gmcId: {}", gmcId);
+    if(gmcId.isBlank()) {
+      log.warn("GMC ID is blank in the connection log, cannot show hidden discrepancies.");
+      return;
+    }
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(gmcId);
   }
 }

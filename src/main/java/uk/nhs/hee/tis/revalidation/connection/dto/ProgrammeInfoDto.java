@@ -23,35 +23,35 @@ import org.springframework.lang.Nullable;
 @NoArgsConstructor
 public class ProgrammeInfoDto {
 
-  Long tcsPersonId;
-  String gmcReferenceNumber;
-  String doctorFirstName;
-  String doctorLastName;
+  private Long tcsPersonId;
+  private String gmcReferenceNumber;
+  private String doctorFirstName;
+  private String doctorLastName;
   @JsonDeserialize(using = LocalDateDeserializer.class)
   @JsonSerialize(using = LocalDateSerializer.class)
-  LocalDate submissionDate;
-  String programmeName;
-  String programmeMembershipType;
-  String designatedBody;
-  String tcsDesignatedBody;
-  String programmeOwner;
-  String connectionStatus;
-  String dataSource;
+  private LocalDate submissionDate;
+  private String programmeName;
+  private String programmeMembershipType;
+  private String designatedBody;
+  private String tcsDesignatedBody;
+  private String programmeOwner;
+  private String connectionStatus;
+  private String dataSource;
   @JsonDeserialize(using = LocalDateDeserializer.class)
   @JsonSerialize(using = LocalDateSerializer.class)
-  LocalDate programmeMembershipStartDate;
+  private LocalDate programmeMembershipStartDate;
   @JsonDeserialize(using = LocalDateDeserializer.class)
   @JsonSerialize(using = LocalDateSerializer.class)
-  LocalDate programmeMembershipEndDate;
-  String exceptionReason;
+  private LocalDate programmeMembershipEndDate;
+  private String exceptionReason;
   @JsonDeserialize(using = LocalDateDeserializer.class)
   @JsonSerialize(using = LocalDateSerializer.class)
-  LocalDate curriculumEndDate;
+  private LocalDate curriculumEndDate;
 
-  String placementGrade;
+  private String placementGrade;
   @Nullable
-  Boolean syncEnd;
-  String updatedBy;
-  LocalDateTime lastConnectionDateTime;
+  private Boolean syncEnd;
+  private String updatedBy;
+  private LocalDateTime lastConnectionDateTime;
   private Boolean notes;
 }

@@ -28,7 +28,8 @@ public class ConnectionChangedApplicationEvent extends ApplicationEvent {
 
   private final ConnectionLog connectionLog;
 
-  /* Create a ConnectionChangedApplicationEvent.
+  /**
+   * Create a ConnectionChangedApplicationEvent.
    *
    * @param source the connection log that has been created due to the change
    */
@@ -37,7 +38,8 @@ public class ConnectionChangedApplicationEvent extends ApplicationEvent {
     this.connectionLog = source;
   }
 
-  /* Get the connection log that has been created.
+  /**
+   * Get the connection log that has been created.
    *
    * @return the connection log that has been created
    */

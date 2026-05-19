@@ -79,7 +79,7 @@ public class RabbitMessageListener {
   public void receiveProgrammeInfoUpdateMessage(ProgrammeInfoDto message) {
     log.info("Received message for updated programme info: {}", message);
     if (message == null || message.getGmcReferenceNumber() == null) {
-      log.warn("Received invalid updated programme info message: {}", message);
+      log.warn("Received invalid updated programme info message");
       return;
     }
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(message.getGmcReferenceNumber());

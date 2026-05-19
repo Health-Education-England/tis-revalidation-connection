@@ -22,6 +22,8 @@
 package uk.nhs.hee.tis.revalidation.connection.event.listener;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.times;
 
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +72,26 @@ class ConnectionLogApplicationEventListenerTest {
     listener.handleConnectionChangedEvent(event);
 
     verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID_1);
+  }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenGmcIdIsNull() {
+    connectionLog.setGmcId(null);
+    ConnectionChangedApplicationEvent event = new ConnectionChangedApplicationEvent(connectionLog);
+
+    listener.handleConnectionChangedEvent(event);
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldHandleEmptyStringGmcId() {
+    connectionLog.setGmcId("");
+    ConnectionChangedApplicationEvent event = new ConnectionChangedApplicationEvent(connectionLog);
+
+    listener.handleConnectionChangedEvent(event);
+
+    verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId("");
   }
 }
 

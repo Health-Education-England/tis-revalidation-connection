@@ -70,6 +70,11 @@ public class RabbitMessageListener {
     hiddenDiscrepancyService.sendHiddenDiscrepanciesForSync(hiddenDiscrepancyBatchSize);
   }
 
+  /**
+   * Listens to messages containing programme info updates.
+   *
+   * @param message the message with updated programme info
+   */
   @RabbitListener(queues = "${app.rabbit.reval.queue.programmeinfo.updated.connection}")
   public void receiveProgrammeInfoUpdateMessage(ProgrammeInfoDto message) {
     log.info("Received message for updated programme info: {}", message);

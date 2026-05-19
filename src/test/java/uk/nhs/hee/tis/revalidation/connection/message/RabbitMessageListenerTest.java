@@ -101,4 +101,44 @@ class RabbitMessageListenerTest {
 
     verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID);
   }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenProgrammeInfoMessageIsNull() {
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(null);
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsNull() {
+    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+        .gmcReferenceNumber(null)
+        .build();
+
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsEmpty() {
+    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+        .gmcReferenceNumber("")
+        .build();
+
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsBlank() {
+    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+        .gmcReferenceNumber("   ")
+        .build();
+
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
 }

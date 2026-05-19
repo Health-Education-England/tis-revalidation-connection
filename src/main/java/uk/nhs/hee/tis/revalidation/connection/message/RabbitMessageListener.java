@@ -78,7 +78,8 @@ public class RabbitMessageListener {
   @RabbitListener(queues = "${app.rabbit.reval.queue.programmeinfo.updated.connection}")
   public void receiveProgrammeInfoUpdateMessage(ProgrammeInfoDto message) {
     log.info("Received message for updated programme info: {}", message);
-    if (message == null || message.getGmcReferenceNumber() == null) {
+    if (message == null || message.getGmcReferenceNumber() == null
+        || message.getGmcReferenceNumber().isBlank()) {
       log.warn("Received invalid updated programme info message");
       return;
     }

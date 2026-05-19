@@ -692,4 +692,34 @@ class HiddenDiscrepancyServiceTest {
 
     verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
   }
+
+  @Test
+  void shouldThrowExceptionWhenShowingDiscrepanciesForNullGmcId() {
+    IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException.class,
+        () -> service.showAllHiddenDiscrepanciesForGmcId(null)
+    );
+    assertThat(ex.getMessage()).contains("GMC ID must not be null");
+    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenShowingDiscrepanciesForEmptyGmcId() {
+    IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException.class,
+        () -> service.showAllHiddenDiscrepanciesForGmcId("")
+    );
+    assertThat(ex.getMessage()).contains("GMC ID must not be null");
+    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenShowingDiscrepanciesForBlankGmcIdWithSpaces() {
+    IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException.class,
+        () -> service.showAllHiddenDiscrepanciesForGmcId("   ")
+    );
+    assertThat(ex.getMessage()).contains("GMC ID must not be null");
+    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
+  }
 }

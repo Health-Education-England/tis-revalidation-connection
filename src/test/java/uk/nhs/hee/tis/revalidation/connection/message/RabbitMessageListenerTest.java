@@ -9,6 +9,9 @@ import com.github.javafaker.Faker;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -109,32 +112,12 @@ class RabbitMessageListenerTest {
     verifyNoInteractions(hiddenDiscrepancyService);
   }
 
-  @Test
-  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsNull() {
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"   ", "\t\t", " \t \n "})
+  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsInvalid(String gmcReferenceNumber) {
     ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
-        .gmcReferenceNumber(null)
-        .build();
-
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
-
-    verifyNoInteractions(hiddenDiscrepancyService);
-  }
-
-  @Test
-  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsEmpty() {
-    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
-        .gmcReferenceNumber("")
-        .build();
-
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
-
-    verifyNoInteractions(hiddenDiscrepancyService);
-  }
-
-  @Test
-  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsBlank() {
-    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
-        .gmcReferenceNumber("   ")
+        .gmcReferenceNumber(gmcReferenceNumber)
         .build();
 
     rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);

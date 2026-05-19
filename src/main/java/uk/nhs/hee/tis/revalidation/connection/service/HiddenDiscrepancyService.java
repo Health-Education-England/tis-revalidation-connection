@@ -132,7 +132,7 @@ public class HiddenDiscrepancyService {
    * @param gmcId the GMC ID for which to show hidden discrepancies
    */
   public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
-    if(gmcId == null || gmcId.isBlank()) {
+    if (gmcId == null || gmcId.isBlank()) {
       throw new IllegalArgumentException("GMC ID must not be null");
     }
     hiddenDiscrepancyRepository.deleteByGmcId(gmcId);

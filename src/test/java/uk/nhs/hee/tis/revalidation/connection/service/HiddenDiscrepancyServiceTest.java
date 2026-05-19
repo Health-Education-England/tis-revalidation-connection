@@ -49,6 +49,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -693,31 +695,13 @@ class HiddenDiscrepancyServiceTest {
     verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
   }
 
-  @Test
-  void shouldThrowExceptionWhenShowingDiscrepanciesForNullGmcId() {
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"   ", "\t\t", " \t \n "})
+  void shouldThrowExceptionWhenShowingDiscrepanciesForInvalidGmcId(String gmcId) {
     IllegalArgumentException ex = assertThrows(
         IllegalArgumentException.class,
-        () -> service.showAllHiddenDiscrepanciesForGmcId(null)
-    );
-    assertThat(ex.getMessage()).contains("GMC ID must not be null");
-    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
-  }
-
-  @Test
-  void shouldThrowExceptionWhenShowingDiscrepanciesForEmptyGmcId() {
-    IllegalArgumentException ex = assertThrows(
-        IllegalArgumentException.class,
-        () -> service.showAllHiddenDiscrepanciesForGmcId("")
-    );
-    assertThat(ex.getMessage()).contains("GMC ID must not be null");
-    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
-  }
-
-  @Test
-  void shouldThrowExceptionWhenShowingDiscrepanciesForBlankGmcIdWithSpaces() {
-    IllegalArgumentException ex = assertThrows(
-        IllegalArgumentException.class,
-        () -> service.showAllHiddenDiscrepanciesForGmcId("   ")
+        () -> service.showAllHiddenDiscrepanciesForGmcId(gmcId)
     );
     assertThat(ex.getMessage()).contains("GMC ID must not be null");
     verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());

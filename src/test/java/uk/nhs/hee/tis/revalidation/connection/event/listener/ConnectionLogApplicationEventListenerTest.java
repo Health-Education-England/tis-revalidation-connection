@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.event.listener;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.times;
@@ -91,7 +92,7 @@ class ConnectionLogApplicationEventListenerTest {
 
     listener.handleConnectionChangedEvent(event);
 
-    verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId("");
+    verify(hiddenDiscrepancyService, never()).showAllHiddenDiscrepanciesForGmcId("");
   }
 }
 

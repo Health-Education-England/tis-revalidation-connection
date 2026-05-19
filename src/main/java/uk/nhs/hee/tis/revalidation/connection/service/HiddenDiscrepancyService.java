@@ -132,13 +132,8 @@ public class HiddenDiscrepancyService {
    * @param gmcId the GMC ID for which to show hidden discrepancies
    */
   public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
-    List<HiddenDiscrepancy> discrepancies = hiddenDiscrepancyRepository.findByGmcId(gmcId);
-    if (discrepancies.isEmpty()) {
-      return;
-    }
-    hiddenDiscrepancyRepository.deleteAll(discrepancies);
-    log.info("Successfully removed {} hidden discrepancies for GMC ID: {}", discrepancies.size(),
-        gmcId);
+    hiddenDiscrepancyRepository.deleteByGmcId(gmcId);
+    log.info("Successfully removed all hidden discrepancies for GMC ID: {}", gmcId);
   }
 
   private void validateHideDiscrepancyInput(HideDiscrepancyDto dto) {

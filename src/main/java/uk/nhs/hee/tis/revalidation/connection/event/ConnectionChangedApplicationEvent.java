@@ -26,7 +26,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
 public class ConnectionChangedApplicationEvent extends ApplicationEvent {
 
-  ConnectionLog connectionLog;
+  private final ConnectionLog connectionLog;
 
   /* Create a ConnectionChangedApplicationEvent.
    *

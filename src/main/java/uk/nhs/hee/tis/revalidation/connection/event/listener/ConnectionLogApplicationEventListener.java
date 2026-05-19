@@ -39,7 +39,7 @@ public class ConnectionLogApplicationEventListener {
   /**
    * Create a listener for ConnectionLog Events.
    *
-   * @param hiddenDiscrepancyService the repository to manage hidden discrepancies
+   * @param hiddenDiscrepancyService the service to manage hidden discrepancies
    */
   public ConnectionLogApplicationEventListener(HiddenDiscrepancyService hiddenDiscrepancyService) {
     this.hiddenDiscrepancyService = hiddenDiscrepancyService;

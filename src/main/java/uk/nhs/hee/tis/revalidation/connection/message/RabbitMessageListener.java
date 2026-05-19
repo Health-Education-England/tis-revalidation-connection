@@ -73,6 +73,10 @@ public class RabbitMessageListener {
   @RabbitListener(queues = "${app.rabbit.reval.queue.programmeinfo.updated.connection}")
   public void receiveProgrammeInfoUpdateMessage(ProgrammeInfoDto message) {
     log.info("Received message for updated programme info: {}", message);
+    if (message == null || message.getGmcReferenceNumber() == null) {
+      log.warn("Received invalid updated programme info message: {}", message);
+      return;
+    }
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(message.getGmcReferenceNumber());
   }
 }

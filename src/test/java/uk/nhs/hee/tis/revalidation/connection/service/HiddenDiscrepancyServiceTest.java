@@ -688,40 +688,8 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldDeleteAllHiddenDiscrepanciesForGivenGmcId() {
-    HiddenDiscrepancy hiddenDiscrepancy1 = HiddenDiscrepancy.builder()
-        .id("hd-1")
-        .gmcId(GMC_ID_1)
-        .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .hiddenDateTime(LocalDateTime.now())
-        .build();
-
-    HiddenDiscrepancy hiddenDiscrepancy2 = HiddenDiscrepancy.builder()
-        .id("hd-2")
-        .gmcId(GMC_ID_1)
-        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
-        .hiddenBy(HIDDEN_BY)
-        .reason(REASON)
-        .hiddenDateTime(LocalDateTime.now())
-        .build();
-
-    List<HiddenDiscrepancy> discrepancies = List.of(hiddenDiscrepancy1, hiddenDiscrepancy2);
-    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(discrepancies);
-
     service.showAllHiddenDiscrepanciesForGmcId(GMC_ID_1);
 
-    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
-    verify(hiddenDiscrepancyRepository).deleteAll(discrepancies);
-  }
-
-  @Test
-  void shouldNotDeleteAnythingWhenNoHiddenDiscrepanciesFoundForGmcId() {
-    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(List.of());
-
-    service.showAllHiddenDiscrepanciesForGmcId(GMC_ID_1);
-
-    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
-    verify(hiddenDiscrepancyRepository, never()).deleteAll(anyList());
+    verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
   }
 }

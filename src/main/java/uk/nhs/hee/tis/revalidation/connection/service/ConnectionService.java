@@ -242,7 +242,7 @@ public class ConnectionService {
 
     if (SUCCESS.getCode().equals(returnCode) || DOCTOR_ALREADY_ASSOCIATED.getCode()
         .equals(returnCode)) {
-      // Only publish event for successful changes
+      // Only publish event for successful changes or already-associated outcomes
       publishConnectionChangedApplicationEvent(connectionRequestLog);
     }
 

@@ -39,7 +39,7 @@ class HideDiscrepancyMapperTest {
   private static final String REASON = "reason for hiding";
   private static final String GMC_ID = "1-ABCDE";
   private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, 3, 5, 10, 0, 0);
-  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.now().plusDays(30);
+  private static final LocalDateTime HIDDEN_UNTIL = BATCH_TIME.plusDays(30);
 
   private final HideDiscrepancyMapper mapper =
       Mappers.getMapper(HideDiscrepancyMapper.class);

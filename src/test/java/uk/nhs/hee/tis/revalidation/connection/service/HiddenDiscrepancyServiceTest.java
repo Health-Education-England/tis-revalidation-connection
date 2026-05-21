@@ -75,7 +75,7 @@ class HiddenDiscrepancyServiceTest {
   private static final String ADMIN_DBC_2 = "1-EDCBA";
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason";
-  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.now().plusDays(30);
+  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.of(2027, 12, 31, 0, 0);
   private static final String EXCHANGE = "exchange";
   private static final String ES_SYNC_DATA_ROUTING_KEY = "esSyncDataRoutingKey";
   private static final String GMC_ID_1 = "GMC1";

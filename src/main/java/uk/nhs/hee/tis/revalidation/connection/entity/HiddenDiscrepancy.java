@@ -50,4 +50,5 @@ public class HiddenDiscrepancy {
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
+  private LocalDateTime hiddenUntilDateTime;
 }

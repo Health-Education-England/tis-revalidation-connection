@@ -75,6 +75,7 @@ class HiddenDiscrepancyServiceTest {
   private static final String ADMIN_DBC_2 = "1-EDCBA";
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason";
+  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.now().plusDays(30);
   private static final String EXCHANGE = "exchange";
   private static final String ES_SYNC_DATA_ROUTING_KEY = "esSyncDataRoutingKey";
   private static final String GMC_ID_1 = "GMC1";
@@ -112,12 +113,14 @@ class HiddenDiscrepancyServiceTest {
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDateTime(HIDDEN_UNTIL)
         .build();
     hd2 = HiddenDiscrepancy.builder()
         .gmcId(GMC_ID_2)
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDateTime(HIDDEN_UNTIL)
         .build();
   }
 
@@ -249,6 +252,7 @@ class HiddenDiscrepancyServiceTest {
         .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1))
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDateTime(HIDDEN_UNTIL)
         .doctors(List.of(doc(GMC_ID_1, ADMIN_DBC_1, null), doc(GMC_ID_2, ADMIN_DBC_1, null),
             doc(GMC_ID_3, ADMIN_DBC_1, null)))
         .build();
@@ -644,6 +648,7 @@ class HiddenDiscrepancyServiceTest {
               .hiddenBy(dto.getHiddenBy())
               .reason(dto.getReason())
               .hiddenDateTime(batchTime)
+              .hiddenUntilDateTime(dto.getHiddenUntilDateTime())
               .build();
         });
   }
@@ -677,6 +682,7 @@ class HiddenDiscrepancyServiceTest {
       assertEquals(dto.getAdminDesignatedBodyCodes().get(0), hd.getHiddenForDesignatedBodyCode());
       assertEquals(dto.getHiddenBy(), hd.getHiddenBy());
       assertEquals(dto.getReason(), hd.getReason());
+      assertEquals(dto.getHiddenUntilDateTime(), hd.getHiddenUntilDateTime());
       assertNotNull(hd.getHiddenDateTime());
     }
 

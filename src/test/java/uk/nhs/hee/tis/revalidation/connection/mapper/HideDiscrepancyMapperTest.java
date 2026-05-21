@@ -39,6 +39,7 @@ class HideDiscrepancyMapperTest {
   private static final String REASON = "reason for hiding";
   private static final String GMC_ID = "1-ABCDE";
   private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, 3, 5, 10, 0, 0);
+  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.now().plusDays(30);
 
   private final HideDiscrepancyMapper mapper =
       Mappers.getMapper(HideDiscrepancyMapper.class);
@@ -50,6 +51,7 @@ class HideDiscrepancyMapperTest {
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
         .doctors(List.of()) // doctors list is not mapped, so can be empty
+        .hiddenUntilDateTime(HIDDEN_UNTIL)
         .build();
 
     // when
@@ -67,5 +69,6 @@ class HideDiscrepancyMapperTest {
     assertEquals(REASON, entity.getReason());
     assertEquals(GMC_ID, entity.getGmcId());
     assertEquals(BATCH_TIME, entity.getHiddenDateTime());
+    assertEquals(HIDDEN_UNTIL, entity.getHiddenUntilDateTime());
   }
 }

@@ -21,37 +21,22 @@ import org.springframework.lang.Nullable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProgrammeInfoDto {
-
+public class TcsDoctorInfoDto {
   private Long tcsPersonId;
   private String gmcReferenceNumber;
   private String doctorFirstName;
   private String doctorLastName;
-  @JsonDeserialize(using = LocalDateDeserializer.class)
-  @JsonSerialize(using = LocalDateSerializer.class)
   private LocalDate submissionDate;
   private String programmeName;
   private String programmeMembershipType;
   private String designatedBody;
   private String tcsDesignatedBody;
   private String programmeOwner;
-  private String connectionStatus;
-  private String dataSource;
-  @JsonDeserialize(using = LocalDateDeserializer.class)
-  @JsonSerialize(using = LocalDateSerializer.class)
-  private LocalDate programmeMembershipStartDate;
-  @JsonDeserialize(using = LocalDateDeserializer.class)
-  @JsonSerialize(using = LocalDateSerializer.class)
-  private LocalDate programmeMembershipEndDate;
-  private String exceptionReason;
-  @JsonDeserialize(using = LocalDateDeserializer.class)
-  @JsonSerialize(using = LocalDateSerializer.class)
-  private LocalDate curriculumEndDate;
-
   private String placementGrade;
+  private LocalDate programmeMembershipStartDate;
+  private LocalDate programmeMembershipEndDate;
+  private LocalDate curriculumEndDate;
+  private String dataSource;
   @Nullable
   private Boolean syncEnd;
-  private String updatedBy;
-  private LocalDateTime lastConnectionDateTime;
-  private Boolean notes;
 }

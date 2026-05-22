@@ -5,7 +5,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ProgrammeInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -76,7 +76,7 @@ public class RabbitMessageListener {
    * @param message the message with updated programme info
    */
   @RabbitListener(queues = "${app.rabbit.reval.queue.programmeinfo.updated.connection}")
-  public void receiveProgrammeInfoUpdateMessage(ProgrammeInfoDto message) {
+  public void receiveProgrammeInfoUpdateMessage(TcsDoctorInfoDto message) {
     log.info("Received message for updated programme info: {}", message);
     if (message == null || message.getGmcReferenceNumber() == null
         || message.getGmcReferenceNumber().isBlank()) {

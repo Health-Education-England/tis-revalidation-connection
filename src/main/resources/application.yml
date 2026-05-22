@@ -46,7 +46,7 @@ app:
         connection.connectionlog: ${CONNECTION_LOG_QUEUE:reval.queue.connection.connectionlog}
         connectionlog.essyncstart: ${CONNECTION_LOG_ESSYNCSTART_QUEUE:reval.queue.connectionlog.essyncstart.connection}
         hiddendiscrepancy.essyncstart: ${HIDDEN_DISCREPANCY_ESSYNCSTART_QUEUE:reval.queue.hiddendiscrepancy.essyncstart.connection}
-        programmeinfo.updated.connection: ${PROGRAMMEINFO_UPDATED_CONNECTION_QUEUE:reval.queue.programmeinfo.updated.connection}
+        tcsdoctorinfo.updated.connection: ${TCSDOCTORINFO_UPDATED_CONNECTION_QUEUE:reval.queue.tcsdoctorinfo.updated.connection}
 
   gmc:
     url: ${GMC_CONNECT_URL:http://localhost:8091/GMCConnectMock2020/GMCWebServices}

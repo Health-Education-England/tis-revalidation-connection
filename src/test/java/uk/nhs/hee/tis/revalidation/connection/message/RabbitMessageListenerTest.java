@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.ProgrammeInfoDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -96,11 +96,11 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldShowAllHiddenDiscrepanciesWhenReceivingProgrammeInfoUpdateMessage() {
-    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+    TcsDoctorInfoDto tcsDoctorInfoDto = TcsDoctorInfoDto.builder()
         .gmcReferenceNumber(GMC_ID)
         .build();
 
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(tcsDoctorInfoDto);
 
     verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID);
   }
@@ -116,11 +116,11 @@ class RabbitMessageListenerTest {
   @NullAndEmptySource
   @ValueSource(strings = {"   ", "\t\t", " \t \n "})
   void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsInvalid(String gmcReferenceNumber) {
-    ProgrammeInfoDto programmeInfoDto = ProgrammeInfoDto.builder()
+    TcsDoctorInfoDto tcsDoctorInfoDto = TcsDoctorInfoDto.builder()
         .gmcReferenceNumber(gmcReferenceNumber)
         .build();
 
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(programmeInfoDto);
+    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(tcsDoctorInfoDto);
 
     verifyNoInteractions(hiddenDiscrepancyService);
   }

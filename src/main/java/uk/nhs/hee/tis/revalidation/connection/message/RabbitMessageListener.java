@@ -1,6 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -80,8 +81,8 @@ public class RabbitMessageListener {
     log.info("Received message for updated tcs doctor info: {}", message);
     if (message == null || message.getGmcReferenceNumber() == null
         || message.getGmcReferenceNumber().isBlank()) {
-      log.warn("Received invalid updated tcs doctor info message");
-      return;
+      throw new AmqpRejectAndDontRequeueException(
+          "Received invalid updated tcs doctor info message");
     }
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(message.getGmcReferenceNumber());
   }

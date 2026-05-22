@@ -2,6 +2,7 @@ package uk.nhs.hee.tis.revalidation.connection.message;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -17,6 +18,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
@@ -107,7 +109,8 @@ class RabbitMessageListenerTest {
 
   @Test
   void shouldNotShowHiddenDiscrepanciesWhenProgrammeInfoMessageIsNull() {
-    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(null);
+    assertThrows(AmqpRejectAndDontRequeueException.class,
+        () -> rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(null));
 
     verifyNoInteractions(hiddenDiscrepancyService);
   }
@@ -120,7 +123,8 @@ class RabbitMessageListenerTest {
         .gmcReferenceNumber(gmcReferenceNumber)
         .build();
 
-    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
+    assertThrows(AmqpRejectAndDontRequeueException.class,
+        () -> rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto));
 
     verifyNoInteractions(hiddenDiscrepancyService);
   }

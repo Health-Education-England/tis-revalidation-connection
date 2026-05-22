@@ -71,16 +71,16 @@ public class RabbitMessageListener {
   }
 
   /**
-   * Listens to messages containing programme info updates.
+   * Listens to messages containing tcs doctor info updates.
    *
-   * @param message the message with updated programme info
+   * @param message the message with updated tcs doctor info
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.programmeinfo.updated.connection}")
-  public void receiveProgrammeInfoUpdateMessage(TcsDoctorInfoDto message) {
-    log.info("Received message for updated programme info: {}", message);
+  @RabbitListener(queues = "${app.rabbit.reval.queue.tcsdoctorinfo.updated.connection}")
+  public void receiveTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
+    log.info("Received message for updated tcs doctor info: {}", message);
     if (message == null || message.getGmcReferenceNumber() == null
         || message.getGmcReferenceNumber().isBlank()) {
-      log.warn("Received invalid updated programme info message");
+      log.warn("Received invalid updated tcs doctor info message");
       return;
     }
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(message.getGmcReferenceNumber());

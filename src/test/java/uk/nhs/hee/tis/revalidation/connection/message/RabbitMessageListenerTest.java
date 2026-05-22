@@ -100,14 +100,14 @@ class RabbitMessageListenerTest {
         .gmcReferenceNumber(GMC_ID)
         .build();
 
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(tcsDoctorInfoDto);
+    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
 
     verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID);
   }
 
   @Test
   void shouldNotShowHiddenDiscrepanciesWhenProgrammeInfoMessageIsNull() {
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(null);
+    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(null);
 
     verifyNoInteractions(hiddenDiscrepancyService);
   }
@@ -120,7 +120,7 @@ class RabbitMessageListenerTest {
         .gmcReferenceNumber(gmcReferenceNumber)
         .build();
 
-    rabbitMessageListener.receiveProgrammeInfoUpdateMessage(tcsDoctorInfoDto);
+    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
 
     verifyNoInteractions(hiddenDiscrepancyService);
   }

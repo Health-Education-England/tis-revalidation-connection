@@ -22,7 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -48,5 +48,5 @@ public class HideDiscrepancyDto {
   @NotBlank(message = "The user hiding discrepancies must be provided.")
   private String hiddenBy;
   private String reason;
-  private LocalDateTime hiddenUntilDateTime;
+  private LocalDate hiddenUntilDate;
 }

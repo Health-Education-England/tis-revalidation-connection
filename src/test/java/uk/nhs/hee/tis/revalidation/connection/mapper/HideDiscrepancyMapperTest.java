@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class HideDiscrepancyMapperTest {
   private static final String REASON = "reason for hiding";
   private static final String GMC_ID = "1-ABCDE";
   private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, 3, 5, 10, 0, 0);
-  private static final LocalDateTime HIDDEN_UNTIL = BATCH_TIME.plusDays(30);
+  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2026, 12, 30);
 
   private final HideDiscrepancyMapper mapper =
       Mappers.getMapper(HideDiscrepancyMapper.class);
@@ -51,7 +52,7 @@ class HideDiscrepancyMapperTest {
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
         .doctors(List.of()) // doctors list is not mapped, so can be empty
-        .hiddenUntilDateTime(HIDDEN_UNTIL)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
 
     // when
@@ -69,6 +70,6 @@ class HideDiscrepancyMapperTest {
     assertEquals(REASON, entity.getReason());
     assertEquals(GMC_ID, entity.getGmcId());
     assertEquals(BATCH_TIME, entity.getHiddenDateTime());
-    assertEquals(HIDDEN_UNTIL, entity.getHiddenUntilDateTime());
+    assertEquals(HIDDEN_UNTIL, entity.getHiddenUntilDate());
   }
 }

@@ -38,6 +38,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +76,7 @@ class HiddenDiscrepancyServiceTest {
   private static final String ADMIN_DBC_2 = "1-EDCBA";
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason";
-  private static final LocalDateTime HIDDEN_UNTIL = LocalDateTime.of(2027, 12, 31, 0, 0);
+  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2027, 12, 31);
   private static final String EXCHANGE = "exchange";
   private static final String ES_SYNC_DATA_ROUTING_KEY = "esSyncDataRoutingKey";
   private static final String GMC_ID_1 = "GMC1";
@@ -113,14 +114,14 @@ class HiddenDiscrepancyServiceTest {
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
-        .hiddenUntilDateTime(HIDDEN_UNTIL)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
     hd2 = HiddenDiscrepancy.builder()
         .gmcId(GMC_ID_2)
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
-        .hiddenUntilDateTime(HIDDEN_UNTIL)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
   }
 
@@ -252,7 +253,7 @@ class HiddenDiscrepancyServiceTest {
         .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1))
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
-        .hiddenUntilDateTime(HIDDEN_UNTIL)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .doctors(List.of(doc(GMC_ID_1, ADMIN_DBC_1, null), doc(GMC_ID_2, ADMIN_DBC_1, null),
             doc(GMC_ID_3, ADMIN_DBC_1, null)))
         .build();
@@ -648,7 +649,7 @@ class HiddenDiscrepancyServiceTest {
               .hiddenBy(dto.getHiddenBy())
               .reason(dto.getReason())
               .hiddenDateTime(batchTime)
-              .hiddenUntilDateTime(dto.getHiddenUntilDateTime())
+              .hiddenUntilDate(dto.getHiddenUntilDate())
               .build();
         });
   }
@@ -682,7 +683,7 @@ class HiddenDiscrepancyServiceTest {
       assertEquals(dto.getAdminDesignatedBodyCodes().get(0), hd.getHiddenForDesignatedBodyCode());
       assertEquals(dto.getHiddenBy(), hd.getHiddenBy());
       assertEquals(dto.getReason(), hd.getReason());
-      assertEquals(dto.getHiddenUntilDateTime(), hd.getHiddenUntilDateTime());
+      assertEquals(dto.getHiddenUntilDate(), hd.getHiddenUntilDate());
       assertNotNull(hd.getHiddenDateTime());
     }
 

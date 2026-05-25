@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,5 +51,5 @@ public class HiddenDiscrepancy {
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
-  private LocalDateTime hiddenUntilDateTime;
+  private LocalDate hiddenUntilDate;
 }

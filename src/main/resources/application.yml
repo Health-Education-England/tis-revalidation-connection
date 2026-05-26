@@ -33,6 +33,10 @@ app:
     essync:
       connectionlog.batchsize: ${ESSYNC_CONNECTION_LOG_BATCH_SIZE:5000}
       hiddendiscrepancy.batchsize: ${ESSYNC_HIDDEN_DISCREPANCY_BATCH_SIZE:5000}
+    cron:
+      hiddendiscrepancy.expiry:
+        expression: ${HIDDEN_DISCREPANCY_EXPIRY_CRON:0 0 1 * * *}
+        lock: ${HIDDEN_DISCREPANCY_EXPIRY_CRONLOCK:10m}
 
   rabbit:
     reval:

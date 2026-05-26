@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -52,4 +53,12 @@ public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscr
    * @return a list of HiddenDiscrepancy entities with a matching GMC ID
    */
   List<HiddenDiscrepancy> findByGmcId(String gmcId);
+
+  /**
+   * Deletes hidden discrepancies whose hiddenUntilDate is before the given date.
+   *
+   * @param date the reference date; records before this date are considered expired
+   * @return the number of deleted records
+   */
+  long deleteByHiddenUntilDateLessThan(LocalDate date);
 }

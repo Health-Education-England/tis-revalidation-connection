@@ -30,7 +30,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.MasterDoctorView;
  * Mapper interface for converting MasterDoctorView objects to HiddenDiscrepancyInfoDto DTOs. This
  * mapper uses MapStruct to automatically generate the implementation code for the mapping.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {HiddenDiscrepancyMapper.class})
 public interface HiddenDiscrepancyInfoMapper {
 
   /**

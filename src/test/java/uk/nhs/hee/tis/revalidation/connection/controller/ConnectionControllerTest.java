@@ -69,7 +69,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.Hid
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
-import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
@@ -140,6 +139,7 @@ class ConnectionControllerTest {
   private String updatedBy;
   private String hiddenBy;
   private String hiddenReason;
+  private LocalDate hiddenUntilDate;
 
   @BeforeEach
   void setup() {
@@ -178,6 +178,7 @@ class ConnectionControllerTest {
     updatedBy = faker.lorem().characters(8);
     hiddenBy = faker.lorem().characters(8);
     hiddenReason = faker.lorem().characters(8);
+    hiddenUntilDate = now().plusDays(30);
   }
 
   @Test
@@ -512,8 +513,8 @@ class ConnectionControllerTest {
 
   @Test
   void shouldReturnHiddenDiscrepancies() throws Exception {
-    List<HiddenDiscrepancy> hiddenDiscrepancyList = List.of(
-        HiddenDiscrepancy.builder()
+    List<HiddenDiscrepancyDto> hiddenDiscrepancyDtoList = List.of(
+        HiddenDiscrepancyDto.builder()
             .id(gmcId + designatedBody1)
             .gmcId(gmcId)
             .hiddenForDesignatedBodyCode(designatedBody1)
@@ -523,7 +524,7 @@ class ConnectionControllerTest {
     );
 
     HiddenDiscrepancyInfoDto hiddenDiscrepancyInfoDto = HiddenDiscrepancyInfoDto.builder()
-        .hiddenDiscrepancies(hiddenDiscrepancyList)
+        .hiddenDiscrepancies(hiddenDiscrepancyDtoList)
         .gmcReferenceNumber(gmcId)
         .designatedBody(designatedBody1)
         .tcsDesignatedBody(designatedBody2)

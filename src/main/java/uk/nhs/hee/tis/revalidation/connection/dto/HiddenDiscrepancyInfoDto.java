@@ -45,5 +45,5 @@ public class HiddenDiscrepancyInfoDto {
   private String programmeName;
   private String designatedBody;
   private String tcsDesignatedBody;
-  private List<HiddenDiscrepancy> hiddenDiscrepancies;
+  private List<HiddenDiscrepancyDto> hiddenDiscrepancies;
 }

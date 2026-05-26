@@ -22,6 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,4 +44,5 @@ public class HiddenDiscrepancyDto {
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
+  private LocalDate hiddenUntilDate;
 }

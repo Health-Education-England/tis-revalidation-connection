@@ -50,8 +50,8 @@ class HiddenDiscrepancyMapperTest {
   private static final String REASON_2 = "reason2";
   private static final LocalDateTime HIDDEN_DATE_TIME_1 = LocalDateTime.now();
   private static final LocalDateTime HIDDEN_DATE_TIME_2 = LocalDateTime.now().plusDays(1);
-  private static final LocalDate HIDDEN_UNTIL_1 = LocalDate.now();
-  private static final LocalDate HIDDEN_UNTIL_2 = LocalDate.now().plusDays(30);
+  private static final LocalDate HIDDEN_UNTIL_1 = LocalDate.of(2026, 12, 31);
+  private static final LocalDate HIDDEN_UNTIL_2 = HIDDEN_UNTIL_1.plusDays(30);
 
   private HiddenDiscrepancyMapper mapper;
 

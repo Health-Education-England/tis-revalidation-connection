@@ -48,8 +48,8 @@ class HiddenDiscrepancyInfoDtoMapperTest {
   private static final String FIRST_NAME2 = "first2";
   private static final String LAST_NAME1 = "last1";
   private static final String LAST_NAME2 = "last2";
-  private static final LocalDate HIDDEN_UNTIL_1 =  LocalDate.now();
-  private static final LocalDate HIDDEN_UNTIL_2 =  LocalDate.now().plusDays(1);
+  private static final LocalDate HIDDEN_UNTIL_1 =  LocalDate.of(2026, 12, 31);
+  private static final LocalDate HIDDEN_UNTIL_2 =  HIDDEN_UNTIL_1.plusDays(30);
 
   private final HiddenDiscrepancyInfoMapper mapper =
       Mappers.getMapper(HiddenDiscrepancyInfoMapper.class);

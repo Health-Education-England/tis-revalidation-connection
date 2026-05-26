@@ -154,8 +154,6 @@ class HiddenDiscrepancyInfoDtoMapperTest {
 
     // mapped fields
     var result1 = list.get(0);
-    var result2 = list.get(1);
-
     assertEquals(GMC_ID1, result1.getGmcReferenceNumber());
     assertEquals(DBC1, result1.getDesignatedBody());
     assertEquals(DBC2, result1.getTcsDesignatedBody());
@@ -165,6 +163,7 @@ class HiddenDiscrepancyInfoDtoMapperTest {
     assertEquals(1, result1.getHiddenDiscrepancies().size());
     verifyHiddenDiscrepancyDto(result1.getHiddenDiscrepancies().get(0), hiddenDiscrepancy1);
 
+    var result2 = list.get(1);
     assertEquals(GMC_ID2, result2.getGmcReferenceNumber());
     assertEquals(DBC2, result2.getDesignatedBody());
     assertEquals(DBC1, result2.getTcsDesignatedBody());

@@ -520,6 +520,7 @@ class ConnectionControllerTest {
             .hiddenForDesignatedBodyCode(designatedBody1)
             .hiddenBy(hiddenBy)
             .reason(hiddenReason)
+            .hiddenUntilDate(hiddenUntilDate)
             .build()
     );
 
@@ -566,7 +567,10 @@ class ConnectionControllerTest {
             jsonPath("$.hiddenDiscrepancies.[*].designatedBody").value(hasItem(designatedBody1)))
         .andExpect(
             jsonPath("$.hiddenDiscrepancies.[*].tcsDesignatedBody")
-                .value(hasItem(designatedBody2)));
+                .value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].hiddenDiscrepancies.[*].hiddenUntilDate")
+                .value(hasItem(hiddenUntilDate.toString())));
   }
 
   @Test
@@ -593,7 +597,8 @@ class ConnectionControllerTest {
   @Test
   void shouldReturnHiddenDiscrepanciesByGmcId() throws Exception {
     HiddenDiscrepancyDto discrepancy1 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
-        .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").build();
+        .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").
+        hiddenUntilDate(hiddenUntilDate).build();
     HiddenDiscrepancyDto discrepancy2 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
         .hiddenForDesignatedBodyCode(designatedBody2).reason("reason2").build();
     List<HiddenDiscrepancyDto> discrepancies = List.of(discrepancy1, discrepancy2);
@@ -605,6 +610,7 @@ class ConnectionControllerTest {
         .andExpect(jsonPath("$[0].gmcId").value(gmcId))
         .andExpect(jsonPath("$[0].reason").value("reason1"))
         .andExpect(jsonPath("$[0].hiddenForDesignatedBodyCode").value(designatedBody1))
+        .andExpect(jsonPath("$[0].hiddenUntilDate").value(hiddenUntilDate.toString()))
         .andExpect(jsonPath("$[1].gmcId").value(gmcId))
         .andExpect(jsonPath("$[1].reason").value("reason2"))
         .andExpect(jsonPath("$[1].hiddenForDesignatedBodyCode").value(designatedBody2));

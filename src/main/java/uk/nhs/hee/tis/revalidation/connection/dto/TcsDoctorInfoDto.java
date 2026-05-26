@@ -32,6 +32,4 @@ public class TcsDoctorInfoDto {
   private LocalDate programmeMembershipEndDate;
   private LocalDate curriculumEndDate;
   private String dataSource;
-  @Nullable
-  private Boolean syncEnd;
 }

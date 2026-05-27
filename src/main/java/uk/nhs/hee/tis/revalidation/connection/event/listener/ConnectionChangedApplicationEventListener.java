@@ -21,6 +21,8 @@
 
 package uk.nhs.hee.tis.revalidation.connection.event.listener;
 
+import static org.springframework.util.StringUtils.hasText;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -28,36 +30,38 @@ import uk.nhs.hee.tis.revalidation.connection.event.ConnectionChangedApplication
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 /**
- * Listens for ConnectionLog events.
+ * Listens for ConnectionChangedApplicationEvent events.
  */
 @Component
 @Slf4j
-public class ConnectionLogApplicationEventListener {
+public class ConnectionChangedApplicationEventListener {
 
   private final HiddenDiscrepancyService hiddenDiscrepancyService;
 
   /**
-   * Create a listener for ConnectionLog Events.
+   * Create a listener for ConnectionChangedApplicationEvent Events.
    *
    * @param hiddenDiscrepancyService the service to manage hidden discrepancies
    */
-  public ConnectionLogApplicationEventListener(HiddenDiscrepancyService hiddenDiscrepancyService) {
+  public ConnectionChangedApplicationEventListener(
+      HiddenDiscrepancyService hiddenDiscrepancyService) {
     this.hiddenDiscrepancyService = hiddenDiscrepancyService;
   }
 
   /**
-   * Handle ConnectionLog change events by showing all hidden discrepancies for the GMC ID.
+   * Handle ConnectionChangedApplicationEvent change events by showing all hidden discrepancies for
+   * the GMC ID.
    *
    * @param event the event containing the connection log information
    */
   @EventListener
   public void handleConnectionChangedEvent(ConnectionChangedApplicationEvent event) {
-    String gmcId = event.getConnectionLog().getGmcId();
-    log.info("Connection Changed, showing all hidden discrepancies for gmcId: {}", gmcId);
-    if (gmcId == null || gmcId.isBlank()) {
+    if (event.getConnectionLog() == null || !hasText(event.getConnectionLog().getGmcId())) {
       log.warn("GMC ID is blank in the connection log, cannot show hidden discrepancies.");
       return;
     }
+    String gmcId = event.getConnectionLog().getGmcId();
+    log.info("Connection Changed, showing all hidden discrepancies for gmcId: {}", gmcId);
     hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(gmcId);
   }
 }

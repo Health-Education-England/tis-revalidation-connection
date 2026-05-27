@@ -36,7 +36,7 @@ import uk.nhs.hee.tis.revalidation.connection.event.ConnectionChangedApplication
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
 @ExtendWith(MockitoExtension.class)
-class ConnectionLogApplicationEventListenerTest {
+class ConnectionChangedApplicationEventListenerTest {
 
   private static final String GMC_ID_1 = "1234567";
   private static final String DBC_1 = "1-ABCDE";
@@ -48,7 +48,7 @@ class ConnectionLogApplicationEventListenerTest {
   private HiddenDiscrepancyService hiddenDiscrepancyService;
 
   @InjectMocks
-  private ConnectionLogApplicationEventListener listener;
+  private ConnectionChangedApplicationEventListener listener;
 
   private ConnectionLog connectionLog;
 

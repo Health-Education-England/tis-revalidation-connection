@@ -22,6 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.util.StringUtils.hasText;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -132,7 +133,7 @@ public class HiddenDiscrepancyService {
    * @param gmcId the GMC ID for which to show hidden discrepancies
    */
   public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
-    if (gmcId == null || gmcId.isBlank()) {
+    if (!hasText(gmcId)) {
       throw new IllegalArgumentException("GMC ID must not be null");
     }
     hiddenDiscrepancyRepository.deleteByGmcId(gmcId);
@@ -155,7 +156,7 @@ public class HiddenDiscrepancyService {
     var map = new HashMap<String, HiddenDiscrepancyResponseItem>();
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
-      if (StringUtils.hasText(gmcId)) {
+      if (hasText(gmcId)) {
         var item = new HiddenDiscrepancyResponseItem();
         item.setGmcId(gmcId);
         map.put(gmcId, item);

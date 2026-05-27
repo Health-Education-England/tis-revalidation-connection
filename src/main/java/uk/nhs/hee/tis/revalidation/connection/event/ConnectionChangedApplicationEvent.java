@@ -21,9 +21,15 @@
 
 package uk.nhs.hee.tis.revalidation.connection.event;
 
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
+/**
+ * An application event that is published due to a change in the connection status of a doctor. The
+ * event contains the connection log that has been created.
+ */
+@Getter
 public class ConnectionChangedApplicationEvent extends ApplicationEvent {
 
   private final ConnectionLog connectionLog;
@@ -36,14 +42,5 @@ public class ConnectionChangedApplicationEvent extends ApplicationEvent {
   public ConnectionChangedApplicationEvent(ConnectionLog source) {
     super(source);
     this.connectionLog = source;
-  }
-
-  /**
-   * Get the connection log that has been created.
-   *
-   * @return the connection log that has been created
-   */
-  public ConnectionLog getConnectionLog() {
-    return connectionLog;
   }
 }

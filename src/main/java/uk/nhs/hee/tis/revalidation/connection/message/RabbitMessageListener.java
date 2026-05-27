@@ -1,5 +1,7 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
+import static org.springframework.util.StringUtils.hasText;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -76,11 +78,11 @@ public class RabbitMessageListener {
    *
    * @param message the message with updated tcs doctor info
    */
-  @RabbitListener(queues = "${app.rabbit.reval.queue.tcsdoctorinfo.updated.connection}")
+  @RabbitListener(queues = "${app.rabbit.reval.queue.tcsdoctorinfo.updated.connection}",
+      ackMode = "NONE")
   public void receiveTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
     log.info("Received message for updated tcs doctor info: {}", message);
-    if (message == null || message.getGmcReferenceNumber() == null
-        || message.getGmcReferenceNumber().isBlank()) {
+    if (message == null || !hasText(message.getGmcReferenceNumber())) {
       throw new AmqpRejectAndDontRequeueException(
           "Received invalid updated tcs doctor info message");
     }

@@ -19,39 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.entity;
+package uk.nhs.hee.tis.revalidation.connection.config;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.mongo.MongoLockProvider;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * A data class to handle hidden discrepancy status.
+ * Configures Spring scheduling and ShedLock for clustered-safe scheduled jobs.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Document(collection = "hiddenDiscrepancy")
-@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
-    name = "gmc_dbc_idx",
-    unique = true)
-public class HiddenDiscrepancy {
+@Configuration
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "${app.scheduling.lock.maxTimedefault}",
+    defaultLockAtLeastFor = "${app.scheduling.lock.minTimedefault}")
+public class SchedulingConfig {
 
-  @Id
-  private String id;
-  private String gmcId;
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-  @Indexed(sparse = true)
-  private LocalDate hiddenUntilDate;
+  /**
+   * Provides the ShedLock lock provider backed by MongoDB.
+   *
+   * @param template the Mongo template used to access the target database
+   * @return a lock provider used by scheduled jobs annotated with {@code @SchedulerLock}
+   */
+  @Bean
+  public LockProvider lockProvider(MongoTemplate template) {
+    return new MongoLockProvider(template.getDb());
+  }
 }

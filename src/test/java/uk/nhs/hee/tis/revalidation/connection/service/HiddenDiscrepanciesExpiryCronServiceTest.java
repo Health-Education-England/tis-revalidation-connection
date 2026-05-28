@@ -19,39 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.entity;
+package uk.nhs.hee.tis.revalidation.connection.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import static org.mockito.Mockito.verify;
 
-/**
- * A data class to handle hidden discrepancy status.
- */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Document(collection = "hiddenDiscrepancy")
-@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
-    name = "gmc_dbc_idx",
-    unique = true)
-public class HiddenDiscrepancy {
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-  @Id
-  private String id;
-  private String gmcId;
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-  @Indexed(sparse = true)
-  private LocalDate hiddenUntilDate;
+@ExtendWith(MockitoExtension.class)
+class HiddenDiscrepanciesExpiryCronServiceTest {
+
+  @Mock
+  private HiddenDiscrepancyService hiddenDiscrepancyService;
+
+  private HiddenDiscrepanciesExpiryCronService service;
+
+  @BeforeEach
+  void setUp() {
+    service = new HiddenDiscrepanciesExpiryCronService(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldCallRemoveExpiredHiddenDiscrepanciesOnce() {
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyService).removeExpiredHiddenDiscrepancies();
+  }
 }

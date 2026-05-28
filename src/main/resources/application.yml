@@ -35,7 +35,7 @@ app:
       hiddendiscrepancy.batchsize: ${ESSYNC_HIDDEN_DISCREPANCY_BATCH_SIZE:5000}
     cron:
       hiddendiscrepancy.expiry:
-        expression: ${REVAL_HIDDENDISCREPANCY_EXPIRY_CRON:0 0 0 * * *}
+        expression: ${REVAL_HIDDENDISCREPANCY_EXPIRY_CRON:0 0 2 * * *}
         lock: ${REVAL_HIDDENDISCREPANCY_EXPIRY_CRONLOCK:10m}
 
   rabbit:

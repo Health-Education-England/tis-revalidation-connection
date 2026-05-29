@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -40,6 +41,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -288,11 +290,11 @@ class HiddenDiscrepancyServiceTest {
 
     // mapper should be called only for new ids
     verify(hideDiscrepancyMapper, never()).toEntity(eq(dto), eq(GMC_ID_1),
-        any(LocalDateTime.class), anyString());
+        any(LocalDateTime.class), anyString(), anyString(), anyString());
     verify(hideDiscrepancyMapper).toEntity(eq(dto), eq(GMC_ID_2), any(LocalDateTime.class),
-        anyString());
+        eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
     verify(hideDiscrepancyMapper).toEntity(eq(dto), eq(GMC_ID_3), any(LocalDateTime.class),
-        anyString());
+        eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
   }
 
   @Test
@@ -375,9 +377,9 @@ class HiddenDiscrepancyServiceTest {
     assertSavedEntities(saveCaptor.getValue(), Set.of(GMC_ID_1, GMC_ID_2), dto);
 
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_1),
-        any(LocalDateTime.class), anyString());
+        any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
-        any(LocalDateTime.class), anyString());
+        any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
   }
 
   @Test
@@ -433,11 +435,11 @@ class HiddenDiscrepancyServiceTest {
 
     // verify mapper called 3 times (2 for doctor1, 1 for doctor2)
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_1),
-        any(LocalDateTime.class), eq(ADMIN_DBC_1));
+        any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(ADMIN_DBC_2));
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_1),
-        any(LocalDateTime.class), eq(ADMIN_DBC_2));
+        any(LocalDateTime.class), eq(ADMIN_DBC_2), eq(ADMIN_DBC_1), eq(ADMIN_DBC_2));
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
-        any(LocalDateTime.class), eq(ADMIN_DBC_1));
+        any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
   }
 
   @Test
@@ -632,13 +634,15 @@ class HiddenDiscrepancyServiceTest {
 
   // Mock mapper to return a real entity based on the input dto, gmcId and supplied dbc
   private void mockMapperToReturnRealEntity() {
-    when(hideDiscrepancyMapper.toEntity(any(HideDiscrepancyDto.class), anyString(),
-        any(LocalDateTime.class), anyString()))
+    lenient().when(hideDiscrepancyMapper.toEntity(any(HideDiscrepancyDto.class), anyString(),
+            any(LocalDateTime.class), anyString(), nullable(String.class), nullable(String.class)))
         .thenAnswer(inv -> {
           HideDiscrepancyDto dto = inv.getArgument(0, HideDiscrepancyDto.class);
           String gmcId = inv.getArgument(1, String.class);
           LocalDateTime batchTime = inv.getArgument(2, LocalDateTime.class);
           String dbc = inv.getArgument(3, String.class);
+          String currentDbc = inv.getArgument(4, String.class);
+          String programmeDbc = inv.getArgument(5, String.class);
 
           return HiddenDiscrepancy.builder()
               .gmcId(gmcId)
@@ -646,6 +650,8 @@ class HiddenDiscrepancyServiceTest {
               .hiddenBy(dto.getHiddenBy())
               .reason(dto.getReason())
               .hiddenDateTime(batchTime)
+              .currentDesignatedBodyCode(currentDbc)
+              .programmeOwnerDesignatedBodyCode(programmeDbc)
               .build();
         });
   }
@@ -675,11 +681,25 @@ class HiddenDiscrepancyServiceTest {
         .collect(Collectors.toSet());
     assertEquals(expectedGmcs, savedGmcs);
 
+    // Build a map of doctors by GMC ID for verification
+    Map<String, DoctorInfoDto> doctorsByGmcId = dto.getDoctors().stream()
+        .filter(doctor -> doctor.getGmcId() != null)
+        .collect(Collectors.toMap(DoctorInfoDto::getGmcId, doctor -> doctor,
+            (existing, replacement) -> existing));
+
     for (HiddenDiscrepancy hd : saved) {
       assertEquals(dto.getAdminDesignatedBodyCodes().get(0), hd.getHiddenForDesignatedBodyCode());
       assertEquals(dto.getHiddenBy(), hd.getHiddenBy());
       assertEquals(dto.getReason(), hd.getReason());
       assertNotNull(hd.getHiddenDateTime());
+
+      // Verify parent class fields are populated from DoctorInfoDto
+      DoctorInfoDto doctorInfo = doctorsByGmcId.get(hd.getGmcId());
+      if (doctorInfo != null) {
+        assertEquals(doctorInfo.getCurrentDesignatedBodyCode(), hd.getCurrentDesignatedBodyCode());
+        assertEquals(doctorInfo.getProgrammeOwnerDesignatedBodyCode(),
+            hd.getProgrammeOwnerDesignatedBodyCode());
+      }
     }
 
     Set<LocalDateTime> times = saved.stream()
@@ -705,5 +725,157 @@ class HiddenDiscrepancyServiceTest {
     );
     assertThat(ex.getMessage()).contains("GMC ID must not be null");
     verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(any());
+  }
+
+  @Test
+  void shouldNotProcessWhenTcsDoctorInfoMessageIsNull() {
+    service.handleTcsDoctorInfoUpdateMessage(null);
+
+    verifyNoInteractions(hiddenDiscrepancyRepository);
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"   ", "\t", "\n"})
+  void shouldNotProcessWhenTcsDoctorInfoMessageHasInvalidGmcId(String invalidGmcId) {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(invalidGmcId)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verifyNoInteractions(hiddenDiscrepancyRepository);
+  }
+
+  @Test
+  void shouldNotDeleteWhenNoHiddenDiscrepanciesFoundForGmcId() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1)).thenReturn(List.of());
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(anyString());
+  }
+
+  @Test
+  void shouldNotDeleteWhenTcsDesignatedBodyMatchesProgrammeOwnerDesignatedBodyCode() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    var hiddenDiscrepancy = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
+        .programmeOwnerDesignatedBodyCode(ADMIN_DBC_1)
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1))
+        .thenReturn(List.of(hiddenDiscrepancy));
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository, never()).deleteByGmcId(anyString());
+  }
+
+  @Test
+  void shouldDeleteAllWhenTcsDesignatedBodyDoesNotMatchProgrammeOwnerDesignatedBodyCode() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    var hiddenDiscrepancy = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
+        .programmeOwnerDesignatedBodyCode(ADMIN_DBC_2) // Different from tcsDesignatedBody
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1))
+        .thenReturn(List.of(hiddenDiscrepancy));
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
+  }
+
+  @Test
+  void shouldDeleteAllWhenAnyDiscrepancyHasMismatchedProgrammeOwnerDesignatedBodyCode() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    var hiddenDiscrepancy1 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
+        .programmeOwnerDesignatedBodyCode(ADMIN_DBC_1) // Matches
+        .build();
+
+    var hiddenDiscrepancy2 = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
+        .programmeOwnerDesignatedBodyCode(ADMIN_DBC_2) // Does not match
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1))
+        .thenReturn(List.of(hiddenDiscrepancy1, hiddenDiscrepancy2));
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
+  }
+
+  @Test
+  void shouldHandleNullProgrammeOwnerDesignatedBodyCodeInDiscrepancy() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(ADMIN_DBC_1)
+        .build();
+
+    var hiddenDiscrepancy = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
+        .programmeOwnerDesignatedBodyCode(null) // null value
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1))
+        .thenReturn(List.of(hiddenDiscrepancy));
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
+  }
+
+  @Test
+  void shouldHandleNullTcsDesignatedBodyInMessage() {
+    var message = uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID_1)
+        .tcsDesignatedBody(null)
+        .build();
+
+    var hiddenDiscrepancy = HiddenDiscrepancy.builder()
+        .gmcId(GMC_ID_1)
+        .hiddenForDesignatedBodyCode(ADMIN_DBC_2)
+        .programmeOwnerDesignatedBodyCode(ADMIN_DBC_1)
+        .build();
+
+    when(hiddenDiscrepancyRepository.findByGmcId(GMC_ID_1))
+        .thenReturn(List.of(hiddenDiscrepancy));
+
+    service.handleTcsDoctorInfoUpdateMessage(message);
+
+    verify(hiddenDiscrepancyRepository).findByGmcId(GMC_ID_1);
+    verify(hiddenDiscrepancyRepository).deleteByGmcId(GMC_ID_1);
   }
 }

@@ -354,6 +354,13 @@ public class HiddenDiscrepancyService {
         hiddenDiscrepancyRepository.findByGmcId(gmcId));
   }
 
+  /**
+   * Handle incoming messages with updated TCS doctor info. If the designated body in the message
+   * differs from the one in any existing hidden discrepancy for the GMC ID, all hidden
+   * discrepancies for that GMC ID will be removed.
+   *
+   * @param message the message containing updated TCS doctor info
+   */
   public void handleTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
     if (message == null || !StringUtils.hasText(message.getGmcReferenceNumber())) {
       log.warn("Received invalid TcsDoctorInfoDto message: {}", message);
@@ -371,7 +378,8 @@ public class HiddenDiscrepancyService {
           discrepancy.getProgrammeOwnerDesignatedBodyCode())) {
         showAllHiddenDiscrepanciesForGmcId(gmcId);
         log.info(
-            "Removed hidden discrepancy for GMC ID: {} and designated body: {} due to tcs info update.",
+            "Removed hidden discrepancy for GMC ID: {} and designated body: "
+                + "{} due to tcs info update.",
             gmcId, discrepancy.getHiddenForDesignatedBodyCode());
         break;
       }

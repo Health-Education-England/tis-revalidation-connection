@@ -48,8 +48,6 @@ public interface HideDiscrepancyMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "hiddenDateTime", source = "batchTime")
   @Mapping(target = "hiddenForDesignatedBodyCode", source = "hiddenForDesignatedBodyCode")
-  @Mapping(target = "currentDesignatedBodyCode", source = "currentDesignatedBodyCode")
-  @Mapping(target = "programmeOwnerDesignatedBodyCode", source = "programmeOwnerDesignatedBodyCode")
   HiddenDiscrepancy toEntity(HideDiscrepancyDto dto, String gmcId, LocalDateTime batchTime,
       String hiddenForDesignatedBodyCode, String currentDesignatedBodyCode,
       String programmeOwnerDesignatedBodyCode);

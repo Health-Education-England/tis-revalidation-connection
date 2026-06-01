@@ -37,12 +37,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
     name = "gmc_dbc_idx",
     unique = true)
 @Document(collection = "hiddenDiscrepancy")
-
 public class HiddenDiscrepancy extends Discrepancy {
 
   private String hiddenForDesignatedBodyCode;

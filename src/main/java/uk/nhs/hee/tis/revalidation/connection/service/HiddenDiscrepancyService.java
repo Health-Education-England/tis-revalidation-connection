@@ -46,6 +46,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HideDiscrepancyMapper;
@@ -209,15 +210,28 @@ public class HiddenDiscrepancyService {
       Map<String, HiddenDiscrepancyResponseItem> responseItems) {
     List<HiddenDiscrepancy> toSave = new ArrayList<>();
     LocalDateTime saveTime = LocalDateTime.now();
+
+    Map<String, DoctorInfoDto> doctorsByGmcId = dto.getDoctors().stream()
+        .filter(doctor -> doctor.getGmcId() != null)
+        .collect(Collectors.toMap(DoctorInfoDto::getGmcId, doctor -> doctor,
+            (existing, replacement) -> existing));
+
     for (Map.Entry<String, List<String>> entry : toHideByGmc.entrySet()) {
       String gmcId = entry.getKey();
       var item = responseItems.get(gmcId);
+      DoctorInfoDto doctorInfo = doctorsByGmcId.get(gmcId);
+
       for (String dbc : entry.getValue()) {
         String key = buildKey(gmcId, dbc);
         if (existingPairs.contains(key)) {
           mergeExisting(item, dbc);
         } else {
-          var entity = hideDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc);
+          String currentDbc = doctorInfo != null ? doctorInfo.getCurrentDesignatedBodyCode() : null;
+          String programmeDbc =
+              doctorInfo != null ? doctorInfo.getProgrammeOwnerDesignatedBodyCode() : null;
+
+          var entity = hideDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc,
+              currentDbc, programmeDbc);
           toSave.add(entity);
         }
       }
@@ -338,5 +352,29 @@ public class HiddenDiscrepancyService {
   public List<HiddenDiscrepancyDto> findByGmcId(String gmcId) {
     return hiddenDiscrepancyMapper.toHiddenDiscrepancyDtoList(
         hiddenDiscrepancyRepository.findByGmcId(gmcId));
+  }
+
+  public void handleTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
+    if (message == null || !StringUtils.hasText(message.getGmcReferenceNumber())) {
+      log.warn("Received invalid TcsDoctorInfoDto message: {}", message);
+      return;
+    }
+    String gmcId = message.getGmcReferenceNumber();
+    List<HiddenDiscrepancy> discrepancies = hiddenDiscrepancyRepository.findByGmcId(gmcId);
+    if (discrepancies.isEmpty()) {
+      log.info("No hidden discrepancies found for GMC ID: {}. No action needed.", gmcId);
+      return;
+    }
+
+    for (HiddenDiscrepancy discrepancy : discrepancies) {
+      if (!Objects.equals(message.getTcsDesignatedBody(),
+          discrepancy.getProgrammeOwnerDesignatedBodyCode())) {
+        showAllHiddenDiscrepanciesForGmcId(gmcId);
+        log.info(
+            "Removed hidden discrepancy for GMC ID: {} and designated body: {} due to tcs info update.",
+            gmcId, discrepancy.getHiddenForDesignatedBodyCode());
+        break;
+      }
+    }
   }
 }

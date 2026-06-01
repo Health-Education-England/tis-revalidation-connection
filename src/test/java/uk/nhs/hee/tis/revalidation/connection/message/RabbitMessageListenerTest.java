@@ -104,7 +104,7 @@ class RabbitMessageListenerTest {
 
     rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
 
-    verify(hiddenDiscrepancyService).showAllHiddenDiscrepanciesForGmcId(GMC_ID);
+    verify(hiddenDiscrepancyService).handleTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
   }
 
   @Test

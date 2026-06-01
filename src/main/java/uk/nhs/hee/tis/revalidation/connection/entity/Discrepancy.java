@@ -19,25 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.dto;
+package uk.nhs.hee.tis.revalidation.connection.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.Id;
 
 /**
- * A DTO to hold the programme information of a doctor.
+ * A data class to store discrepancies.
  */
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TcsDoctorInfoDto {
-  private String gmcReferenceNumber;
-  private String tcsDesignatedBody;
-  private String programmeOwner;
-  private String dataSource;
+@SuperBuilder
+public class Discrepancy {
+
+  @Id
+  private String id;
+  private String gmcId;
+  private String currentDesignatedBodyCode;
+  private String programmeOwnerDesignatedBodyCode;
 }

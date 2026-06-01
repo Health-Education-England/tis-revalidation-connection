@@ -86,6 +86,6 @@ public class RabbitMessageListener {
       throw new AmqpRejectAndDontRequeueException(
           "Received invalid updated tcs doctor info message");
     }
-    hiddenDiscrepancyService.showAllHiddenDiscrepanciesForGmcId(message.getGmcReferenceNumber());
+    hiddenDiscrepancyService.handleTcsDoctorInfoUpdateMessage(message);
   }
 }

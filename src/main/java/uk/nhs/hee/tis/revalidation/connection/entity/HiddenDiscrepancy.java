@@ -23,10 +23,10 @@ package uk.nhs.hee.tis.revalidation.connection.entity;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -36,18 +36,29 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Document(collection = "hiddenDiscrepancy")
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 @CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
     name = "gmc_dbc_idx",
     unique = true)
-public class HiddenDiscrepancy {
+@Document(collection = "hiddenDiscrepancy")
+public class HiddenDiscrepancy extends Discrepancy {
 
-  @Id
-  private String id;
-  private String gmcId;
   private String hiddenForDesignatedBodyCode;
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
+
+  /**
+   * Constructor to populate parent class fields.
+   */
+  public HiddenDiscrepancy(String id, String gmcId, String newDesignatedBodyCode,
+      String previousDesignatedBodyCode, String hiddenForDesignatedBodyCode, String hiddenBy,
+      String reason, LocalDateTime hiddenDateTime) {
+    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode);
+    this.hiddenForDesignatedBodyCode = hiddenForDesignatedBodyCode;
+    this.hiddenBy = hiddenBy;
+    this.reason = reason;
+    this.hiddenDateTime = hiddenDateTime;
+  }
 }

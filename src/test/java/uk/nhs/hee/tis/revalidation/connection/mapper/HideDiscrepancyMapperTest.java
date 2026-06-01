@@ -83,5 +83,7 @@ class HideDiscrepancyMapperTest {
     assertEquals(REASON, entity.getReason());
     assertEquals(GMC_ID, entity.getGmcId());
     assertEquals(BATCH_TIME, entity.getHiddenDateTime());
+    assertEquals(CURRENT_DBC, entity.getCurrentDesignatedBodyCode());
+    assertEquals(PROGRAMME_OWNER_DBC, entity.getProgrammeOwnerDesignatedBodyCode());
   }
 }

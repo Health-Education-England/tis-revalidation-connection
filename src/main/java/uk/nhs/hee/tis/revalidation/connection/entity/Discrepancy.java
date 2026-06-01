@@ -35,7 +35,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@Document(collection = "discrepancy")
 public class Discrepancy {
 
   @Id

@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * A data class to handle hidden discrepancy status.
@@ -40,6 +41,8 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 @CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
     name = "gmc_dbc_idx",
     unique = true)
+@Document(collection = "hiddenDiscrepancy")
+
 public class HiddenDiscrepancy extends Discrepancy {
 
   private String hiddenForDesignatedBodyCode;

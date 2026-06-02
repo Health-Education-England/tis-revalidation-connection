@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
@@ -51,6 +52,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.RemoveConnectionReasonCode;
+import uk.nhs.hee.tis.revalidation.connection.event.ConnectionChangedApplicationEvent;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
 import uk.nhs.hee.tis.revalidation.connection.message.payloads.IndexSyncMessage;
@@ -73,6 +75,8 @@ public class ConnectionService {
 
   private final ConnectionLogMapper connectionLogMapper;
 
+  private final ApplicationEventPublisher applicationEventPublisher;
+
   @Value("${app.rabbit.reval.exchange}")
   private String exchange;
 
@@ -87,13 +91,15 @@ public class ConnectionService {
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
       ConnectionRepository repository, ConnectionLogCustomRepository connectionLogCustomRepository,
       RabbitTemplate rabbitTemplate,
-      ConnectionLogMapper connectionLogMapper) {
+      ConnectionLogMapper connectionLogMapper,
+      ApplicationEventPublisher applicationEventPublisher) {
     this.gmcClientService = gmcClientService;
     this.exceptionService = exceptionService;
     this.repository = repository;
     this.connectionLogCustomRepository = connectionLogCustomRepository;
     this.rabbitTemplate = rabbitTemplate;
     this.connectionLogMapper = connectionLogMapper;
+    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
@@ -153,7 +159,8 @@ public class ConnectionService {
   ) {
     ConnectionLog log = connectionLogMapper.fromDto(connectionLogDto);
     log.setId(UUID.randomUUID().toString());
-    repository.save(log);
+    ConnectionLog savedLog = repository.save(log);
+    publishConnectionChangedApplicationEvent(savedLog);
   }
 
   private UpdateConnectionResponseDto processConnectionRequest(
@@ -202,8 +209,10 @@ public class ConnectionService {
       final ConnectionRequestType connectionRequestType,
       final String admin) {
 
+    var returnCode = gmcResponse.getReturnCode();
+
     // Save additional "External" log if doctor has already been added to this DB
-    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(gmcResponse.getReturnCode())) {
+    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
       repository.save(
           ConnectionRequestLog.builder()
               .gmcId(gmcId)
@@ -223,7 +232,7 @@ public class ConnectionService {
         .previousDesignatedBodyCode(currentDesignatedBodyCode)
         .reason(changeReason)
         .requestType(connectionRequestType)
-        .responseCode(gmcResponse.getReturnCode())
+        .responseCode(returnCode)
         .requestTime(now())
         .updatedBy(admin)
         .build();
@@ -231,13 +240,19 @@ public class ConnectionService {
     //save connection info to mongodb
     repository.save(connectionRequestLog);
 
+    if (SUCCESS.getCode().equals(returnCode) || DOCTOR_ALREADY_ASSOCIATED.getCode()
+        .equals(returnCode)) {
+      // Only publish event for successful changes or already-associated outcomes
+      publishConnectionChangedApplicationEvent(connectionRequestLog);
+    }
+
     sendToRabbitOrExceptionLogs(gmcId,
         designatedBodyCode,
-        gmcResponse.getReturnCode(),
+        returnCode,
         gmcResponse.getSubmissionDate(),
         admin
     );
-    final var gmcResponseCode = fromCode(gmcResponse.getReturnCode());
+    final var gmcResponseCode = fromCode(returnCode);
     final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
     return UpdateConnectionResponseDto.builder().message(responseMessage).build();
   }
@@ -305,5 +320,10 @@ public class ConnectionService {
     var syncEndPayload = IndexSyncMessage.builder().payload(List.of()).syncEnd(true)
         .build();
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
+  }
+
+  private void publishConnectionChangedApplicationEvent(ConnectionLog connectionLog) {
+    var event = new ConnectionChangedApplicationEvent(connectionLog);
+    applicationEventPublisher.publishEvent(event);
   }
 }

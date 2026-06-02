@@ -21,44 +21,24 @@
 
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Id;
 
 /**
- * A data class to handle hidden discrepancy status.
+ * A data class to store discrepancies.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
-@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
-    name = "gmc_dbc_idx",
-    unique = true)
-@Document(collection = "hiddenDiscrepancy")
-public class HiddenDiscrepancy extends Discrepancy {
+public class Discrepancy {
 
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-
-  /**
-   * Constructor to populate parent class fields.
-   */
-  public HiddenDiscrepancy(String id, String gmcId, String newDesignatedBodyCode,
-      String previousDesignatedBodyCode, String hiddenForDesignatedBodyCode, String hiddenBy,
-      String reason, LocalDateTime hiddenDateTime) {
-    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode);
-    this.hiddenForDesignatedBodyCode = hiddenForDesignatedBodyCode;
-    this.hiddenBy = hiddenBy;
-    this.reason = reason;
-    this.hiddenDateTime = hiddenDateTime;
-  }
+  @Id
+  private String id;
+  private String gmcId;
+  private String currentDesignatedBodyCode;
+  private String programmeOwnerDesignatedBodyCode;
 }

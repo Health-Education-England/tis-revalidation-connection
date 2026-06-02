@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @SuperBuilder
 @Document(collection = "connectionLogs")
-public class ConnectionLog {
+public class ConnectionLog implements Serializable {
 
   @Id
   private String id; // this is a UUID converted to a String TODO refactor to UUID

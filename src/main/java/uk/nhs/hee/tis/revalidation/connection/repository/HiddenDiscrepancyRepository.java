@@ -52,4 +52,11 @@ public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscr
    * @return a list of HiddenDiscrepancy entities with a matching GMC ID
    */
   List<HiddenDiscrepancy> findByGmcId(String gmcId);
+
+  /**
+   * Deletes hidden discrepancies by GMC reference number.
+   *
+   * @param gmcId the GMC reference number for which to delete hidden discrepancies
+   */
+  void deleteByGmcId(String gmcId);
 }

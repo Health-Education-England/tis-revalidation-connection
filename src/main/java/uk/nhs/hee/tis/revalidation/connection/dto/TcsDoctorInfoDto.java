@@ -19,46 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.entity;
+package uk.nhs.hee.tis.revalidation.connection.dto;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * A data class to handle hidden discrepancy status.
+ * A DTO to hold the programme information of a doctor.
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
-@EqualsAndHashCode(callSuper = true)
-@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
-    name = "gmc_dbc_idx",
-    unique = true)
-@Document(collection = "hiddenDiscrepancy")
-public class HiddenDiscrepancy extends Discrepancy {
-
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-
-  /**
-   * Constructor to populate parent class fields.
-   */
-  public HiddenDiscrepancy(String id, String gmcId, String newDesignatedBodyCode,
-      String previousDesignatedBodyCode, String hiddenForDesignatedBodyCode, String hiddenBy,
-      String reason, LocalDateTime hiddenDateTime) {
-    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode);
-    this.hiddenForDesignatedBodyCode = hiddenForDesignatedBodyCode;
-    this.hiddenBy = hiddenBy;
-    this.reason = reason;
-    this.hiddenDateTime = hiddenDateTime;
-  }
+public class TcsDoctorInfoDto {
+  private String gmcReferenceNumber;
+  private String tcsDesignatedBody;
+  private String programmeOwner;
+  private String dataSource;
 }

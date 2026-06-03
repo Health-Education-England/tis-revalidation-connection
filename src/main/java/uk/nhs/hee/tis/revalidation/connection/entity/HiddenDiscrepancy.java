@@ -50,18 +50,4 @@ public class HiddenDiscrepancy extends Discrepancy {
   private String reason;
   private LocalDateTime hiddenDateTime;
   private LocalDate hiddenUntilDate;
-
-  /**
-   * Constructor to populate parent class fields.
-   */
-  public HiddenDiscrepancy(String id, String gmcId, String newDesignatedBodyCode,
-      String previousDesignatedBodyCode, String hiddenForDesignatedBodyCode, String hiddenBy,
-      String reason, LocalDateTime hiddenDateTime, LocalDate hiddenUntilDate) {
-    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode);
-    this.hiddenForDesignatedBodyCode = hiddenForDesignatedBodyCode;
-    this.hiddenBy = hiddenBy;
-    this.reason = reason;
-    this.hiddenDateTime = hiddenDateTime;
-    this.hiddenUntilDate = hiddenUntilDate;
-  }
 }

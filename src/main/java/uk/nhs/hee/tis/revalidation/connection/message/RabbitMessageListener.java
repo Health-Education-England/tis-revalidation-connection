@@ -1,10 +1,14 @@
 package uk.nhs.hee.tis.revalidation.connection.message;
 
+import static org.springframework.util.StringUtils.hasText;
+
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -67,5 +71,21 @@ public class RabbitMessageListener {
       return;
     }
     hiddenDiscrepancyService.sendHiddenDiscrepanciesForSync(hiddenDiscrepancyBatchSize);
+  }
+
+  /**
+   * Listens to messages containing tcs doctor info updates.
+   *
+   * @param message the message with updated tcs doctor info
+   */
+  @RabbitListener(queues = "${app.rabbit.reval.queue.tcsdoctorinfo.updated.connection}",
+      ackMode = "NONE")
+  public void receiveTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
+    log.info("Received message for updated tcs doctor info: {}", message);
+    if (message == null || !hasText(message.getGmcReferenceNumber())) {
+      throw new AmqpRejectAndDontRequeueException(
+          "Received invalid updated tcs doctor info message");
+    }
+    hiddenDiscrepancyService.handleTcsDoctorInfoUpdateMessage(message);
   }
 }

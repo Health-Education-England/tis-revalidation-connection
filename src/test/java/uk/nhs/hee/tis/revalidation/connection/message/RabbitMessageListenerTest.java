@@ -2,6 +2,7 @@ package uk.nhs.hee.tis.revalidation.connection.message;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -9,12 +10,17 @@ import com.github.javafaker.Faker;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -87,6 +93,39 @@ class RabbitMessageListenerTest {
   void shouldNotStartHiddenDiscrepancyEsSyncForInvalidMessage() {
     String invalidMessage = "invalidMessage";
     rabbitMessageListener.hiddenDiscrepancyEsSync(invalidMessage);
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldShowAllHiddenDiscrepanciesWhenReceivingProgrammeInfoUpdateMessage() {
+    TcsDoctorInfoDto tcsDoctorInfoDto = TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(GMC_ID)
+        .build();
+
+    rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
+
+    verify(hiddenDiscrepancyService).handleTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto);
+  }
+
+  @Test
+  void shouldNotShowHiddenDiscrepanciesWhenProgrammeInfoMessageIsNull() {
+    assertThrows(AmqpRejectAndDontRequeueException.class,
+        () -> rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(null));
+
+    verifyNoInteractions(hiddenDiscrepancyService);
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"   ", "\t\t", " \t \n "})
+  void shouldNotShowHiddenDiscrepanciesWhenGmcReferenceNumberIsInvalid(String gmcReferenceNumber) {
+    TcsDoctorInfoDto tcsDoctorInfoDto = TcsDoctorInfoDto.builder()
+        .gmcReferenceNumber(gmcReferenceNumber)
+        .build();
+
+    assertThrows(AmqpRejectAndDontRequeueException.class,
+        () -> rabbitMessageListener.receiveTcsDoctorInfoUpdateMessage(tcsDoctorInfoDto));
+
     verifyNoInteractions(hiddenDiscrepancyService);
   }
 }

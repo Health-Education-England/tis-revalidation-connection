@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
@@ -61,6 +63,7 @@ import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
+import uk.nhs.hee.tis.revalidation.connection.event.ConnectionChangedApplicationEvent;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.ConnectionLogMapperImpl;
 import uk.nhs.hee.tis.revalidation.connection.message.ConnectionMessage;
@@ -95,6 +98,9 @@ class ConnectionServiceTest {
   @Mock
   private ExceptionLogService exceptionService;
 
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
+
   @Spy
   private ConnectionLogMapper connectionLogMapper = new ConnectionLogMapperImpl();
 
@@ -106,6 +112,8 @@ class ConnectionServiceTest {
   private ArgumentCaptor<ConnectionRequestLog> connectionRequestLogArgumentCaptor;
   @Captor
   private ArgumentCaptor<IndexSyncMessage<List<ConnectionLogDto>>> indexSyncMessageCaptor;
+  @Captor
+  private ArgumentCaptor<ConnectionChangedApplicationEvent> connectionChangedEventCaptor;
 
   private String changeReason;
   private String designatedBodyCode;
@@ -176,6 +184,8 @@ class ConnectionServiceTest {
     verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
+    verify(applicationEventPublisher, times(2))
+        .publishEvent(any(ConnectionChangedApplicationEvent.class));
 
     List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
     assertEquals(2, connectionMessageList.size());
@@ -214,6 +224,8 @@ class ConnectionServiceTest {
     verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
     verify(repository, times(2)).save(any(ConnectionRequestLog.class));
+    verify(applicationEventPublisher, times(2))
+        .publishEvent(any(ConnectionChangedApplicationEvent.class));
 
     List<ConnectionMessage> connectionMessageList = connectionMessageArgCaptor.getAllValues();
     assertEquals(2, connectionMessageList.size());
@@ -252,6 +264,8 @@ class ConnectionServiceTest {
         .designatedBodyCode(designatedBodyCode)
         .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage, admin);
+    verify(applicationEventPublisher, never())
+        .publishEvent(any(ConnectionChangedApplicationEvent.class));
   }
 
   @Test
@@ -290,10 +304,19 @@ class ConnectionServiceTest {
         .previousDesignatedBodyCode(previousDesignatedBodyCode)
         .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
         .build();
+    when(repository.save(any(ConnectionLog.class))).thenReturn(ConnectionLog.builder()
+        .id(connectionId)
+        .gmcId(gmcId)
+        .newDesignatedBodyCode(newDesignatedBodyCode)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .updatedBy(admin)
+        .requestTime(requestTime)
+        .build());
 
     connectionService.recordConnectionLog(connectionLogDto);
 
     verify(repository).save(connectionLogArgCaptor.capture());
+    verify(applicationEventPublisher).publishEvent(connectionChangedEventCaptor.capture());
 
     ConnectionLog result = connectionLogArgCaptor.getValue();
     assertThat(result.getGmcId(), is(gmcId));
@@ -301,6 +324,12 @@ class ConnectionServiceTest {
     assertThat(result.getPreviousDesignatedBodyCode(), is(previousDesignatedBodyCode));
     assertThat(result.getUpdatedBy(), is(admin));
     assertThat(result.getRequestTime(), is(requestTime));
+
+    ConnectionChangedApplicationEvent event = connectionChangedEventCaptor.getValue();
+    assertThat(event.getConnectionLog().getGmcId(), is(gmcId));
+    assertThat(event.getConnectionLog().getNewDesignatedBodyCode(), is(newDesignatedBodyCode));
+    assertThat(event.getConnectionLog().getPreviousDesignatedBodyCode(),
+        is(previousDesignatedBodyCode));
   }
 
   @Test
@@ -369,6 +398,8 @@ class ConnectionServiceTest {
     verify(exceptionService, times(1)).createExceptionLog(
         gmcId, DOCTOR_ALREADY_ASSOCIATED.getMessage(), admin
     );
+    verify(applicationEventPublisher, times(1)).publishEvent(
+        any(ConnectionChangedApplicationEvent.class));
 
     List<ConnectionRequestLog> connectionLogs = connectionRequestLogArgumentCaptor.getAllValues();
 

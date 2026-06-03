@@ -19,37 +19,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.entity;
+package uk.nhs.hee.tis.revalidation.connection.event;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
+import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
 
 /**
- * A data class to handle hidden discrepancy status.
+ * An application event that is published due to a change in the connection status of a doctor. The
+ * event contains the connection log that has been created.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@SuperBuilder
-@EqualsAndHashCode(callSuper = true)
-@CompoundIndex(def = "{'gmcId':1,'hiddenForDesignatedBodyCode':1}",
-    name = "gmc_dbc_idx",
-    unique = true)
-@Document(collection = "hiddenDiscrepancy")
-public class HiddenDiscrepancy extends Discrepancy {
+@Getter
+public class ConnectionChangedApplicationEvent extends ApplicationEvent {
 
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-  @Indexed(sparse = true)
-  private LocalDate hiddenUntilDate;
+  private final ConnectionLog connectionLog;
+
+  /**
+   * Create a ConnectionChangedApplicationEvent.
+   *
+   * @param source the connection log that has been created due to the change
+   */
+  public ConnectionChangedApplicationEvent(ConnectionLog source) {
+    super(source);
+    this.connectionLog = source;
+  }
 }

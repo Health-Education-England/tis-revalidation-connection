@@ -22,6 +22,7 @@
 package uk.nhs.hee.tis.revalidation.connection.service;
 
 import static org.springframework.data.domain.PageRequest.of;
+import static org.springframework.util.StringUtils.hasText;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HiddenDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.HiddenDiscrepancyResponseItem;
+import uk.nhs.hee.tis.revalidation.connection.dto.TcsDoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HiddenDiscrepancyMapper;
 import uk.nhs.hee.tis.revalidation.connection.mapper.HideDiscrepancyMapper;
@@ -126,6 +128,20 @@ public class HiddenDiscrepancyService {
     return response;
   }
 
+  /**
+   * Show all hidden discrepancies for a given GMC ID by removing all associated hidden discrepancy
+   * records.
+   *
+   * @param gmcId the GMC ID for which to show hidden discrepancies
+   */
+  public void showAllHiddenDiscrepanciesForGmcId(String gmcId) {
+    if (!hasText(gmcId)) {
+      throw new IllegalArgumentException("GMC ID must not be null");
+    }
+    hiddenDiscrepancyRepository.deleteByGmcId(gmcId);
+    log.info("Successfully removed all hidden discrepancies for GMC ID: {}", gmcId);
+  }
+
   private void validateHideDiscrepancyInput(HideDiscrepancyDto dto) {
     Objects.requireNonNull(dto, "HideDiscrepancyDto must not be null");
     if (CollectionUtils.isEmpty(dto.getAdminDesignatedBodyCodes())) {
@@ -142,7 +158,7 @@ public class HiddenDiscrepancyService {
     var map = new HashMap<String, HiddenDiscrepancyResponseItem>();
     for (DoctorInfoDto doctor : doctors) {
       String gmcId = doctor.getGmcId();
-      if (StringUtils.hasText(gmcId)) {
+      if (hasText(gmcId)) {
         var item = new HiddenDiscrepancyResponseItem();
         item.setGmcId(gmcId);
         map.put(gmcId, item);
@@ -195,15 +211,28 @@ public class HiddenDiscrepancyService {
       Map<String, HiddenDiscrepancyResponseItem> responseItems) {
     List<HiddenDiscrepancy> toSave = new ArrayList<>();
     LocalDateTime saveTime = LocalDateTime.now();
+
+    Map<String, DoctorInfoDto> doctorsByGmcId = dto.getDoctors().stream()
+        .filter(doctor -> doctor.getGmcId() != null)
+        .collect(Collectors.toMap(DoctorInfoDto::getGmcId, doctor -> doctor,
+            (existing, replacement) -> existing));
+
     for (Map.Entry<String, List<String>> entry : toHideByGmc.entrySet()) {
       String gmcId = entry.getKey();
       var item = responseItems.get(gmcId);
+      DoctorInfoDto doctorInfo = doctorsByGmcId.get(gmcId);
+
       for (String dbc : entry.getValue()) {
         String key = buildKey(gmcId, dbc);
         if (existingPairs.contains(key)) {
           mergeExisting(item, dbc);
         } else {
-          var entity = hideDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc);
+          String currentDbc = doctorInfo != null ? doctorInfo.getCurrentDesignatedBodyCode() : null;
+          String programmeDbc =
+              doctorInfo != null ? doctorInfo.getProgrammeOwnerDesignatedBodyCode() : null;
+
+          var entity = hideDiscrepancyMapper.toEntity(dto, gmcId, saveTime, dbc,
+              currentDbc, programmeDbc);
           toSave.add(entity);
         }
       }
@@ -324,6 +353,38 @@ public class HiddenDiscrepancyService {
   public List<HiddenDiscrepancyDto> findByGmcId(String gmcId) {
     return hiddenDiscrepancyMapper.toHiddenDiscrepancyDtoList(
         hiddenDiscrepancyRepository.findByGmcId(gmcId));
+  }
+
+  /**
+   * Handle incoming messages with updated TCS doctor info. If the designated body in the message
+   * differs from the one in any existing hidden discrepancy for the GMC ID, all hidden
+   * discrepancies for that GMC ID will be removed.
+   *
+   * @param message the message containing updated TCS doctor info
+   */
+  public void handleTcsDoctorInfoUpdateMessage(TcsDoctorInfoDto message) {
+    if (message == null || !StringUtils.hasText(message.getGmcReferenceNumber())) {
+      log.warn("Received invalid TcsDoctorInfoDto message: {}", message);
+      return;
+    }
+    String gmcId = message.getGmcReferenceNumber();
+    List<HiddenDiscrepancy> discrepancies = hiddenDiscrepancyRepository.findByGmcId(gmcId);
+    if (discrepancies.isEmpty()) {
+      log.info("No hidden discrepancies found for GMC ID: {}. No action needed.", gmcId);
+      return;
+    }
+
+    for (HiddenDiscrepancy discrepancy : discrepancies) {
+      if (!Objects.equals(message.getTcsDesignatedBody(),
+          discrepancy.getProgrammeOwnerDesignatedBodyCode())) {
+        showAllHiddenDiscrepanciesForGmcId(gmcId);
+        log.info(
+            "Removed hidden discrepancy for GMC ID: {} and designated body: "
+                + "{} due to tcs info update.",
+            gmcId, discrepancy.getHiddenForDesignatedBodyCode());
+        break;
+      }
+    }
   }
 
   /**

@@ -28,8 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 
@@ -40,10 +42,23 @@ class HideDiscrepancyMapperTest {
   private static final String REASON = "reason for hiding";
   private static final String GMC_ID = "1-ABCDE";
   private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, 3, 5, 10, 0, 0);
+  private static final String CURRENT_DBC = "DB456";
+  private static final String PROGRAMME_OWNER_DBC = "DB789";
   private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2026, 12, 30);
+
+  private DoctorInfoDto doctorInfoDto;
 
   private final HideDiscrepancyMapper mapper =
       Mappers.getMapper(HideDiscrepancyMapper.class);
+
+  @BeforeEach
+  void setup() {
+    doctorInfoDto = DoctorInfoDto.builder()
+        .gmcId(GMC_ID)
+        .currentDesignatedBodyCode(CURRENT_DBC)
+        .programmeOwnerDesignatedBodyCode(PROGRAMME_OWNER_DBC)
+        .build();
+  }
 
   @Test
   void shouldMapAllFieldsAndIgnoreIdWhenToEntityCalled() {
@@ -51,12 +66,13 @@ class HideDiscrepancyMapperTest {
     HideDiscrepancyDto dto = HideDiscrepancyDto.builder()
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
-        .doctors(List.of()) // doctors list is not mapped, so can be empty
+        .doctors(List.of(doctorInfoDto))
         .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
 
     // when
-    HiddenDiscrepancy entity = mapper.toEntity(dto, GMC_ID, BATCH_TIME, DBC);
+    HiddenDiscrepancy entity = mapper.toEntity(dto, GMC_ID, BATCH_TIME, DBC, CURRENT_DBC,
+        PROGRAMME_OWNER_DBC);
 
     // then
     assertNotNull(entity);
@@ -70,6 +86,8 @@ class HideDiscrepancyMapperTest {
     assertEquals(REASON, entity.getReason());
     assertEquals(GMC_ID, entity.getGmcId());
     assertEquals(BATCH_TIME, entity.getHiddenDateTime());
+    assertEquals(CURRENT_DBC, entity.getCurrentDesignatedBodyCode());
+    assertEquals(PROGRAMME_OWNER_DBC, entity.getProgrammeOwnerDesignatedBodyCode());
     assertEquals(HIDDEN_UNTIL, entity.getHiddenUntilDate());
   }
 }

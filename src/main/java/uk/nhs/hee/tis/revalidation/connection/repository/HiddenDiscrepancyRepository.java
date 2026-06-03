@@ -55,6 +55,13 @@ public interface HiddenDiscrepancyRepository extends MongoRepository<HiddenDiscr
   List<HiddenDiscrepancy> findByGmcId(String gmcId);
 
   /**
+   * Deletes hidden discrepancies by GMC reference number.
+   *
+   * @param gmcId the GMC reference number for which to delete hidden discrepancies
+   */
+  void deleteByGmcId(String gmcId);
+
+  /**
    * Deletes hidden discrepancies whose hiddenUntilDate is before the given date.
    *
    * @param date the reference date; records before this date are considered expired

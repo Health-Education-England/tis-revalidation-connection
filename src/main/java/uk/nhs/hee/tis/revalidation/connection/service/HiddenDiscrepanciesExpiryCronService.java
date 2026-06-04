@@ -24,7 +24,6 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +62,6 @@ public class HiddenDiscrepanciesExpiryCronService {
   @Scheduled(cron = SPEL_CRON)
   @SchedulerLock(
       name = LOCK_NAME,
-      lockAtLeastFor = SPEL_CRONLOCK,
       lockAtMostFor = SPEL_CRONLOCK)
   public void removeExpiredHiddenDiscrepancies() {
     log.info("Cron job started to remove expired hidden discrepancies.");

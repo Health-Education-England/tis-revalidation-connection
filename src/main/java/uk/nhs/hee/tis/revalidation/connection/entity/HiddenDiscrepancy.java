@@ -29,7 +29,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -50,6 +49,5 @@ public class HiddenDiscrepancy extends Discrepancy {
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
-  @Indexed(sparse = true)
   private LocalDate hiddenUntilDate;
 }

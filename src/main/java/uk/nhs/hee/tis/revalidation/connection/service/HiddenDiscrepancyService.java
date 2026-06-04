@@ -24,6 +24,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.util.StringUtils.hasText;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -383,6 +384,18 @@ public class HiddenDiscrepancyService {
             gmcId, discrepancy.getHiddenForDesignatedBodyCode());
         break;
       }
+    }
+  }
+
+  /**
+   * Remove expired hidden discrepancies whose hidden until date is before the current date.
+   */
+  public void removeExpiredHiddenDiscrepancies() {
+    long count = hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(LocalDate.now());
+    if (count > 0) {
+      log.info("Removed {} expired hidden discrepancies", count);
+    } else {
+      log.info("No expired hidden discrepancies found for removal");
     }
   }
 }

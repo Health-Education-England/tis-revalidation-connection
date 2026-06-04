@@ -39,6 +39,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +63,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -88,6 +93,8 @@ class HiddenDiscrepancyServiceTest {
   private static final String GMC_ID_3 = "GMC3";
   private HiddenDiscrepancy hd1;
   private HiddenDiscrepancy hd2;
+  private Logger logger;
+  private ListAppender<ILoggingEvent> logAppender;
 
   @Captor
   ArgumentCaptor<List<HiddenDiscrepancy>> saveCaptor;
@@ -127,6 +134,19 @@ class HiddenDiscrepancyServiceTest {
         .reason(REASON)
         .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
+
+    logger = (Logger) LoggerFactory.getLogger(HiddenDiscrepancyService.class);
+    logAppender = new ListAppender<>();
+    logAppender.start();
+    logger.addAppender(logAppender);
+  }
+
+  @AfterEach
+  void tearDown() {
+    if (logger != null && logAppender != null) {
+      logger.detachAppender(logAppender);
+      logAppender.stop();
+    }
   }
 
   private static Stream<List<String>> invalidAdminDbcsSupplier() {
@@ -445,6 +465,32 @@ class HiddenDiscrepancyServiceTest {
         any(LocalDateTime.class), eq(ADMIN_DBC_2), eq(ADMIN_DBC_1), eq(ADMIN_DBC_2));
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
         any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
+  }
+
+  @Test
+  void shouldRemoveExpiredHiddenDiscrepanciesWhenExpiredRecordsExist() {
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(any(LocalDate.class)))
+        .thenReturn(2L);
+
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(any(LocalDate.class));
+    assertThat(logAppender.list)
+        .anyMatch(event -> event.getFormattedMessage()
+            .contains("Removed 2 expired hidden discrepancies"));
+  }
+
+  @Test
+  void shouldNotFailWhenNoExpiredHiddenDiscrepanciesExist() {
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(any(LocalDate.class)))
+        .thenReturn(0L);
+
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(any(LocalDate.class));
+    assertThat(logAppender.list)
+        .anyMatch(event -> event.getFormattedMessage()
+            .contains("No expired hidden discrepancies found for removal"));
   }
 
   @Test

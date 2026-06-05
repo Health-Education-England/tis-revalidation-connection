@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection;
 
+import java.time.Clock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -48,5 +49,10 @@ public class RevalidationConnectionApplication {
     marshaller
         .setPackagesToScan("uk.nhs.hee.tis.gmc.client", "uk.nhs.hee.tis.gmc.client.generated");
     return marshaller;
+  }
+
+  @Bean
+  public Clock clock() {
+    return Clock.systemDefaultZone();
   }
 }

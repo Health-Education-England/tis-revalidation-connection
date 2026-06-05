@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ class HiddenDiscrepancyInfoDtoMapperTest {
   private static final String FIRST_NAME2 = "first2";
   private static final String LAST_NAME1 = "last1";
   private static final String LAST_NAME2 = "last2";
-  private static final LocalDate HIDDEN_UNTIL_1 =  LocalDate.of(2026, 12, 31);
+  private static final LocalDate HIDDEN_UNTIL_1 =  LocalDate.of(2026, Month.DECEMBER, 31);
   private static final LocalDate HIDDEN_UNTIL_2 =  HIDDEN_UNTIL_1.plusDays(30);
 
   private final HiddenDiscrepancyInfoMapper mapper =

@@ -24,6 +24,7 @@ package uk.nhs.hee.tis.revalidation.connection.service;
 import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.util.StringUtils.hasText;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public class HiddenDiscrepancyService {
   private final HiddenDiscrepancyRepository hiddenDiscrepancyRepository;
   private final HideDiscrepancyMapper hideDiscrepancyMapper;
   private final HiddenDiscrepancyMapper hiddenDiscrepancyMapper;
+  private final Clock clock;
 
   /**
    * Constructs a new HiddenDiscrepancyService with the specified repository and mapper.
@@ -81,14 +83,16 @@ public class HiddenDiscrepancyService {
    * @param hiddenDiscrepancyMapper     the mapper for converting between HiddenDiscrepancy DTOs and
    *                                    entities
    * @param rabbitTemplate              the template for sending rabbitmq messages
+   * @param clock                       the clock used for time-based operations
    */
   public HiddenDiscrepancyService(HiddenDiscrepancyRepository hiddenDiscrepancyRepository,
       HideDiscrepancyMapper hideDiscrepancyMapper, RabbitTemplate rabbitTemplate,
-      HiddenDiscrepancyMapper hiddenDiscrepancyMapper) {
+      HiddenDiscrepancyMapper hiddenDiscrepancyMapper, Clock clock) {
     this.rabbitTemplate = rabbitTemplate;
     this.hiddenDiscrepancyRepository = hiddenDiscrepancyRepository;
     this.hideDiscrepancyMapper = hideDiscrepancyMapper;
     this.hiddenDiscrepancyMapper = hiddenDiscrepancyMapper;
+    this.clock = clock;
   }
 
   /**
@@ -210,7 +214,7 @@ public class HiddenDiscrepancyService {
       Map<String, List<String>> toHideByGmc, Set<String> existingPairs,
       Map<String, HiddenDiscrepancyResponseItem> responseItems) {
     List<HiddenDiscrepancy> toSave = new ArrayList<>();
-    LocalDateTime saveTime = LocalDateTime.now();
+    LocalDateTime saveTime = LocalDateTime.now(clock);
 
     Map<String, DoctorInfoDto> doctorsByGmcId = dto.getDoctors().stream()
         .filter(doctor -> doctor.getGmcId() != null)
@@ -391,7 +395,8 @@ public class HiddenDiscrepancyService {
    * Remove expired hidden discrepancies whose hidden until date is before the current date.
    */
   public void removeExpiredHiddenDiscrepancies() {
-    long count = hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(LocalDate.now());
+    long count = hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(
+        LocalDate.now(clock));
     if (count > 0) {
       log.info("Removed {} expired hidden discrepancies", count);
     } else {

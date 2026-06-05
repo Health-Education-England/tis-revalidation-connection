@@ -42,8 +42,12 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,7 +64,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
@@ -85,7 +88,7 @@ class HiddenDiscrepancyServiceTest {
   private static final String ADMIN_DBC_2 = "1-EDCBA";
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason";
-  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2027, 12, 31);
+  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2027, Month.DECEMBER, 31);
   private static final String EXCHANGE = "exchange";
   private static final String ES_SYNC_DATA_ROUTING_KEY = "esSyncDataRoutingKey";
   private static final String GMC_ID_1 = "GMC1";
@@ -112,11 +115,13 @@ class HiddenDiscrepancyServiceTest {
   private HiddenDiscrepancyMapper hiddenDiscrepancyMapper;
   @Mock
   private RabbitTemplate rabbitTemplate;
-  @InjectMocks
   private HiddenDiscrepancyService service;
 
   @BeforeEach
   void setup() {
+    Clock fixedClock = Clock.fixed(Instant.parse("2026-06-05T00:00:00Z"), ZoneOffset.UTC);
+    service = new HiddenDiscrepancyService(hiddenDiscrepancyRepository, hideDiscrepancyMapper,
+        rabbitTemplate, hiddenDiscrepancyMapper, fixedClock);
     setField(service, "exchange", EXCHANGE);
     setField(service, "esSyncDataRoutingKey", ES_SYNC_DATA_ROUTING_KEY);
 
@@ -469,12 +474,13 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldRemoveExpiredHiddenDiscrepanciesWhenExpiredRecordsExist() {
-    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(any(LocalDate.class)))
+    LocalDate expectedDate = LocalDate.of(2026, 6, 5);
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
         .thenReturn(2L);
 
     service.removeExpiredHiddenDiscrepancies();
 
-    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(any(LocalDate.class));
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(expectedDate);
     assertThat(logAppender.list)
         .anyMatch(event -> event.getFormattedMessage()
             .contains("Removed 2 expired hidden discrepancies"));
@@ -482,12 +488,13 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldNotFailWhenNoExpiredHiddenDiscrepanciesExist() {
-    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(any(LocalDate.class)))
+    LocalDate expectedDate = LocalDate.of(2026, 6, 5);
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
         .thenReturn(0L);
 
     service.removeExpiredHiddenDiscrepancies();
 
-    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(any(LocalDate.class));
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(expectedDate);
     assertThat(logAppender.list)
         .anyMatch(event -> event.getFormattedMessage()
             .contains("No expired hidden discrepancies found for removal"));

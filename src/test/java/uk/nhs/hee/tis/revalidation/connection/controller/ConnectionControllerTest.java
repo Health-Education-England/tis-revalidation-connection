@@ -21,7 +21,6 @@
 
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
-import static java.time.LocalDate.now;
 import static java.util.List.of;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -154,7 +154,7 @@ class ConnectionControllerTest {
     previousDesignatedBodyCode = faker.number().digits(8);
     reason = "2";
     requestType = ConnectionRequestType.ADD;
-    requestTime = LocalDateTime.now().minusDays(-1);
+    requestTime = LocalDateTime.of(2026, Month.JUNE, 5, 0, 0, 0);
     responseCode = faker.number().digits(5);
 
     personId1 = (long) faker.hashCode();
@@ -165,8 +165,8 @@ class ConnectionControllerTest {
     firstName2 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     lastName2 = faker.name().lastName();
-    submissionDate1 = now();
-    submissionDate2 = now();
+    submissionDate1 = LocalDate.of(2026, Month.JUNE, 5);
+    submissionDate2 = submissionDate1;
     designatedBody1 = faker.lorem().characters(8);
     designatedBody2 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
@@ -178,7 +178,7 @@ class ConnectionControllerTest {
     updatedBy = faker.lorem().characters(8);
     hiddenBy = faker.lorem().characters(8);
     hiddenReason = faker.lorem().characters(8);
-    hiddenUntilDate = now().plusDays(30);
+    hiddenUntilDate = submissionDate1.plusDays(30);
   }
 
   @Test

@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,10 +42,10 @@ class HideDiscrepancyMapperTest {
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason for hiding";
   private static final String GMC_ID = "1-ABCDE";
-  private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, 3, 5, 10, 0, 0);
+  private static final LocalDateTime BATCH_TIME = LocalDateTime.of(2026, Month.MARCH, 5, 10, 0, 0);
   private static final String CURRENT_DBC = "DB456";
   private static final String PROGRAMME_OWNER_DBC = "DB789";
-  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2026, 12, 30);
+  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2026, Month.DECEMBER, 30);
 
   private DoctorInfoDto doctorInfoDto;
 

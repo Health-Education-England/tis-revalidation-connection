@@ -474,7 +474,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldRemoveExpiredHiddenDiscrepanciesWhenExpiredRecordsExist() {
-    LocalDate expectedDate = LocalDate.of(2026, 6, 5);
+    LocalDate expectedDate = LocalDate.of(2026, Month.JUNE, 5);
     when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
         .thenReturn(2L);
 
@@ -488,7 +488,7 @@ class HiddenDiscrepancyServiceTest {
 
   @Test
   void shouldNotFailWhenNoExpiredHiddenDiscrepanciesExist() {
-    LocalDate expectedDate = LocalDate.of(2026, 6, 5);
+    LocalDate expectedDate = LocalDate.of(2026, Month.JUNE, 5);
     when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
         .thenReturn(0L);
 

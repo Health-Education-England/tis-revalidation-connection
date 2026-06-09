@@ -42,12 +42,12 @@ import org.springframework.stereotype.Service;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
-import uk.nhs.hee.tis.revalidation.connection.dto.DoctorInfoDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.GmcConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
+import uk.nhs.hee.tis.revalidation.connection.context.ConnectionRequestContext;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
@@ -103,11 +103,11 @@ public class ConnectionService {
   }
 
   public UpdateConnectionResponseDto addDoctor(final UpdateConnectionDto addDoctorDto) {
-    return processConnectionRequest(addDoctorDto, ADD);
+    return processUpdateConnectionRequest(addDoctorDto, ADD);
   }
 
   public UpdateConnectionResponseDto removeDoctor(final UpdateConnectionDto removeDoctorDto) {
-    return processConnectionRequest(removeDoctorDto, REMOVE);
+    return processUpdateConnectionRequest(removeDoctorDto, REMOVE);
   }
 
   /**
@@ -163,139 +163,6 @@ public class ConnectionService {
     publishConnectionChangedApplicationEvent(savedLog);
   }
 
-  private UpdateConnectionResponseDto processConnectionRequest(
-      final UpdateConnectionDto addDoctorDto,
-      final ConnectionRequestType connectionRequestType) {
-    final var changeReason = addDoctorDto.getChangeReason();
-    final var designatedBodyCode = addDoctorDto.getDesignatedBodyCode();
-    final var addRemoveResponse = addDoctorDto.getDoctors().stream().map(doctor -> {
-      final var gmcResponse = delegateRequest(changeReason, designatedBodyCode, doctor,
-          connectionRequestType);
-      return handleGmcResponse(doctor.getGmcId(), changeReason, designatedBodyCode,
-          doctor.getCurrentDesignatedBodyCode(), gmcResponse, connectionRequestType,
-          addDoctorDto.getAdmin());
-    }).collect(Collectors.toList());
-    final var addRemoveResponseFiltered = addRemoveResponse.stream()
-        .filter(response -> !response.getMessage().equals(SUCCESS.getMessage())).findAny();
-    if (addRemoveResponseFiltered.isPresent()) {
-      final var errorMessage = getReturnMessage(addRemoveResponseFiltered.get().getMessage(),
-          addDoctorDto.getDoctors().size());
-      //send to rabbit
-      return UpdateConnectionResponseDto.builder().message(errorMessage).build();
-    }
-    return UpdateConnectionResponseDto.builder().message(SUCCESS.getMessage()).build();
-  }
-
-  //delegate request to GMC Client
-  private GmcConnectionResponseDto delegateRequest(final String changeReason,
-      final String designatedBodyCode,
-      final DoctorInfoDto doctor, final ConnectionRequestType connectionRequestType) {
-    GmcConnectionResponseDto gmcResponse;
-    if (ADD == connectionRequestType) {
-      gmcResponse = gmcClientService
-          .tryAddDoctor(doctor.getGmcId(), changeReason, designatedBodyCode);
-    } else {
-      gmcResponse = gmcClientService
-          .tryRemoveDoctor(doctor.getGmcId(), changeReason, doctor.getCurrentDesignatedBodyCode());
-    }
-    return gmcResponse;
-  }
-
-  // Handle Gmc response and take appropriate actions
-  private UpdateConnectionResponseDto handleGmcResponse(final String gmcId,
-      final String changeReason,
-      final String designatedBodyCode, final String currentDesignatedBodyCode,
-      final GmcConnectionResponseDto gmcResponse,
-      final ConnectionRequestType connectionRequestType,
-      final String admin) {
-
-    var returnCode = gmcResponse.getReturnCode();
-
-    // Save additional "External" log if doctor has already been added to this DB
-    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
-      repository.save(
-          ConnectionRequestLog.builder()
-              .gmcId(gmcId)
-              .newDesignatedBodyCode(designatedBodyCode)
-              .previousDesignatedBodyCode(currentDesignatedBodyCode)
-              .updatedBy(UPDATED_BY_GMC)
-              .requestTime(now())
-              .build()
-      );
-    }
-
-    final var connectionRequestLog = ConnectionRequestLog.builder()
-        .id(UUID.randomUUID().toString())
-        .gmcId(gmcId)
-        .gmcClientId(gmcResponse.getGmcRequestId())
-        .newDesignatedBodyCode(designatedBodyCode)
-        .previousDesignatedBodyCode(currentDesignatedBodyCode)
-        .reason(changeReason)
-        .requestType(connectionRequestType)
-        .responseCode(returnCode)
-        .requestTime(now())
-        .updatedBy(admin)
-        .build();
-
-    //save connection info to mongodb
-    repository.save(connectionRequestLog);
-
-    if (SUCCESS.getCode().equals(returnCode) || DOCTOR_ALREADY_ASSOCIATED.getCode()
-        .equals(returnCode)) {
-      // Only publish event for successful changes or already-associated outcomes
-      publishConnectionChangedApplicationEvent(connectionRequestLog);
-    }
-
-    sendToRabbitOrExceptionLogs(gmcId,
-        designatedBodyCode,
-        returnCode,
-        gmcResponse.getSubmissionDate(),
-        admin
-    );
-    final var gmcResponseCode = fromCode(returnCode);
-    final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
-    return UpdateConnectionResponseDto.builder().message(responseMessage).build();
-  }
-
-  //If success put message into queue to update doctors for DB otherwise log message into exception
-  // logs.
-  private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
-      final String returnCode, LocalDate submissionDate, String admin) {
-    final String exceptionMessage = GmcResponseCode.fromCode(returnCode).getMessage();
-
-    if (SUCCESS.getCode().equals(returnCode)) {
-      final var connectionMessage = ConnectionMessage.builder()
-          .gmcId(gmcId)
-          .designatedBodyCode(designatedBodyCode)
-          .submissionDate(submissionDate)
-          .gmcLastUpdatedDateTime(now())
-          .build();
-      log.info("Sending message to rabbit to update designated body code");
-      rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
-    } else {
-      if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
-        // publish change to connection, but also record exception
-        final var connectionMessage = ConnectionMessage.builder()
-            .gmcId(gmcId)
-            .designatedBodyCode(designatedBodyCode)
-            .submissionDate(submissionDate)
-            .gmcLastUpdatedDateTime(now())
-            .build();
-        log.info("Sending message to rabbit for externally made connection");
-        rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
-      }
-      exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
-    }
-  }
-
-  //if bulk request then return generic failure message else gmc error message
-  private String getReturnMessage(final String message, final int requestSize) {
-    if (requestSize > 1) {
-      return "Some changes have failed with GMC, please check the failed GMC updates list";
-    }
-    return message;
-  }
-
   /**
    * Send connection logs to rabbit for elasticsearch sync in pages.
    *
@@ -322,8 +189,195 @@ public class ConnectionService {
     rabbitTemplate.convertAndSend(exchange, esSyncDataRoutingKey, syncEndPayload);
   }
 
+  private UpdateConnectionResponseDto processUpdateConnectionRequest(
+      final UpdateConnectionDto updateConnectionDto,
+      final ConnectionRequestType connectionRequestType) {
+
+    // Convert bulk request into individual request contexts
+    final List<ConnectionRequestContext> requestContexts = buildConnectionRequestContexts(
+        updateConnectionDto,
+        connectionRequestType);
+
+    // Make requests to GMC and record and publish the responses
+    final List<UpdateConnectionResponseDto> updateConnectionResponses = requestContexts.stream()
+        .map(ctx -> {
+          try {
+            final GmcConnectionResponseDto gmcResponse = delegateRequestToGmcApi(ctx);
+            return recordAndPublishGmcResponse(ctx, gmcResponse);
+
+          } catch (IllegalArgumentException e) {
+            return UpdateConnectionResponseDto.builder()
+                .message("Validation error: " + e.getMessage())
+                .build();
+          }
+        }).collect(Collectors.toList());
+
+    // Check for errors to determine response body
+    final var errorResponses = updateConnectionResponses.stream()
+        .filter(response -> !SUCCESS.getMessage().equals(response.getMessage())).findAny();
+
+    if (errorResponses.isPresent()) {
+      final var errorMessage = getReturnMessage(errorResponses.get().getMessage(),
+          updateConnectionDto.getDoctors().size());
+
+      return UpdateConnectionResponseDto.builder().message(errorMessage).build();
+    }
+    return UpdateConnectionResponseDto.builder().message(SUCCESS.getMessage()).build();
+  }
+
+  private List<ConnectionRequestContext> buildConnectionRequestContexts(
+      final UpdateConnectionDto connectionDto,
+      final ConnectionRequestType requestType) {
+    return connectionDto.getDoctors().stream()
+        .map(doctor -> ConnectionRequestContext.builder()
+            .changeReason(connectionDto.getChangeReason())
+            .designatedBodyCode(connectionDto.getDesignatedBodyCode())
+            .doctor(doctor)
+            .connectionRequestType(requestType)
+            .admin(connectionDto.getAdmin())
+            .build())
+        .collect(Collectors.toList());
+  }
+
+  //delegate request to GMC Client
+  private GmcConnectionResponseDto delegateRequestToGmcApi(final ConnectionRequestContext context) {
+    final ConnectionRequestType requestType = context.getConnectionRequestType();
+
+    if (requestType == null) {
+      throw new IllegalArgumentException("Connection request type cannot be null");
+    }
+
+    switch (requestType) {
+      case ADD:
+        return gmcClientService.tryAddDoctor(
+            context.getDoctor().getGmcId(),
+            context.getChangeReason(),
+            context.getDesignatedBodyCode()
+        );
+      case REMOVE:
+        return gmcClientService.tryRemoveDoctor(
+            context.getDoctor().getGmcId(),
+            context.getChangeReason(),
+            context.getDoctor().getCurrentDesignatedBodyCode()
+        );
+      default:
+        throw new IllegalArgumentException(
+            "Unsupported connection request type: " + requestType
+        );
+    }
+  }
+
+  // Record Connection/Exception Logs and publish changes to rabbit
+  private UpdateConnectionResponseDto recordAndPublishGmcResponse(
+      final ConnectionRequestContext context,
+      final GmcConnectionResponseDto response) {
+
+    final String returnCode = response.getReturnCode();
+
+    // Save additional "External" log if doctor has already been added to this DB
+    if (DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode)) {
+      repository.save(buildConnectionRequestLog(context, null, UPDATED_BY_GMC, null, false));
+    }
+
+    // Save main connection request log
+    final var connectionRequestLog = buildConnectionRequestLog(
+        context, returnCode, context.getAdmin(), response.getGmcRequestId(), true);
+    repository.save(connectionRequestLog);
+
+    // Publish event for successful connections
+    if (shouldPublishEvent(returnCode)) {
+      publishConnectionChangedApplicationEvent(connectionRequestLog);
+    }
+
+    // Send to RabbitMQ or exception logs
+    sendToRabbitOrExceptionLogs(
+        context.getDoctor().getGmcId(),
+        context.getDesignatedBodyCode(),
+        returnCode,
+        response.getSubmissionDate(),
+        context.getAdmin()
+    );
+
+    // Build and return response
+    final var gmcResponseCode = fromCode(returnCode);
+    final var responseMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "";
+    return UpdateConnectionResponseDto.builder().message(responseMessage).build();
+  }
+
+  // If success, send message to RabbitMQ to update doctors; otherwise log exception
+  private void sendToRabbitOrExceptionLogs(final String gmcId, final String designatedBodyCode,
+      final String returnCode, final LocalDate submissionDate, final String admin) {
+
+    // Send to RabbitMQ for successful connections or already-associated doctors
+    if (shouldSendToRabbit(returnCode)) {
+      final var connectionMessage = buildConnectionMessage(gmcId, designatedBodyCode, submissionDate);
+      final var logMessage = SUCCESS.getCode().equals(returnCode)
+          ? "Sending message to rabbit to update designated body code"
+          : "Sending message to rabbit for externally made connection";
+      log.info(logMessage);
+      rabbitTemplate.convertAndSend(exchange, routingKey, connectionMessage);
+    }
+
+    // Log exception for any non-success response
+    if (!SUCCESS.getCode().equals(returnCode)) {
+      final var gmcResponseCode = GmcResponseCode.fromCode(returnCode);
+      final String exceptionMessage = gmcResponseCode != null ? gmcResponseCode.getMessage() : "Unknown error";
+      exceptionService.createExceptionLog(gmcId, exceptionMessage, admin);
+    }
+  }
+
+  //if bulk request then return generic failure message else gmc error message
+  private String getReturnMessage(final String message, final int requestSize) {
+    if (requestSize > 1) {
+      return "Some changes have failed with GMC, please check the failed GMC updates list";
+    }
+    return message;
+  }
+
   private void publishConnectionChangedApplicationEvent(ConnectionLog connectionLog) {
     var event = new ConnectionChangedApplicationEvent(connectionLog);
     applicationEventPublisher.publishEvent(event);
+  }
+
+  private ConnectionRequestLog buildConnectionRequestLog(
+      final ConnectionRequestContext context,
+      final String responseCode,
+      final String admin,
+      final String gmcClientId,
+      final boolean includeReasonAndRequestType) {
+    return ConnectionRequestLog.builder()
+        .id(UUID.randomUUID().toString())
+        .gmcId(context.getDoctor().getGmcId())
+        .gmcClientId(gmcClientId)
+        .newDesignatedBodyCode(context.getDesignatedBodyCode())
+        .previousDesignatedBodyCode(context.getDoctor().getCurrentDesignatedBodyCode())
+        .reason(includeReasonAndRequestType ? context.getChangeReason() : null)
+        .requestType(includeReasonAndRequestType ? context.getConnectionRequestType() : null)
+        .responseCode(responseCode)
+        .requestTime(now())
+        .updatedBy(admin)
+        .build();
+  }
+
+  private ConnectionMessage buildConnectionMessage(
+      final String gmcId,
+      final String designatedBodyCode,
+      final LocalDate submissionDate) {
+    return ConnectionMessage.builder()
+        .gmcId(gmcId)
+        .designatedBodyCode(designatedBodyCode)
+        .submissionDate(submissionDate)
+        .gmcLastUpdatedDateTime(now())
+        .build();
+  }
+
+  private boolean shouldPublishEvent(final String returnCode) {
+    return SUCCESS.getCode().equals(returnCode)
+        || DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode);
+  }
+
+  private boolean shouldSendToRabbit(final String returnCode) {
+    return SUCCESS.getCode().equals(returnCode)
+        || DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode);
   }
 }

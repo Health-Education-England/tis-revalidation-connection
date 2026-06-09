@@ -427,6 +427,35 @@ class ConnectionServiceTest {
     assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
   }
 
+  @Test
+  void shouldHandleNullRequestType() {
+    final var updateConnectionDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder()
+            .gmcId(gmcId)
+            .currentDesignatedBodyCode(designatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenThrow(new IllegalArgumentException("Test validation error"));
+
+    final var response = connectionService.addDoctor(updateConnectionDto);
+
+    assertNotNull(response);
+    assertNotNull(response.getMessage());
+    assertTrue(response.getMessage().contains("Validation error")
+        || response.getMessage().contains("failed with GMC"));
+
+    // GMC client should have been called but repository save should not happen due to exception
+    verify(gmcClientService, times(1))
+        .tryAddDoctor(gmcId, changeReason, designatedBodyCode);
+    verify(repository, never()).save(any(ConnectionRequestLog.class));
+  }
+
   private ConnectionRequestLog prepareConnectionAdd() {
     return ConnectionRequestLog.builder()
         .id(connectionId)

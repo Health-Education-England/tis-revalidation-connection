@@ -26,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +49,11 @@ class HiddenDiscrepancyMapperTest {
   private static final String HIDDEN_BY_2 = "admin2";
   private static final String REASON_1 = "reason1";
   private static final String REASON_2 = "reason2";
-  private static final LocalDateTime HIDDEN_DATE_TIME_1 = LocalDateTime.now();
-  private static final LocalDateTime HIDDEN_DATE_TIME_2 = LocalDateTime.now().plusDays(1);
+  private static final LocalDateTime HIDDEN_DATE_TIME_1 = LocalDateTime.of(2026, Month.JUNE, 5, 12,
+      0, 0);
+  private static final LocalDateTime HIDDEN_DATE_TIME_2 = HIDDEN_DATE_TIME_1.plusDays(1);
+  private static final LocalDate HIDDEN_UNTIL_1 = LocalDate.of(2026, Month.DECEMBER, 31);
+  private static final LocalDate HIDDEN_UNTIL_2 = HIDDEN_UNTIL_1.plusDays(30);
 
   private HiddenDiscrepancyMapper mapper;
 
@@ -66,6 +71,7 @@ class HiddenDiscrepancyMapperTest {
         .hiddenBy(HIDDEN_BY_1)
         .reason(REASON_1)
         .hiddenDateTime(HIDDEN_DATE_TIME_1)
+        .hiddenUntilDate(HIDDEN_UNTIL_1)
         .build();
 
     HiddenDiscrepancyDto dto = mapper.toHiddenDiscrepancyDto(hiddenDiscrepancy);
@@ -77,6 +83,7 @@ class HiddenDiscrepancyMapperTest {
     assertEquals(HIDDEN_BY_1, dto.getHiddenBy());
     assertEquals(REASON_1, dto.getReason());
     assertEquals(HIDDEN_DATE_TIME_1, dto.getHiddenDateTime());
+    assertEquals(HIDDEN_UNTIL_1, dto.getHiddenUntilDate());
   }
 
   @Test
@@ -88,6 +95,7 @@ class HiddenDiscrepancyMapperTest {
         .hiddenBy(null)
         .reason(null)
         .hiddenDateTime(null)
+        .hiddenUntilDate(null)
         .build();
 
     HiddenDiscrepancyDto dto = mapper.toHiddenDiscrepancyDto(hiddenDiscrepancy);
@@ -99,6 +107,7 @@ class HiddenDiscrepancyMapperTest {
     assertNull(dto.getHiddenBy());
     assertNull(dto.getReason());
     assertNull(dto.getHiddenDateTime());
+    assertNull(dto.getHiddenUntilDate());
   }
 
   @Test
@@ -116,6 +125,7 @@ class HiddenDiscrepancyMapperTest {
         .hiddenBy(HIDDEN_BY_1)
         .reason(REASON_1)
         .hiddenDateTime(HIDDEN_DATE_TIME_1)
+        .hiddenUntilDate(HIDDEN_UNTIL_1)
         .build();
 
     HiddenDiscrepancy hiddenDiscrepancy2 = HiddenDiscrepancy.builder()
@@ -125,6 +135,7 @@ class HiddenDiscrepancyMapperTest {
         .hiddenBy(HIDDEN_BY_2)
         .reason(REASON_2)
         .hiddenDateTime(HIDDEN_DATE_TIME_2)
+        .hiddenUntilDate(HIDDEN_UNTIL_2)
         .build();
 
     List<HiddenDiscrepancy> hiddenDiscrepancies = Arrays.asList(hiddenDiscrepancy1,
@@ -142,6 +153,7 @@ class HiddenDiscrepancyMapperTest {
     assertEquals(HIDDEN_BY_1, dto1.getHiddenBy());
     assertEquals(REASON_1, dto1.getReason());
     assertEquals(HIDDEN_DATE_TIME_1, dto1.getHiddenDateTime());
+    assertEquals(HIDDEN_UNTIL_1, dto1.getHiddenUntilDate());
 
     HiddenDiscrepancyDto dto2 = dtos.get(1);
     assertEquals(ID_2, dto2.getId());
@@ -150,6 +162,7 @@ class HiddenDiscrepancyMapperTest {
     assertEquals(HIDDEN_BY_2, dto2.getHiddenBy());
     assertEquals(REASON_2, dto2.getReason());
     assertEquals(HIDDEN_DATE_TIME_2, dto2.getHiddenDateTime());
+    assertEquals(HIDDEN_UNTIL_2, dto2.getHiddenUntilDate());
   }
 
   @Test

@@ -39,13 +39,22 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,9 +64,9 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -79,6 +88,7 @@ class HiddenDiscrepancyServiceTest {
   private static final String ADMIN_DBC_2 = "1-EDCBA";
   private static final String HIDDEN_BY = "admin";
   private static final String REASON = "reason";
+  private static final LocalDate HIDDEN_UNTIL = LocalDate.of(2027, Month.DECEMBER, 31);
   private static final String EXCHANGE = "exchange";
   private static final String ES_SYNC_DATA_ROUTING_KEY = "esSyncDataRoutingKey";
   private static final String GMC_ID_1 = "GMC1";
@@ -86,6 +96,8 @@ class HiddenDiscrepancyServiceTest {
   private static final String GMC_ID_3 = "GMC3";
   private HiddenDiscrepancy hd1;
   private HiddenDiscrepancy hd2;
+  private Logger logger;
+  private ListAppender<ILoggingEvent> logAppender;
 
   @Captor
   ArgumentCaptor<List<HiddenDiscrepancy>> saveCaptor;
@@ -103,11 +115,13 @@ class HiddenDiscrepancyServiceTest {
   private HiddenDiscrepancyMapper hiddenDiscrepancyMapper;
   @Mock
   private RabbitTemplate rabbitTemplate;
-  @InjectMocks
   private HiddenDiscrepancyService service;
 
   @BeforeEach
   void setup() {
+    Clock fixedClock = Clock.fixed(Instant.parse("2026-06-05T00:00:00Z"), ZoneOffset.UTC);
+    service = new HiddenDiscrepancyService(hiddenDiscrepancyRepository, hideDiscrepancyMapper,
+        rabbitTemplate, hiddenDiscrepancyMapper, fixedClock);
     setField(service, "exchange", EXCHANGE);
     setField(service, "esSyncDataRoutingKey", ES_SYNC_DATA_ROUTING_KEY);
 
@@ -116,13 +130,28 @@ class HiddenDiscrepancyServiceTest {
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
     hd2 = HiddenDiscrepancy.builder()
         .gmcId(GMC_ID_2)
         .hiddenForDesignatedBodyCode(ADMIN_DBC_1)
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .build();
+
+    logger = (Logger) LoggerFactory.getLogger(HiddenDiscrepancyService.class);
+    logAppender = new ListAppender<>();
+    logAppender.start();
+    logger.addAppender(logAppender);
+  }
+
+  @AfterEach
+  void tearDown() {
+    if (logger != null && logAppender != null) {
+      logger.detachAppender(logAppender);
+      logAppender.stop();
+    }
   }
 
   private static Stream<List<String>> invalidAdminDbcsSupplier() {
@@ -253,6 +282,7 @@ class HiddenDiscrepancyServiceTest {
         .adminDesignatedBodyCodes(List.of(ADMIN_DBC_1))
         .hiddenBy(HIDDEN_BY)
         .reason(REASON)
+        .hiddenUntilDate(HIDDEN_UNTIL)
         .doctors(List.of(doc(GMC_ID_1, ADMIN_DBC_1, null), doc(GMC_ID_2, ADMIN_DBC_1, null),
             doc(GMC_ID_3, ADMIN_DBC_1, null)))
         .build();
@@ -440,6 +470,34 @@ class HiddenDiscrepancyServiceTest {
         any(LocalDateTime.class), eq(ADMIN_DBC_2), eq(ADMIN_DBC_1), eq(ADMIN_DBC_2));
     verify(hideDiscrepancyMapper, times(1)).toEntity(eq(dto), eq(GMC_ID_2),
         any(LocalDateTime.class), eq(ADMIN_DBC_1), eq(ADMIN_DBC_1), eq(null));
+  }
+
+  @Test
+  void shouldRemoveExpiredHiddenDiscrepanciesWhenExpiredRecordsExist() {
+    LocalDate expectedDate = LocalDate.of(2026, Month.JUNE, 5);
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
+        .thenReturn(2L);
+
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(expectedDate);
+    assertThat(logAppender.list)
+        .anyMatch(event -> event.getFormattedMessage()
+            .contains("Removed 2 expired hidden discrepancies"));
+  }
+
+  @Test
+  void shouldNotFailWhenNoExpiredHiddenDiscrepanciesExist() {
+    LocalDate expectedDate = LocalDate.of(2026, Month.JUNE, 5);
+    when(hiddenDiscrepancyRepository.deleteByHiddenUntilDateLessThan(expectedDate))
+        .thenReturn(0L);
+
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyRepository).deleteByHiddenUntilDateLessThan(expectedDate);
+    assertThat(logAppender.list)
+        .anyMatch(event -> event.getFormattedMessage()
+            .contains("No expired hidden discrepancies found for removal"));
   }
 
   @Test
@@ -652,6 +710,7 @@ class HiddenDiscrepancyServiceTest {
               .hiddenDateTime(batchTime)
               .currentDesignatedBodyCode(currentDbc)
               .programmeOwnerDesignatedBodyCode(programmeDbc)
+              .hiddenUntilDate(dto.getHiddenUntilDate())
               .build();
         });
   }
@@ -691,6 +750,7 @@ class HiddenDiscrepancyServiceTest {
       assertEquals(dto.getAdminDesignatedBodyCodes().get(0), hd.getHiddenForDesignatedBodyCode());
       assertEquals(dto.getHiddenBy(), hd.getHiddenBy());
       assertEquals(dto.getReason(), hd.getReason());
+      assertEquals(dto.getHiddenUntilDate(), hd.getHiddenUntilDate());
       assertNotNull(hd.getHiddenDateTime());
 
       // Verify parent class fields are populated from DoctorInfoDto

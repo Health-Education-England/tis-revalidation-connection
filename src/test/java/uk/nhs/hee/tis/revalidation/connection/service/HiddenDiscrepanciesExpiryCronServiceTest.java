@@ -19,30 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package uk.nhs.hee.tis.revalidation.connection.dto;
+package uk.nhs.hee.tis.revalidation.connection.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.mockito.Mockito.verify;
 
-/**
- * A DTO class for displaying details of a hidden discrepancy.
- */
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class HiddenDiscrepancyDto {
-  private String id;
-  private String gmcId;
-  private String hiddenForDesignatedBodyCode;
-  private String hiddenBy;
-  private String reason;
-  private LocalDateTime hiddenDateTime;
-  private LocalDate hiddenUntilDate;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class HiddenDiscrepanciesExpiryCronServiceTest {
+
+  @Mock
+  private HiddenDiscrepancyService hiddenDiscrepancyService;
+
+  private HiddenDiscrepanciesExpiryCronService service;
+
+  @BeforeEach
+  void setUp() {
+    service = new HiddenDiscrepanciesExpiryCronService(hiddenDiscrepancyService);
+  }
+
+  @Test
+  void shouldCallRemoveExpiredHiddenDiscrepanciesOnce() {
+    service.removeExpiredHiddenDiscrepancies();
+
+    verify(hiddenDiscrepancyService).removeExpiredHiddenDiscrepancies();
+  }
 }

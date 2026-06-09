@@ -21,6 +21,7 @@
 
 package uk.nhs.hee.tis.revalidation.connection.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,17 +49,5 @@ public class HiddenDiscrepancy extends Discrepancy {
   private String hiddenBy;
   private String reason;
   private LocalDateTime hiddenDateTime;
-
-  /**
-   * Constructor to populate parent class fields.
-   */
-  public HiddenDiscrepancy(String id, String gmcId, String newDesignatedBodyCode,
-      String previousDesignatedBodyCode, String hiddenForDesignatedBodyCode, String hiddenBy,
-      String reason, LocalDateTime hiddenDateTime) {
-    super(id, gmcId, newDesignatedBodyCode, previousDesignatedBodyCode);
-    this.hiddenForDesignatedBodyCode = hiddenForDesignatedBodyCode;
-    this.hiddenBy = hiddenBy;
-    this.reason = reason;
-    this.hiddenDateTime = hiddenDateTime;
-  }
+  private LocalDate hiddenUntilDate;
 }

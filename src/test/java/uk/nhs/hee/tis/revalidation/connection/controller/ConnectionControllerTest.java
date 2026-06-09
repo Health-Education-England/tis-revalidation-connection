@@ -21,7 +21,6 @@
 
 package uk.nhs.hee.tis.revalidation.connection.controller;
 
-import static java.time.LocalDate.now;
 import static java.util.List.of;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +69,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.HideDiscrepancyResponseDto.Hid
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
-import uk.nhs.hee.tis.revalidation.connection.entity.HiddenDiscrepancy;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
 import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
@@ -140,6 +139,7 @@ class ConnectionControllerTest {
   private String updatedBy;
   private String hiddenBy;
   private String hiddenReason;
+  private LocalDate hiddenUntilDate;
 
   @BeforeEach
   void setup() {
@@ -154,7 +154,7 @@ class ConnectionControllerTest {
     previousDesignatedBodyCode = faker.number().digits(8);
     reason = "2";
     requestType = ConnectionRequestType.ADD;
-    requestTime = LocalDateTime.now().minusDays(-1);
+    requestTime = LocalDateTime.of(2026, Month.JUNE, 5, 0, 0, 0);
     responseCode = faker.number().digits(5);
 
     personId1 = (long) faker.hashCode();
@@ -165,8 +165,8 @@ class ConnectionControllerTest {
     firstName2 = faker.name().firstName();
     lastName1 = faker.name().lastName();
     lastName2 = faker.name().lastName();
-    submissionDate1 = now();
-    submissionDate2 = now();
+    submissionDate1 = LocalDate.of(2026, Month.JUNE, 5);
+    submissionDate2 = submissionDate1;
     designatedBody1 = faker.lorem().characters(8);
     designatedBody2 = faker.lorem().characters(8);
     programmeName1 = faker.lorem().characters(20);
@@ -178,6 +178,7 @@ class ConnectionControllerTest {
     updatedBy = faker.lorem().characters(8);
     hiddenBy = faker.lorem().characters(8);
     hiddenReason = faker.lorem().characters(8);
+    hiddenUntilDate = submissionDate1.plusDays(30);
   }
 
   @Test
@@ -512,18 +513,19 @@ class ConnectionControllerTest {
 
   @Test
   void shouldReturnHiddenDiscrepancies() throws Exception {
-    List<HiddenDiscrepancy> hiddenDiscrepancyList = List.of(
-        HiddenDiscrepancy.builder()
+    List<HiddenDiscrepancyDto> hiddenDiscrepancyDtoList = List.of(
+        HiddenDiscrepancyDto.builder()
             .id(gmcId + designatedBody1)
             .gmcId(gmcId)
             .hiddenForDesignatedBodyCode(designatedBody1)
             .hiddenBy(hiddenBy)
             .reason(hiddenReason)
+            .hiddenUntilDate(hiddenUntilDate)
             .build()
     );
 
     HiddenDiscrepancyInfoDto hiddenDiscrepancyInfoDto = HiddenDiscrepancyInfoDto.builder()
-        .hiddenDiscrepancies(hiddenDiscrepancyList)
+        .hiddenDiscrepancies(hiddenDiscrepancyDtoList)
         .gmcReferenceNumber(gmcId)
         .designatedBody(designatedBody1)
         .tcsDesignatedBody(designatedBody2)
@@ -565,7 +567,10 @@ class ConnectionControllerTest {
             jsonPath("$.hiddenDiscrepancies.[*].designatedBody").value(hasItem(designatedBody1)))
         .andExpect(
             jsonPath("$.hiddenDiscrepancies.[*].tcsDesignatedBody")
-                .value(hasItem(designatedBody2)));
+                .value(hasItem(designatedBody2)))
+        .andExpect(
+            jsonPath("$.hiddenDiscrepancies.[*].hiddenDiscrepancies.[*].hiddenUntilDate")
+                .value(hasItem(hiddenUntilDate.toString())));
   }
 
   @Test
@@ -591,10 +596,17 @@ class ConnectionControllerTest {
 
   @Test
   void shouldReturnHiddenDiscrepanciesByGmcId() throws Exception {
-    HiddenDiscrepancyDto discrepancy1 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
-        .hiddenForDesignatedBodyCode(designatedBody1).reason("reason1").build();
-    HiddenDiscrepancyDto discrepancy2 = HiddenDiscrepancyDto.builder().gmcId(gmcId)
-        .hiddenForDesignatedBodyCode(designatedBody2).reason("reason2").build();
+    HiddenDiscrepancyDto discrepancy1 = HiddenDiscrepancyDto.builder()
+        .gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody1)
+        .reason("reason1")
+        .hiddenUntilDate(hiddenUntilDate)
+        .build();
+    HiddenDiscrepancyDto discrepancy2 = HiddenDiscrepancyDto.builder()
+        .gmcId(gmcId)
+        .hiddenForDesignatedBodyCode(designatedBody2)
+        .reason("reason2")
+        .build();
     List<HiddenDiscrepancyDto> discrepancies = List.of(discrepancy1, discrepancy2);
     when(hiddenDiscrepancyService.findByGmcId(gmcId)).thenReturn(discrepancies);
 
@@ -604,6 +616,7 @@ class ConnectionControllerTest {
         .andExpect(jsonPath("$[0].gmcId").value(gmcId))
         .andExpect(jsonPath("$[0].reason").value("reason1"))
         .andExpect(jsonPath("$[0].hiddenForDesignatedBodyCode").value(designatedBody1))
+        .andExpect(jsonPath("$[0].hiddenUntilDate").value(hiddenUntilDate.toString()))
         .andExpect(jsonPath("$[1].gmcId").value(gmcId))
         .andExpect(jsonPath("$[1].reason").value("reason2"))
         .andExpect(jsonPath("$[1].hiddenForDesignatedBodyCode").value(designatedBody2));

@@ -34,6 +34,10 @@ app:
     essync:
       connectionlog.batchsize: ${ESSYNC_CONNECTION_LOG_BATCH_SIZE:5000}
       hiddendiscrepancy.batchsize: ${ESSYNC_HIDDEN_DISCREPANCY_BATCH_SIZE:5000}
+    cron:
+      hiddendiscrepancy.expiry:
+        expression: ${REVAL_HIDDENDISCREPANCY_EXPIRY_CRON:0 0 2 * * *}
+        lock: ${REVAL_HIDDENDISCREPANCY_EXPIRY_CRONLOCK:10m}
 
   rabbit:
     reval:
@@ -54,6 +58,11 @@ app:
     soapActionBase: ${GMC_SOAP_ACTION_BASE:https://webcache.gmc-uk.org/GMCWebServices/}
     gmcUsername: ${GMC_USER_NAME:guest}
     gmcPassword: ${GMC_PASSWORD:guest}
+
+  scheduling:
+    lock:
+      maxTimedefault: 15m
+      minTimedefault: 15s
 
 sentry:
   dsn: ${SENTRY_DSN:}

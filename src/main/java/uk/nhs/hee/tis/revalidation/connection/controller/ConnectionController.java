@@ -128,7 +128,7 @@ public class ConnectionController {
   public ResponseEntity<UpdateConnectionResponseDto> addDoctor(
       @RequestBody final UpdateConnectionDto addDoctorDto) {
     log.info("Request receive to ADD doctor connection: {}", addDoctorDto);
-    final var message = connectionService.addDoctor(addDoctorDto);
+    final var message = connectionService.bulkAddConnection(addDoctorDto);
     return ResponseEntity.ok(message);
   }
 
@@ -149,7 +149,7 @@ public class ConnectionController {
   public ResponseEntity<UpdateConnectionResponseDto> removeDoctor(
       @RequestBody final UpdateConnectionDto removeDoctorDto) {
     log.info("Request receive to REMOVE doctor connection: {}", removeDoctorDto);
-    final var message = connectionService.removeDoctor(removeDoctorDto);
+    final var message = connectionService.bulkRemoveConnection(removeDoctorDto);
     return ResponseEntity.ok(message);
   }
 

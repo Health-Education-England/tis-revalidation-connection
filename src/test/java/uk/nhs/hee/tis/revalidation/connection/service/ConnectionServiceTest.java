@@ -36,6 +36,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
+import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
 import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
 
 import com.github.javafaker.Faker;
@@ -101,6 +103,12 @@ class ConnectionServiceTest {
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
 
+  @Mock
+  private AddConnectionStrategy addConnectionStrategy;
+
+  @Mock
+  private RemoveConnectionStrategy removeConnectionStrategy;
+
   @Spy
   private ConnectionLogMapper connectionLogMapper = new ConnectionLogMapperImpl();
 
@@ -149,10 +157,10 @@ class ConnectionServiceTest {
     gmcClientId = faker.number().digits(8);
     newDesignatedBodyCode = faker.number().digits(8);
     previousDesignatedBodyCode = faker.number().digits(8);
-    requestTypeAdd = ConnectionRequestType.ADD;
+    requestTypeAdd = ADD;
     reasonAdd = "2";
     reasonMessageAdd = "Conflict of Interest";
-    requestTypeRemove = ConnectionRequestType.REMOVE;
+    requestTypeRemove = REMOVE;
     reasonRemove = "2";
     reasonMessageRemove = "Doctor has retired";
     requestTime = LocalDateTime.now().minusDays(-1);
@@ -162,6 +170,31 @@ class ConnectionServiceTest {
     setField(connectionService, "exchange", "esExchange");
     setField(connectionService, "routingKey", "routingKey");
     setField(connectionService, "esSyncDataRoutingKey", "esSyncRoutingKey");
+
+    // Setup strategy mocks to delegate to gmcClientService (lenient to avoid unnecessary stubbing)
+    org.mockito.Mockito.lenient()
+        .when(addConnectionStrategy.getOperationType()).thenReturn(ADD);
+    org.mockito.Mockito.lenient()
+        .when(addConnectionStrategy.execute(any(), any(), any(), any()))
+        .thenAnswer(invocation -> {
+          GmcClientService service = invocation.getArgument(0);
+          DoctorInfoDto doctor = invocation.getArgument(1);
+          String reason = invocation.getArgument(2);
+          String dbCode = invocation.getArgument(3);
+          return service.tryAddDoctor(doctor.getGmcId(), reason, dbCode);
+        });
+
+    org.mockito.Mockito.lenient()
+        .when(removeConnectionStrategy.getOperationType()).thenReturn(REMOVE);
+    org.mockito.Mockito.lenient()
+        .when(removeConnectionStrategy.execute(any(), any(), any(), any()))
+        .thenAnswer(invocation -> {
+          GmcClientService service = invocation.getArgument(0);
+          DoctorInfoDto doctor = invocation.getArgument(1);
+          String reason = invocation.getArgument(2);
+          String dbCode = invocation.getArgument(3);
+          return service.tryRemoveDoctor(doctor.getGmcId(), reason, doctor.getCurrentDesignatedBodyCode());
+        });
   }
 
   @Test
@@ -178,8 +211,10 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+    when(repository.save(any(ConnectionRequestLog.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
-    connectionService.addDoctor(addDoctorDto);
+    connectionService.bulkAddConnection(addDoctorDto);
 
     verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
@@ -217,7 +252,7 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
-    connectionService.removeDoctor(removeDoctorDto);
+    connectionService.bulkRemoveConnection(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
 
@@ -258,7 +293,7 @@ class ConnectionServiceTest {
         .thenReturn(gmcConnectionResponseDtoMock);
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
-    connectionService.removeDoctor(removeDoctorDto);
+    connectionService.bulkRemoveConnection(removeDoctorDto);
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
@@ -390,7 +425,7 @@ class ConnectionServiceTest {
         DOCTOR_ALREADY_ASSOCIATED.getCode());
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
 
-    connectionService.addDoctor(addDoctorDto);
+    connectionService.bulkAddConnection(addDoctorDto);
 
     verify(repository, times(2)).save(connectionRequestLogArgumentCaptor.capture());
     verify(rabbitTemplate, times(1)).convertAndSend(eq("esExchange"),

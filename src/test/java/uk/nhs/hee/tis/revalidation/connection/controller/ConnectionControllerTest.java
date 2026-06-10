@@ -187,7 +187,7 @@ class ConnectionControllerTest {
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
-    when(connectionService.addDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
+    when(connectionService.bulkAddConnection(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/add")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -202,7 +202,7 @@ class ConnectionControllerTest {
         .designatedBodyCode(designatedBodyCode).doctors(buildDoctorsList()).build();
 
     final var response = UpdateConnectionResponseDto.builder().message(message).build();
-    when(connectionService.removeDoctor(any(UpdateConnectionDto.class))).thenReturn(response);
+    when(connectionService.bulkRemoveConnection(any(UpdateConnectionDto.class))).thenReturn(response);
     this.mockMvc.perform(post("/api/connections/remove")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)

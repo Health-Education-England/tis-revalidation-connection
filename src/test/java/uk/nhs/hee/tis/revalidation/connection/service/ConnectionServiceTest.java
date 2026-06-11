@@ -76,6 +76,8 @@ class ConnectionServiceTest {
 
   private final Faker faker = new Faker();
   private static final String UPDATED_BY_GMC = "Updated by GMC";
+  private static final String CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE
+      = "Error: Unsupported connection request type provided.";
 
   @InjectMocks
   private ConnectionService connectionService;
@@ -101,6 +103,9 @@ class ConnectionServiceTest {
   @Mock
   private ApplicationEventPublisher applicationEventPublisher;
 
+  @Mock
+  private ConnectionLog connectionLogMock;
+
   @Spy
   private ConnectionLogMapper connectionLogMapper = new ConnectionLogMapperImpl();
 
@@ -118,7 +123,6 @@ class ConnectionServiceTest {
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
-  private String gmcRequestId;
   private String returnCode;
   private LocalDate submissionDate;
 
@@ -141,7 +145,6 @@ class ConnectionServiceTest {
     changeReason = faker.lorem().sentence();
     designatedBodyCode = faker.number().digits(8);
     gmcId = faker.number().digits(8);
-    gmcRequestId = faker.random().toString();
     returnCode = "0";
     submissionDate = LocalDate.now();
 
@@ -175,9 +178,12 @@ class ConnectionServiceTest {
 
     when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
         .thenReturn(gmcConnectionResponseDtoMock);
-    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+    when(repository.save(any(ConnectionLog.class))).thenReturn(connectionLogMock);
+    when(connectionLogMock.getGmcId()).thenReturn(gmcId);
+    when(connectionLogMock.getNewDesignatedBodyCode()).thenReturn(designatedBodyCode);
+    when(connectionLogMock.getRequestTime()).thenReturn(requestTime);
 
     connectionService.addDoctor(addDoctorDto);
 
@@ -214,8 +220,11 @@ class ConnectionServiceTest {
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
         .thenReturn(gmcConnectionResponseDtoMock);
-    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+    when(repository.save(any(ConnectionLog.class))).thenReturn(connectionLogMock);
+    when(connectionLogMock.getGmcId()).thenReturn(gmcId);
+    when(connectionLogMock.getNewDesignatedBodyCode()).thenReturn(designatedBodyCode);
+    when(connectionLogMock.getRequestTime()).thenReturn(requestTime);
 
     connectionService.removeDoctor(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
@@ -256,13 +265,9 @@ class ConnectionServiceTest {
 
     when(gmcClientService.tryRemoveDoctor(gmcId, changeReason, designatedBodyCode))
         .thenReturn(gmcConnectionResponseDtoMock);
-    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
+
     connectionService.removeDoctor(removeDoctorDto);
-    var message = ConnectionMessage.builder()
-        .gmcId(gmcId)
-        .designatedBodyCode(designatedBodyCode)
-        .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage, admin);
     verify(applicationEventPublisher, never())
         .publishEvent(any(ConnectionChangedApplicationEvent.class));
@@ -300,18 +305,14 @@ class ConnectionServiceTest {
 
   @Test
   void shouldRecordConnectionLog() {
+    when(repository.save(any(ConnectionLog.class))).thenReturn(connectionLogMock);
+    when(connectionLogMock.getGmcId()).thenReturn(gmcId);
+    when(connectionLogMock.getNewDesignatedBodyCode()).thenReturn(newDesignatedBodyCode);
+    when(connectionLogMock.getPreviousDesignatedBodyCode()).thenReturn(previousDesignatedBodyCode);
     ConnectionLogDto connectionLogDto = ConnectionLogDto.builder().gmcId(gmcId)
         .previousDesignatedBodyCode(previousDesignatedBodyCode)
         .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
         .build();
-    when(repository.save(any(ConnectionLog.class))).thenReturn(ConnectionLog.builder()
-        .id(connectionId)
-        .gmcId(gmcId)
-        .newDesignatedBodyCode(newDesignatedBodyCode)
-        .previousDesignatedBodyCode(previousDesignatedBodyCode)
-        .updatedBy(admin)
-        .requestTime(requestTime)
-        .build());
 
     connectionService.recordConnectionLog(connectionLogDto);
 
@@ -385,10 +386,13 @@ class ConnectionServiceTest {
     when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
         .thenReturn(gmcConnectionResponseDtoMock);
 
-    when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(
         DOCTOR_ALREADY_ASSOCIATED.getCode());
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
+    when(repository.save(any(ConnectionLog.class))).thenReturn(connectionLogMock);
+    when(connectionLogMock.getGmcId()).thenReturn(gmcId);
+    when(connectionLogMock.getNewDesignatedBodyCode()).thenReturn(designatedBodyCode);
+    when(connectionLogMock.getRequestTime()).thenReturn(requestTime);
 
     connectionService.addDoctor(addDoctorDto);
 
@@ -425,6 +429,34 @@ class ConnectionServiceTest {
     assertEquals(designatedBodyCode, connectionMessage1.getDesignatedBodyCode());
     assertEquals(submissionDate, connectionMessage1.getSubmissionDate());
     assertNotNull(connectionMessage1.getGmcLastUpdatedDateTime());
+  }
+
+  @Test
+  void shouldHandleNullRequestType() {
+    final var updateConnectionDto = UpdateConnectionDto.builder()
+        .changeReason(changeReason)
+        .designatedBodyCode(designatedBodyCode)
+        .doctors(List.of(DoctorInfoDto.builder()
+            .gmcId(gmcId)
+            .currentDesignatedBodyCode(designatedBodyCode)
+            .programmeOwnerDesignatedBodyCode(designatedBodyCode)
+            .build()))
+        .admin(admin)
+        .build();
+
+    when(gmcClientService.tryAddDoctor(gmcId, changeReason, designatedBodyCode))
+        .thenThrow(new IllegalArgumentException("Test validation error"));
+
+    final var response = connectionService.addDoctor(updateConnectionDto);
+
+    assertNotNull(response);
+    assertNotNull(response.getMessage());
+    assertEquals(CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE, response.getMessage());
+
+    // GMC client should have been called but repository save should not happen due to exception
+    verify(gmcClientService, times(1))
+        .tryAddDoctor(gmcId, changeReason, designatedBodyCode);
+    verify(repository, never()).save(any(ConnectionRequestLog.class));
   }
 
   private ConnectionRequestLog prepareConnectionAdd() {

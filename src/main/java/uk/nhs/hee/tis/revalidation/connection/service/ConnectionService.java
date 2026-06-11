@@ -165,8 +165,9 @@ public class ConnectionService {
 
   /**
    * Process a connection request (ADD or REMOVE) for one or more doctors.
-   * <p>
-   * Flow: 1. Extract request parameters (reason, designated body code) 2. For each doctor: delegate
+   *
+   * <p>Flow: 1. Extract request parameters (reason, designated body code)
+   * 2. For each doctor: delegate
    * to GMC API and handle the response 3. Check if any requests failed 4. Return appropriate
    * success or error message
    *
@@ -232,8 +233,8 @@ public class ConnectionService {
 
   /**
    * Handle GMC API response and perform necessary actions.
-   * <p>
-   * Workflow: 1. Extract response code from GMC
+   *
+   * <p>Workflow: 1. Extract response code from GMC
    * 2. If doctor already associated, save an additional "External" log entry
    * 3. Create and save connection request log to the database
    * 4. Publish connection changed event if successful or already associated
@@ -312,8 +313,8 @@ public class ConnectionService {
 
   /**
    * Route the response to either RabbitMQ for downstream processing or exception logs.
-   * <p>
-   * Logic: - SUCCESS: Send message to RabbitMQ to update doctor's designated body code -
+   *
+   * <p>Logic: - SUCCESS: Send message to RabbitMQ to update doctor's designated body code -
    * DOCTOR_ALREADY_ASSOCIATED: Send to RabbitMQ (external change) AND log exception - Any other
    * error: Log to exception logs only
    *

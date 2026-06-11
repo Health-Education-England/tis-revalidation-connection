@@ -27,6 +27,7 @@ import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestTyp
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,6 +92,8 @@ public class ConnectionService {
       = "Some connection requests have failed, please check the Failed GMC Updates list";
   private static final String CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE
       = "Error: Unsupported connection request type provided.";
+  private static final String CONNECTION_UPDATE_UNKNOWN_ERROR_MESSAGE
+      = "Error: Unknown Error Occurred";
 
 
   public ConnectionService(GmcClientService gmcClientService, ExceptionLogService exceptionService,
@@ -222,7 +225,8 @@ public class ConnectionService {
     } else if (responses.size() > 1) {
       responseMessage = CONNECTION_UPDATE_MULTIPLE_ERROR_MESSAGE;
     } else {
-      responseMessage = responses.get(0).get();
+      responseMessage = responses.get(0).isPresent() ? responses.get(0).get()
+          : CONNECTION_UPDATE_UNKNOWN_ERROR_MESSAGE;
     }
 
     return UpdateConnectionResponseDto.builder()
@@ -239,7 +243,7 @@ public class ConnectionService {
             .designatedBodyCode(connectionDto.getDesignatedBodyCode())
             .doctor(doctor)
             .connectionRequestType(requestType)
-            .requestDateTime(now())
+            .requestDateTime(now(ZoneId.systemDefault()))
             .admin(connectionDto.getAdmin())
             .build())
         .collect(Collectors.toList());

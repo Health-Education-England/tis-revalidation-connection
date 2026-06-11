@@ -25,8 +25,6 @@ import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.ADD;
 import static uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType.REMOVE;
-import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.DOCTOR_ALREADY_ASSOCIATED;
-import static uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode.SUCCESS;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import uk.nhs.hee.tis.revalidation.connection.context.ConnectionRequestContext;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionHistoryDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.ConnectionLogDto;
@@ -47,7 +46,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionDto;
 import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.AddConnectionReasonCode;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionLog;
-import uk.nhs.hee.tis.revalidation.connection.context.ConnectionRequestContext;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestLog;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.entity.GmcResponseCode;
@@ -342,15 +340,5 @@ public class ConnectionService {
         .gmcLastUpdatedDateTime(log.getRequestTime())
         .build();
     rabbitTemplate.convertAndSend(exchange, routingKey, message);
-  }
-
-  private boolean shouldPublishEvent(final String returnCode) {
-    return SUCCESS.getCode().equals(returnCode)
-        || DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode);
-  }
-
-  private boolean shouldSendToRabbit(final String returnCode) {
-    return SUCCESS.getCode().equals(returnCode)
-        || DOCTOR_ALREADY_ASSOCIATED.getCode().equals(returnCode);
   }
 }

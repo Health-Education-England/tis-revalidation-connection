@@ -76,10 +76,6 @@ class ConnectionServiceTest {
 
   private final Faker faker = new Faker();
   private static final String UPDATED_BY_GMC = "Updated by GMC";
-  private static final String CONNECTION_UPDATE_ALL_SUCCESSFUL_MESSAGE
-      = "All connection requests processed successfully.";
-  private static final String CONNECTION_UPDATE_MULTIPLE_ERROR_MESSAGE
-      = "Some connection requests have failed, please check the Failed GMC Updates list";
   private static final String CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE
       = "Error: Unsupported connection request type provided.";
 
@@ -127,7 +123,6 @@ class ConnectionServiceTest {
   private String changeReason;
   private String designatedBodyCode;
   private String gmcId;
-  private String gmcRequestId;
   private String returnCode;
   private LocalDate submissionDate;
 
@@ -150,7 +145,6 @@ class ConnectionServiceTest {
     changeReason = faker.lorem().sentence();
     designatedBodyCode = faker.number().digits(8);
     gmcId = faker.number().digits(8);
-    gmcRequestId = faker.random().toString();
     returnCode = "0";
     submissionDate = LocalDate.now();
 
@@ -274,10 +268,6 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
     connectionService.removeDoctor(removeDoctorDto);
-    var message = ConnectionMessage.builder()
-        .gmcId(gmcId)
-        .designatedBodyCode(designatedBodyCode)
-        .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage, admin);
     verify(applicationEventPublisher, never())
         .publishEvent(any(ConnectionChangedApplicationEvent.class));
@@ -315,14 +305,14 @@ class ConnectionServiceTest {
 
   @Test
   void shouldRecordConnectionLog() {
-    ConnectionLogDto connectionLogDto = ConnectionLogDto.builder().gmcId(gmcId)
-        .previousDesignatedBodyCode(previousDesignatedBodyCode)
-        .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
-        .build();
     when(repository.save(any(ConnectionLog.class))).thenReturn(connectionLogMock);
     when(connectionLogMock.getGmcId()).thenReturn(gmcId);
     when(connectionLogMock.getNewDesignatedBodyCode()).thenReturn(newDesignatedBodyCode);
     when(connectionLogMock.getPreviousDesignatedBodyCode()).thenReturn(previousDesignatedBodyCode);
+    ConnectionLogDto connectionLogDto = ConnectionLogDto.builder().gmcId(gmcId)
+        .previousDesignatedBodyCode(previousDesignatedBodyCode)
+        .newDesignatedBodyCode(newDesignatedBodyCode).eventDateTime(requestTime).updatedBy(admin)
+        .build();
 
     connectionService.recordConnectionLog(connectionLogDto);
 
@@ -461,7 +451,7 @@ class ConnectionServiceTest {
 
     assertNotNull(response);
     assertNotNull(response.getMessage());
-    assertTrue(response.getMessage().equals(CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE));
+    assertEquals(CONNECTION_UPDATE_UNSUPPORTED_ACTION_MESSAGE, response.getMessage());
 
     // GMC client should have been called but repository save should not happen due to exception
     verify(gmcClientService, times(1))

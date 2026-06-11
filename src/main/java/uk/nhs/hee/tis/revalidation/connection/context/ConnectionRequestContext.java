@@ -1,5 +1,6 @@
 package uk.nhs.hee.tis.revalidation.connection.context;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ public class ConnectionRequestContext {
   private DoctorInfoDto doctor;
   private ConnectionRequestType connectionRequestType;
   private String admin;
+  private LocalDateTime requestDateTime;
 }

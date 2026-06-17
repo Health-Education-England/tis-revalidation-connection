@@ -22,5 +22,5 @@ public class ConnectionLog implements Serializable {
   private String newDesignatedBodyCode;
   private String previousDesignatedBodyCode;
   private String updatedBy;
-  private LocalDateTime requestTime; // Maps to eventDateTime in Dto TODO migrate field name TIS21-7884
+  private LocalDateTime requestTime; // Maps to eventDateTime in Dto TODO migrate field name TIS21-7884, split to TIS21-7935
 }

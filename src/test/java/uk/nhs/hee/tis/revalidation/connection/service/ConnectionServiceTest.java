@@ -179,7 +179,7 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
 
-    connectionService.addDoctor(addDoctorDto);
+    connectionService.addDoctors(addDoctorDto);
 
     verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
@@ -217,7 +217,7 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
-    connectionService.removeDoctor(removeDoctorDto);
+    connectionService.removeDoctors(removeDoctorDto);
     var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
         .build();
 
@@ -258,7 +258,7 @@ class ConnectionServiceTest {
         .thenReturn(gmcConnectionResponseDtoMock);
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
-    connectionService.removeDoctor(removeDoctorDto);
+    connectionService.removeDoctors(removeDoctorDto);
     var message = ConnectionMessage.builder()
         .gmcId(gmcId)
         .designatedBodyCode(designatedBodyCode)
@@ -390,7 +390,7 @@ class ConnectionServiceTest {
         DOCTOR_ALREADY_ASSOCIATED.getCode());
     when(gmcConnectionResponseDtoMock.getSubmissionDate()).thenReturn(submissionDate);
 
-    connectionService.addDoctor(addDoctorDto);
+    connectionService.addDoctors(addDoctorDto);
 
     verify(repository, times(2)).save(connectionRequestLogArgumentCaptor.capture());
     verify(rabbitTemplate, times(1)).convertAndSend(eq("esExchange"),

@@ -137,7 +137,7 @@ class ConnectionServiceTest {
   private String admin;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     changeReason = faker.lorem().sentence();
     designatedBodyCode = faker.number().digits(8);
     gmcId = faker.number().digits(8);
@@ -218,8 +218,6 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
 
     connectionService.removeDoctors(removeDoctorDto);
-    var message = ConnectionMessage.builder().gmcId(gmcId).designatedBodyCode(designatedBodyCode)
-        .build();
 
     verify(rabbitTemplate, times(2)).convertAndSend(eq("esExchange"),
         eq("routingKey"), connectionMessageArgCaptor.capture());
@@ -259,10 +257,6 @@ class ConnectionServiceTest {
     when(gmcConnectionResponseDtoMock.getGmcRequestId()).thenReturn(gmcRequestId);
     when(gmcConnectionResponseDtoMock.getReturnCode()).thenReturn(returnCode);
     connectionService.removeDoctors(removeDoctorDto);
-    var message = ConnectionMessage.builder()
-        .gmcId(gmcId)
-        .designatedBodyCode(designatedBodyCode)
-        .build();
     verify(exceptionService, times(2)).createExceptionLog(gmcId, exceptionMessage, admin);
     verify(applicationEventPublisher, never())
         .publishEvent(any(ConnectionChangedApplicationEvent.class));

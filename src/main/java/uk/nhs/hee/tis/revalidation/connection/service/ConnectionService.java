@@ -180,8 +180,8 @@ public class ConnectionService {
       final UpdateConnectionDto bulkRequestDto,
       final ConnectionRequestType connectionRequestType) {
 
-    final var responseCodes = bulkRequestDto.getDoctors().stream().map(doctor -> {
-
+    final var responseCodes = bulkRequestDto.getDoctors().stream()
+        .map(doctor -> {
           ConnectionRequestLog connectionRequestLog = ConnectionRequestLog.builder()
               .id(UUID.randomUUID().toString())
               .gmcId(doctor.getGmcId())

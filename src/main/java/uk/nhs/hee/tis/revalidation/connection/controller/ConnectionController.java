@@ -57,7 +57,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.exception.ConnectionQueryException;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ElasticsearchQueryHelper;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
@@ -88,7 +87,6 @@ public class ConnectionController {
   private ConnectionService connectionService;
   private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   private ConnectedElasticSearchService connectedElasticSearchService;
-  private DisconnectedElasticSearchService disconnectedElasticSearchService;
   private HiddenDiscrepancyService hiddenDiscrepancyService;
 
   /**
@@ -97,18 +95,15 @@ public class ConnectionController {
    * @param connectionService                 the service for managing connections
    * @param discrepanciesElasticSearchService the service for retrieving doctor discrepancies
    * @param connectedElasticSearchService     the service for retrieving connected doctors
-   * @param disconnectedElasticSearchService  the service for retrieving disconnected doctors
    * @param hiddenDiscrepancyService          the service for managing hidden discrepancies
    */
   public ConnectionController(ConnectionService connectionService,
       DiscrepanciesElasticSearchService discrepanciesElasticSearchService,
       ConnectedElasticSearchService connectedElasticSearchService,
-      DisconnectedElasticSearchService disconnectedElasticSearchService,
       HiddenDiscrepancyService hiddenDiscrepancyService) {
     this.connectionService = connectionService;
     this.discrepanciesElasticSearchService = discrepanciesElasticSearchService;
     this.connectedElasticSearchService = connectedElasticSearchService;
-    this.disconnectedElasticSearchService = disconnectedElasticSearchService;
     this.hiddenDiscrepancyService = hiddenDiscrepancyService;
   }
 
@@ -320,42 +315,7 @@ public class ConnectionController {
   }
 
   /**
-   * GET  /disconnected : get disconnected summary.
-   *
-   * @param sortColumn  column to be sorted
-   * @param sortOrder   sorting order (ASC or DESC)
-   * @param pageNumber  page number of data to get
-   * @param dbcs        designated body code of the user
-   * @param searchQuery search query of data to get
-   * @return the ResponseEntity with status 200 (OK) and connected summary in body
-   */
-  @GetMapping("/disconnected")
-  public ResponseEntity<ConnectionSummaryDto> getSummaryDisconnected(
-      @RequestParam(name = SORT_COLUMN, defaultValue = GMC_REFERENCE_NUMBER,
-          required = false) final String sortColumn,
-      @RequestParam(name = SORT_ORDER, defaultValue = "desc",
-          required = false) final String sortOrder,
-      @RequestParam(name = PAGE_NUMBER, defaultValue = PAGE_NUMBER_VALUE,
-          required = false) final int pageNumber,
-      @RequestParam(name = DESIGNATED_BODY_CODES,
-          required = false) final List<String> dbcs,
-      @RequestParam(name = SEARCH_QUERY, defaultValue = EMPTY_STRING, required = false)
-      String searchQuery) {
-    final var direction = "asc".equalsIgnoreCase(sortOrder) ? ASC : DESC;
-    final var pageableAndSortable = of(pageNumber, 20,
-        by(direction, sortColumn));
-
-    searchQuery = getConverter(searchQuery).fromJson().decodeUrl().escapeForSql().toString();
-    var searchQueryES = getConverter(searchQuery).fromJson().decodeUrl().escapeForElasticSearch()
-        .toString().toLowerCase();
-    var connectionSummaryDto = disconnectedElasticSearchService
-        .searchForPage(searchQueryES, pageableAndSortable);
-
-    return ResponseEntity.ok(connectionSummaryDto);
-  }
-
-  /**
-   * GET  /discrepancies : get summary of doctors with hidden discrepancies.
+   * GET  /discrepancies/hidden : get summary of doctors with hidden discrepancies.
    *
    * @param sortColumn    column to be sorted
    * @param sortOrder     sorting order (ASC or DESC)

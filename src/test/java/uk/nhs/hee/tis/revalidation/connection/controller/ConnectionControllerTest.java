@@ -71,7 +71,6 @@ import uk.nhs.hee.tis.revalidation.connection.dto.UpdateConnectionResponseDto;
 import uk.nhs.hee.tis.revalidation.connection.entity.ConnectionRequestType;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.ConnectionService;
-import uk.nhs.hee.tis.revalidation.connection.service.DisconnectedElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.DiscrepanciesElasticSearchService;
 import uk.nhs.hee.tis.revalidation.connection.service.HiddenDiscrepancyService;
 
@@ -101,8 +100,6 @@ class ConnectionControllerTest {
   private DiscrepanciesElasticSearchService discrepanciesElasticSearchService;
   @MockBean
   private ConnectedElasticSearchService connectedElasticSearchService;
-  @MockBean
-  private DisconnectedElasticSearchService disconnectedElasticSearchService;
   @MockBean
   private HiddenDiscrepancyService hiddenDiscrepancyService;
 
@@ -354,58 +351,6 @@ class ConnectionControllerTest {
             .param(SEARCH_QUERY, EMPTY_STRING)
             .param(PROGRAMME_NAME, EMPTY_STRING)
             .param(DESIGNATED_BODY_CODES, String.format("%s,%s", designatedBody1, designatedBody2)))
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));
-  }
-
-  @Test
-  void shouldReturnDisconnectedTraineeDoctorsInformation() throws Exception {
-    final var connectionSummary = prepareConnectionSummary();
-    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(ASC, "gmcReferenceNumber"));
-    when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
-        .thenReturn(connectionSummary);
-    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
-    this.mockMvc.perform(get("/api/connections/disconnected")
-            .param(SORT_ORDER, "asc")
-            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-            .param(SEARCH_QUERY, EMPTY_STRING)
-            .param(PROGRAMME_NAME, EMPTY_STRING)
-            .param(DESIGNATED_BODY_CODES, dbcString))
-        .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())))
-        .andExpect(
-            jsonPath("$.connections.[*].gmcReferenceNumber").value(hasItem(gmcRef2)))
-        .andExpect(
-            jsonPath("$.connections.[*].doctorFirstName").value(hasItem(firstName2)))
-        .andExpect(
-            jsonPath("$.connections.[*].doctorLastName").value(hasItem(lastName2)))
-        .andExpect(
-            jsonPath("$.connections.[*].programmeName").value(hasItem(programmeName2)))
-        .andExpect(
-            jsonPath("$.connections.[*].designatedBody").value(hasItem(designatedBody2)))
-        .andExpect(
-            jsonPath("$.connections.[*].programmeOwner").value(hasItem(programmeOwner2)));
-  }
-
-  @Test
-  void shouldReturnDisconnectedTraineeDoctorsInformationDesc() throws Exception {
-    final var connectionSummary = prepareConnectionSummary();
-    final var pageableAndSortable = PageRequest.of(Integer.parseInt(PAGE_NUMBER_VALUE), 20,
-        by(DESC, "gmcReferenceNumber"));
-    when(disconnectedElasticSearchService.searchForPage(EMPTY_STRING, pageableAndSortable))
-        .thenReturn(connectionSummary);
-    final var dbcString = String.format("%s,%s", designatedBody1, designatedBody2);
-    this.mockMvc.perform(get("/api/connections/disconnected")
-            .param(SORT_ORDER, "desc")
-            .param(SORT_COLUMN, GMC_REFERENCE_NUMBER)
-            .param(PAGE_NUMBER, PAGE_NUMBER_VALUE)
-            .param(SEARCH_QUERY, EMPTY_STRING)
-            .param(PROGRAMME_NAME, EMPTY_STRING)
-            .param(DESIGNATED_BODY_CODES, dbcString))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.connections.[*].tcsPersonId").value(hasItem(personId1.intValue())));

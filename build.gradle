@@ -19,6 +19,8 @@ configurations {
   }
 }
 
+ext["lombok.version"] = "1.18.48"
+
 repositories {
   mavenCentral()
   maven {
